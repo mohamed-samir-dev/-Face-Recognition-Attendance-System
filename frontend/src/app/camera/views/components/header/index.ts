@@ -1,0 +1,1 @@
+export { default as CameraHeader } from './CameraHeader';
