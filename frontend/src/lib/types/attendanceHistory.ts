@@ -1,0 +1,31 @@
+export interface AttendanceHistoryRecord {
+  id: string;
+  userId: string;
+  employeeName: string;
+  date: string;
+  checkIn: string;
+  checkOut?: string;
+  status: 'Present' | 'Late' | 'OnLeave' | 'Absent';
+  workedHours?: number;
+  isLate: boolean;
+  lateMinutes?: number;
+  wasOnLeave: boolean;
+  leaveReason?: string;
+  department?: string;
+  jobTitle?: string;
+  email?: string;
+  phone?: string;
+  numericId?: number;
+  timestamp: Date;
+  supervisorId?: string;
+  supervisorName?: string;
+  accountType?: string;
+  salary?: number;
+  employeeStatus?: string;
+  checkInLocation?: string;
+  checkOutLocation?: string;
+  deviceInfo?: string;
+  ipAddress?: string;
+  ipLocation?: string;
+  ipLocation?: string;
+}
