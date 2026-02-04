@@ -1,0 +1,1 @@
+export { default as DepartmentsContent } from './DepartmentsContent';
