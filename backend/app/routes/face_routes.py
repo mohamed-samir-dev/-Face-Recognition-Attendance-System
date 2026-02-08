@@ -1,13 +1,45 @@
-from flask import request, jsonify
+"""Face recognition and authentication routes."""
+# pylint: disable=import-error
 import os
 import base64
 import tempfile
+from flask import request, jsonify
 import face_recognition
 from ..utils.image_utils import get_face_encoding_from_base64, create_cache_key
 from ..services.firebase_service import FirebaseService
 
 def init_face_routes(app, face_model, encoding_cache):
+    """Initialize face recognition routes."""
+    # pylint: disable=too-many-statements
     firebase_service = FirebaseService()
+    
+    def _compare_numeric_ids(firebase_id, expected_id):
+        """Compare numeric IDs with type conversion"""
+        if firebase_id is None or expected_id is None:
+            return False
+        if str(firebase_id).strip() == str(expected_id).strip():
+            return True
+        try:
+            return int(firebase_id) == int(expected_id)
+        except (ValueError, TypeError):
+            return False
+    
+    def _verify_firebase_user(recognized_name, expected_numeric_id):
+        """Verify user in Firebase and check numeric ID"""
+        users_ref = firebase_service.db.collection('users')
+        query = users_ref.where('name', '==', recognized_name)
+        docs = query.get()
+        
+        firebase_user = next((doc.to_dict() for doc in docs), None)
+        
+        if not firebase_user:
+            return None, 'User not found in Firebase'
+        
+        firebase_numeric_id = firebase_user.get('numericId')
+        if not _compare_numeric_ids(firebase_numeric_id, expected_numeric_id):
+            return None, 'Numeric ID mismatch'
+        
+        return firebase_user, 'Success'
     
     @app.route('/recognize', methods=['POST'])
     def recognize_face():
@@ -65,7 +97,7 @@ def init_face_routes(app, face_model, encoding_cache):
                             return jsonify({
                                 'success': False,
                                 'step_failed': 'numeric_id_verification',
-                                'message': f'Numeric ID mismatch'
+                                'message': 'Numeric ID mismatch'
                             })
                         
                         return jsonify({
@@ -75,7 +107,7 @@ def init_face_routes(app, face_model, encoding_cache):
                             'verified_numeric_id': firebase_numeric_id
                         })
                         
-                    except Exception as firebase_error:
+                    except (ValueError, AttributeError, KeyError) as firebase_error:
                         return jsonify({
                             'success': False,
                             'step_failed': 'firebase_error',
@@ -91,9 +123,11 @@ def init_face_routes(app, face_model, encoding_cache):
             finally:
                 os.unlink(temp_path)
         
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-
+        except (ValueError, KeyError):
+            return jsonify({'error': 'Invalid request data'}), 400
+        except (IOError, OSError):
+            return jsonify({'error': 'Image processing failed'}), 500
+    
     @app.route('/three-step-verify', methods=['POST'])
     def three_step_verify():
         """Two-step authentication endpoint"""
@@ -134,50 +168,25 @@ def init_face_routes(app, face_model, encoding_cache):
                 
                 if firebase_service.firebase_enabled:
                     try:
-                        users_ref = firebase_service.db.collection('users')
-                        query = users_ref.where('name', '==', recognized_name)
-                        docs = query.get()
-                        
-                        firebase_user = None
-                        for doc in docs:
-                            firebase_user = doc.to_dict()
-                            break
+                        firebase_user, error_msg = _verify_firebase_user(recognized_name, expected_numeric_id)
                         
                         if firebase_user:
                             firebase_numeric_id = firebase_user.get('numericId')
-                            
-                            if firebase_numeric_id is None or expected_numeric_id is None:
-                                numeric_id_match = False
-                            else:
-                                firebase_id_str = str(firebase_numeric_id).strip()
-                                expected_id_str = str(expected_numeric_id).strip()
-                                numeric_id_match = firebase_id_str == expected_id_str
-                                
-                                if not numeric_id_match:
-                                    try:
-                                        numeric_id_match = int(firebase_numeric_id) == int(expected_numeric_id)
-                                    except (ValueError, TypeError):
-                                        pass
-                            
                             verification_result['step2_numeric_id_verification'] = {
-                                'success': numeric_id_match,
+                                'success': True,
                                 'firebase_numeric_id': firebase_numeric_id,
                                 'expected_numeric_id': expected_numeric_id,
-                                'message': 'IDs match' if numeric_id_match else 'ID mismatch'
+                                'message': 'IDs match'
                             }
-                            
-                            if numeric_id_match:
-                                verification_result['overall_success'] = True
-                                verification_result['message'] = f'Authentication successful for {recognized_name}'
-                            else:
-                                verification_result['error'] = 'Numeric ID verification failed'
+                            verification_result['overall_success'] = True
+                            verification_result['message'] = f'Authentication successful for {recognized_name}'
                         else:
                             verification_result['step2_numeric_id_verification'] = {
                                 'success': False,
-                                'message': f'User not found in Firebase'
+                                'message': error_msg
                             }
-                            verification_result['error'] = 'User not found'
-                    except Exception as firebase_error:
+                            verification_result['error'] = error_msg
+                    except (ValueError, AttributeError, KeyError) as firebase_error:
                         verification_result['step2_numeric_id_verification'] = {
                             'success': False,
                             'message': f'Firebase error: {str(firebase_error)}'
@@ -195,14 +204,16 @@ def init_face_routes(app, face_model, encoding_cache):
             finally:
                 os.unlink(temp_path)
         
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+        except (ValueError, KeyError):
+            return jsonify({'error': 'Invalid request data'}), 400
+        except (IOError, OSError):
+            return jsonify({'error': 'Image processing failed'}), 500
     
     @app.route('/compare', methods=['POST', 'OPTIONS'])
     def compare_faces():
+        """Legacy compare endpoint - kept for backward compatibility"""
         if request.method == 'OPTIONS':
             return '', 200
-        """Legacy compare endpoint - kept for backward compatibility"""
         try:
             data = request.get_json()
             
@@ -236,16 +247,19 @@ def init_face_routes(app, face_model, encoding_cache):
                 'message': 'Faces match' if match else 'Faces do not match'
             })
             
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-
+        except (ValueError, KeyError):
+            return jsonify({'error': 'Invalid request data'}), 400
+        except (IOError, OSError):
+            return jsonify({'error': 'Processing failed'}), 500
+    
     @app.route('/retrain', methods=['POST'])
     def retrain_model():
+        """Retrain model endpoint"""
         try:
             face_model.reload()
             return jsonify({'success': True, 'message': 'Model reloaded from Firebase'})
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+        except (ValueError, AttributeError):
+            return jsonify({'error': 'Model reload failed'}), 500
 
     @app.route('/add-employee', methods=['POST'])
     def add_employee():
@@ -266,8 +280,10 @@ def init_face_routes(app, face_model, encoding_cache):
             else:
                 return jsonify({'error': message}), 400
                 
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+        except (ValueError, KeyError):
+            return jsonify({'error': 'Invalid employee data'}), 400
+        except (IOError, OSError):
+            return jsonify({'error': 'Failed to add employee'}), 500
 
     @app.route('/clear-cache', methods=['POST'])
     def clear_cache():

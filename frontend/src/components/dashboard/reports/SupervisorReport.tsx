@@ -135,213 +135,234 @@ export default function SupervisorReport() {
     XLSX.writeFile(wb, `Supervisor_Report_${user?.name}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl text-black font-bold">My Attendance Report</h1>
-        <button
-          onClick={exportToExcel}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          <Download className="w-4 h-4" />
-          Export to Excel
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Attendance Report</h1>
+            <p className="text-sm text-gray-500 mt-1">Supervisor monthly overview</p>
+          </div>
+          <button
+            onClick={exportToExcel}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Export Excel
+          </button>
+        </div>
 
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md mb-6 overflow-x-auto border border-blue-200">
-        <div className="px-6 py-4 border-b border-blue-200 bg-white/50">
-          <h2 className="text-lg font-bold text-blue-900">Supervisor Information</h2>
+        {/* Supervisor Info */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Supervisor Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Name</p>
+              <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Employee ID</p>
+              <p className="text-sm font-semibold text-gray-900">{user?.numericId}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Email</p>
+              <p className="text-sm font-semibold text-gray-900 truncate">{user?.email || 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Phone</p>
+              <p className="text-sm font-semibold text-gray-900">{user?.phone || 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Department</p>
+              <p className="text-sm font-semibold text-gray-900">{user?.department || user?.Department || 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Job Title</p>
+              <p className="text-sm font-semibold text-gray-900">{user?.jobTitle || 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Account Type</p>
+              <p className="text-sm font-semibold text-gray-900">{user?.accountType || 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Status</p>
+              <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                user?.status === 'Active' ? 'bg-green-100 text-green-800' :
+                user?.status === 'OnLeave' ? 'bg-blue-100 text-blue-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {user?.status || 'N/A'}
+              </span>
+            </div>
+          </div>
         </div>
-        <table className="w-full">
-          <tbody>
-            <tr className="border-b border-blue-100 bg-white/30">
-              <td className="px-6 py-3 text-sm font-semibold text-blue-900 w-1/4">Supervisor Name</td>
-              <td className="px-6 py-3 text-sm font-medium text-gray-900 w-1/4">{user?.name}</td>
-              <td className="px-6 py-3 text-sm font-semibold text-blue-900 w-1/4">Employee ID</td>
-              <td className="px-6 py-3 text-sm font-medium text-gray-900 w-1/4">{user?.numericId}</td>
-            </tr>
-            <tr className="border-b border-blue-100 bg-white/50">
-              <td className="px-6 py-3 text-sm font-semibold text-blue-900">Email</td>
-              <td className="px-6 py-3 text-sm font-medium text-gray-900">{user?.email || 'N/A'}</td>
-              <td className="px-6 py-3 text-sm font-semibold text-blue-900">Phone</td>
-              <td className="px-6 py-3 text-sm font-medium text-gray-900">{user?.phone || 'N/A'}</td>
-            </tr>
-            <tr className="border-b border-blue-100 bg-white/30">
-              <td className="px-6 py-3 text-sm font-semibold text-blue-900">Department</td>
-              <td className="px-6 py-3 text-sm font-medium text-gray-900">{user?.department || user?.Department || 'N/A'}</td>
-              <td className="px-6 py-3 text-sm font-semibold text-blue-900">Job Title</td>
-              <td className="px-6 py-3 text-sm font-medium text-gray-900">{user?.jobTitle || 'N/A'}</td>
-            </tr>
-            <tr className="border-b border-blue-100 bg-white/50">
-              <td className="px-6 py-3 text-sm font-semibold text-blue-900">Account Type</td>
-              <td className="px-6 py-3 text-sm font-medium text-gray-900">{user?.accountType || 'N/A'}</td>
-              <td className="px-6 py-3 text-sm font-semibold text-blue-900">Status</td>
-              <td className="px-6 py-3 text-sm font-medium text-gray-900">
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                  user?.status === 'Active' ? 'bg-green-100 text-green-800' :
-                  user?.status === 'OnLeave' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {user?.status || 'N/A'}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
 
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg shadow-md mb-6 overflow-x-auto border border-green-200">
-        <div className="px-6 py-4 border-b border-green-200 bg-white/50">
-          <h2 className="text-lg font-bold text-green-900">Monthly Attendance Summary</h2>
+        {/* Summary Stats */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Summary</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <p className="text-2xl font-bold text-blue-600">{formatHoursForCard(totalHours)}</p>
+              <p className="text-xs text-gray-600 mt-1">Total Hours</p>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <p className="text-2xl font-bold text-green-600">{formatHoursForCard(monthlyOvertime)}</p>
+              <p className="text-xs text-gray-600 mt-1">Overtime</p>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <p className="text-2xl font-bold text-purple-600">{((totalHours / 160) * 100).toFixed(1)}%</p>
+              <p className="text-xs text-gray-600 mt-1">Progress</p>
+            </div>
+            <div className="text-center p-4 bg-yellow-50 rounded-lg">
+              <p className="text-2xl font-bold text-yellow-600">{lateArrivals}</p>
+              <p className="text-xs text-gray-600 mt-1">Late Days</p>
+            </div>
+            <div className="text-center p-4 bg-red-50 rounded-lg">
+              <p className="text-2xl font-bold text-red-600">{absences}</p>
+              <p className="text-xs text-gray-600 mt-1">Absences</p>
+            </div>
+            <div className="text-center p-4 bg-indigo-50 rounded-lg">
+              <p className="text-2xl font-bold text-indigo-600">{records.length}</p>
+              <p className="text-xs text-gray-600 mt-1">Days Worked</p>
+            </div>
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <p className="text-2xl font-bold text-orange-600">{leaveDays}</p>
+              <p className="text-xs text-gray-600 mt-1">Leave Taken</p>
+            </div>
+            <div className="text-center p-4 bg-teal-50 rounded-lg">
+              <p className="text-2xl font-bold text-teal-600">{vacationDays - leaveDays}</p>
+              <p className="text-xs text-gray-600 mt-1">Leave Left</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <p className="text-2xl font-bold text-gray-600">{formatHoursForCard(Math.max(0, totalHours - monthlyOvertime))}</p>
+              <p className="text-xs text-gray-600 mt-1">Regular Hours</p>
+            </div>
+            <div className="text-center p-4 bg-cyan-50 rounded-lg">
+              <p className="text-2xl font-bold text-cyan-600">{vacationDays}</p>
+              <p className="text-xs text-gray-600 mt-1">Total Leave</p>
+            </div>
+            <div className="text-center p-4 bg-pink-50 rounded-lg">
+              <p className="text-2xl font-bold text-pink-600">160h</p>
+              <p className="text-xs text-gray-600 mt-1">Expected</p>
+            </div>
+            <div className="text-center p-4 bg-emerald-50 rounded-lg">
+              <p className="text-2xl font-bold text-emerald-600">{calculateAttendanceScore()}%</p>
+              <p className="text-xs text-gray-600 mt-1">Score</p>
+            </div>
+          </div>
         </div>
-        <table className="w-full">
-          <tbody>
-            <tr className="border-b border-green-100 bg-white/30">
-              <td className="px-6 py-3 text-sm font-semibold text-green-900 w-1/4">Total Hours Worked</td>
-              <td className="px-6 py-3 text-sm font-bold text-blue-700 w-1/4">{formatHoursForCard(totalHours)}</td>
-              <td className="px-6 py-3 text-sm font-semibold text-green-900 w-1/4">Overtime Hours</td>
-              <td className="px-6 py-3 text-sm font-bold text-green-700 w-1/4">{formatHoursForCard(monthlyOvertime)}</td>
-            </tr>
-            <tr className="border-b border-green-100 bg-white/50">
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Regular Hours</td>
-              <td className="px-6 py-3 text-sm font-bold text-gray-700">{formatHoursForCard(Math.max(0, totalHours - monthlyOvertime))}</td>
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Expected Hours (160h)</td>
-              <td className="px-6 py-3 text-sm font-bold text-purple-700">{((totalHours / 160) * 100).toFixed(1)}%</td>
-            </tr>
-            <tr className="border-b border-green-100 bg-white/30">
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Late Arrivals</td>
-              <td className="px-6 py-3 text-sm font-bold text-yellow-700">{lateArrivals} days</td>
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Monthly Absences</td>
-              <td className="px-6 py-3 text-sm font-bold text-red-700">{absences} days</td>
-            </tr>
-            <tr className="border-b border-green-100 bg-white/50">
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Total Days Worked</td>
-              <td className="px-6 py-3 text-sm font-bold text-blue-700">{records.length} days</td>
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Leave Days Taken</td>
-              <td className="px-6 py-3 text-sm font-bold text-orange-700">{leaveDays} days</td>
-            </tr>
-            <tr className="border-b border-green-100 bg-white/30">
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Leave Days Remaining</td>
-              <td className="px-6 py-3 text-sm font-bold text-green-700">{vacationDays - leaveDays} days</td>
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Total Leave Allowance</td>
-              <td className="px-6 py-3 text-sm font-bold text-gray-700">{vacationDays} days</td>
-            </tr>
-            <tr className="border-b border-green-100 bg-white/50">
-              <td className="px-6 py-3 text-sm font-semibold text-green-900">Attendance Score</td>
-              <td className="px-6 py-3 text-sm font-bold" colSpan={3}>
-                <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                  (() => {
-                    const score = calculateAttendanceScore();
-                    return score >= 90 ? 'bg-green-200 text-green-900' : score >= 75 ? 'bg-yellow-200 text-yellow-900' : 'bg-red-200 text-red-900';
-                  })()
-                }`}>
-                  {calculateAttendanceScore()}%
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
 
-      <div className="bg-white rounded-lg shadow-md border border-gray-200">
-        <div className="px-6 py-4 border-b bg-gradient-to-r from-purple-50 to-pink-50">
-          <h2 className="text-lg font-bold text-purple-900">Detailed Attendance History</h2>
+        {/* Attendance History */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Attendance History</h2>
+            <p className="text-xs text-gray-500 mt-1">{records.length} records</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Day</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Check In</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Check Out</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Late</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Hours</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Location</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">IP Location</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Device</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">IP Address</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {records.map((record) => {
+                  const dayName = new Date(record.date).toLocaleDateString('en-US', { weekday: 'short' });
+                  return (
+                    <tr key={record.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900">{record.date}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{dayName}</td>
+                      <td className="px-4 py-3 text-sm text-green-600 font-medium">{record.checkIn || 'N/A'}</td>
+                      <td className="px-4 py-3 text-sm text-red-600 font-medium">{record.checkOut || 'N/A'}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          record.status === 'Present' ? 'bg-green-100 text-green-700' :
+                          record.status === 'Late' ? 'bg-yellow-100 text-yellow-700' :
+                          record.status === 'OnLeave' ? 'bg-blue-100 text-blue-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {record.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-orange-600 font-medium">{record.lateMinutes || 0} min</td>
+                      <td className="px-4 py-3 text-sm text-blue-600 font-medium">{record.workedHours?.toFixed(2) || '0.00'}h</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 max-w-[200px] truncate" title={record.checkInLocation}>{record.checkInLocation || 'N/A'}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 max-w-[150px] truncate" title={record.ipLocation}>{record.ipLocation || 'N/A'}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 max-w-[180px] truncate" title={record.deviceInfo}>{record.deviceInfo || 'N/A'}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 font-mono">{record.ipAddress || 'N/A'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div className="max-h-96 overflow-y-auto overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300 sticky top-0">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Day</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Check In</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Check Out</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Late (min)</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Hours Worked</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Check-In Location</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">IP Location</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Device Info</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">IP Address</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {records.map((record) => {
-                const dayName = new Date(record.date).toLocaleDateString('en-US', { weekday: 'short' });
-                return (
-                  <tr key={record.id} className="hover:bg-blue-50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900">{record.date}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-700">{dayName}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-green-700">{record.checkIn || 'N/A'}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-red-700">{record.checkOut || 'N/A'}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        record.status === 'Present' ? 'bg-green-100 text-green-800' :
-                        record.status === 'Late' ? 'bg-yellow-100 text-yellow-800' :
-                        record.status === 'OnLeave' ? 'bg-blue-100 text-blue-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {record.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold text-orange-700">{record.lateMinutes || 0}</td>
-                    <td className="px-4 py-3 text-sm font-bold text-blue-700">{record.workedHours?.toFixed(2) || '0.00'} hrs</td>
-                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate" title={record.checkInLocation}>{record.checkInLocation || 'N/A'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate" title={record.ipLocation}>{record.ipLocation || 'N/A'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate" title={record.deviceInfo}>{record.deviceInfo || 'N/A'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{record.ipAddress || 'N/A'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mt-6">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Team Members Reports</h2>
-          <p className="text-sm text-gray-500 mt-1">View attendance reports for your team members</p>
-        </div>
-        <div className="max-h-96 overflow-y-auto divide-y divide-gray-100">
-          {teamMembers.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No team members found</p>
-          ) : (
-            teamMembers.map((member) => (
-              <div key={member.id} className="px-6 py-4 hover:bg-gray-50 transition-colors flex items-center justify-between group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
-                    {member.name?.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{member.name}</h3>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <p className="text-sm text-gray-600">{member.jobTitle || 'Employee'}</p>
-                      <span className="text-gray-300">•</span>
-                      <p className="text-sm text-gray-500">ID: {member.numericId}</p>
+        {/* Team Members */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Team Members</h2>
+            <p className="text-xs text-gray-500 mt-1">View reports for your team</p>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {teamMembers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <FileText className="w-12 h-12 text-gray-300 mb-3" />
+                <p className="text-gray-500 font-medium">No team members found</p>
+              </div>
+            ) : (
+              teamMembers.map((member) => (
+                <div key={member.id} className="px-6 py-4 hover:bg-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                      {member.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{member.name}</h3>
+                      <p className="text-xs text-gray-500">{member.jobTitle || 'Employee'} • ID: {member.numericId}</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedEmployee(member)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <FileText className="w-4 h-4" />
+                      View Report
+                    </button>
+                    <button
+                      onClick={() => setTeamMembers(prev => prev.filter(m => m.id !== member.id))}
+                      className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setSelectedEmployee(member)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <FileText className="w-4 h-4" />
-                  View Report
-                </button>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
-      </div>
 
-      {selectedEmployee && (
-        <EmployeeReportModal
-          employee={selectedEmployee}
-          onClose={() => setSelectedEmployee(null)}
-        />
-      )}
+        {selectedEmployee && (
+          <EmployeeReportModal
+            employee={selectedEmployee}
+            onClose={() => setSelectedEmployee(null)}
+          />
+        )}
+      </div>
     </div>
   );
 }

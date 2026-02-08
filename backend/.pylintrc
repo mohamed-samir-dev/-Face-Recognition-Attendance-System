@@ -1,0 +1,5 @@
+[MASTER]
+extension-pkg-whitelist=numpy,cv2,face_recognition
+
+[MESSAGES CONTROL]
+disable=import-error

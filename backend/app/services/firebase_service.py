@@ -1,11 +1,23 @@
-import firebase_admin
-from firebase_admin import credentials, firestore, storage
+import firebase_admin  # pylint: disable=import-error
+from firebase_admin import credentials, firestore  # pylint: disable=import-error,unused-import  # cspell:ignore firestore
 import base64
-import face_recognition
-import numpy as np
+import face_recognition  # pylint: disable=import-error
+import numpy as np  # pylint: disable=import-error
 from PIL import Image
 import io
 from datetime import datetime
+
+
+class FirebaseError(Exception):
+    """Custom exception for Firebase-related errors"""
+
+
+class FirebaseInitializationError(FirebaseError):
+    """Exception raised when Firebase initialization fails"""
+
+
+class FirebaseOperationError(FirebaseError):
+    """Exception raised when Firebase operations fail"""
 
 class FirebaseService:
     def __init__(self):
@@ -23,12 +35,12 @@ class FirebaseService:
                         'projectId': 'user-login-data-7d185'
                     })
                 else:
-                    raise Exception("Firebase service account key file not found")
+                    raise FirebaseInitializationError("Firebase service account key file not found")
             
             self.db = firestore.client()
             self.firebase_enabled = True
             print("Firebase initialized successfully")
-        except Exception as e:
+        except (FirebaseError, ValueError, OSError) as e:
             print(f"Firebase initialization failed: {e}")
             print("Running in offline mode - Firebase features disabled")
             self.firebase_enabled = False
@@ -49,7 +61,7 @@ class FirebaseService:
                     data = doc.to_dict()
                     return data.get('image')  # Base64 encoded image
             return None
-        except Exception as e:
+        except (ValueError, KeyError, OSError) as e:
             print(f"Error fetching employee image: {e}")
             return None
     
@@ -70,7 +82,7 @@ class FirebaseService:
                     if encodings_data:
                         return [np.array(enc) for enc in encodings_data]
             return None
-        except Exception as e:
+        except (ValueError, KeyError, TypeError) as e:
             print(f"Error fetching employee encodings: {e}")
             return None
     
@@ -91,7 +103,7 @@ class FirebaseService:
                     doc.reference.update({'face_encodings': encodings_data})
                     return True
             return False
-        except Exception as e:
+        except (ValueError, KeyError, TypeError) as e:
             print(f"Error storing employee encodings: {e}")
             return False
     
@@ -126,10 +138,9 @@ class FirebaseService:
             
             if distance < 0.6:  # More flexible threshold
                 return True, f"Firebase comparison passed (distance: {distance:.3f})"
-            else:
-                return True, f"Firebase comparison inconclusive but allowing (distance: {distance:.3f})"
+            return True, f"Firebase comparison inconclusive but allowing (distance: {distance:.3f})"
                 
-        except Exception as e:
+        except (ValueError, KeyError, OSError, TypeError) as e:
             return True, f"Firebase comparison error but allowing: {e}"
     
     def verify_account_owner(self, captured_image_encoding, employee_name):
@@ -147,8 +158,7 @@ class FirebaseService:
             if min_distance < 0.5:  # Flexible threshold
                 confidence = 1 - min_distance
                 return True, f"Firebase verification passed: {employee_name} (confidence: {confidence:.0%})"
-            else:
-                return True, f"Firebase verification inconclusive but allowing (model trained on Firebase photos)"
+            return True, "Firebase verification inconclusive but allowing (model trained on Firebase photos)"
         
         # Fallback to single image verification
         firebase_image_data = self.get_employee_image(employee_name)
@@ -178,10 +188,9 @@ class FirebaseService:
             if distance < 0.5:
                 confidence = 1 - distance
                 return True, f"Firebase verification passed: {employee_name} (confidence: {confidence:.0%})"
-            else:
-                return True, f"Firebase verification inconclusive but allowing (model trained on Firebase photos)"
+            return True, "Firebase verification inconclusive but allowing (model trained on Firebase photos)"
                 
-        except Exception as e:
+        except (ValueError, KeyError, OSError, TypeError) as e:
             return True, f"Firebase verification error but allowing: {e}"
     
     def check_daily_attendance(self, employee_id):
@@ -199,7 +208,7 @@ class FirebaseService:
                 return True, "Attendance already taken today"
             return False, "No attendance found for today"
             
-        except Exception as e:
+        except (ValueError, KeyError, OSError, TypeError) as e:
             return False, f"Error checking attendance: {e}"
     
     def record_attendance(self, employee_id, employee_name):
@@ -223,5 +232,5 @@ class FirebaseService:
             self.db.collection('attendance').add(attendance_data)
             return True, "Attendance recorded successfully"
             
-        except Exception as e:
+        except (ValueError, KeyError, OSError, TypeError) as e:
             return False, f"Error recording attendance: {e}"

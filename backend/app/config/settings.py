@@ -14,9 +14,6 @@ class Config:
     # Face recognition settings
     FACE_RECOGNITION_THRESHOLD = 0.5
     
-    # Dataset path
-    AI_DATASET_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'ai', 'image_dataset')
-    
     # Firebase settings
     FIREBASE_PROJECT_ID = 'user-login-data-7d185'
     FIREBASE_STORAGE_BUCKET = 'user-login-data-7d185-firebase-adminsdk-fbsvc-5e534dfaf3.json'

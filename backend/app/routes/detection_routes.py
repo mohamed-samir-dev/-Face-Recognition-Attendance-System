@@ -1,15 +1,20 @@
+"""Face detection routes for real-time face validation."""
+# pylint: disable=import-error
+import base64
+import io
+
 import cv2
 import numpy as np
 from flask import request, jsonify
-import base64
-import io
 from PIL import Image
 
 def init_detection_routes(app):
+    """Initialize face detection routes."""
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml') # type: ignore
 
     @app.route('/detect_face', methods=['POST'])
     def detect_face():
+        """Detect faces in uploaded image and validate single face presence."""
         try:
             data = request.get_json()
 
@@ -53,5 +58,7 @@ def init_detection_routes(app):
                     'face_count': 1
                 })
         
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+        except (ValueError, KeyError, base64.binascii.Error):
+            return jsonify({'error': 'Invalid image data'}), 400
+        except (IOError, OSError):
+            return jsonify({'error': 'Image processing failed'}), 500

@@ -1,3 +1,4 @@
+"""Image processing utilities for face recognition."""
 import base64
 import face_recognition
 import numpy as np
