@@ -24,10 +24,10 @@ export default function MonthDetailsModal({ isOpen, onClose, monthData }: MonthD
   const absentPercentage = ((monthData.absentDays / monthData.totalDays) * 100).toFixed(1);
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-9999 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-emerald-600 text-white p-6 rounded-t-2xl">
+        <div className="sticky top-0 bg-linear-to-r from-blue-600 to-emerald-600 text-white p-6 rounded-t-2xl">
           <div className="flex justify-between items-start">
             <div>
               <h3 className="text-2xl font-bold mb-1">{monthData.month}</h3>
@@ -42,7 +42,7 @@ export default function MonthDetailsModal({ isOpen, onClose, monthData }: MonthD
         <div className="p-6 space-y-6">
           {/* Main Stats */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-blue-600 p-2 rounded-lg">
                   <TrendingUp className="text-white" size={20} />
@@ -53,7 +53,7 @@ export default function MonthDetailsModal({ isOpen, onClose, monthData }: MonthD
               <div className="mt-2 text-xs text-blue-600">{monthData.presentDays} of {monthData.totalDays} days</div>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-5 border border-emerald-200">
+            <div className="bg-gralineardient-to-br from-emerald-50 to-emerald-100 rounded-xl p-5 border border-emerald-200">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-emerald-600 p-2 rounded-lg">
                   <CheckCircle2 className="text-white" size={20} />
@@ -146,7 +146,7 @@ export default function MonthDetailsModal({ isOpen, onClose, monthData }: MonthD
           </div>
 
           {/* Summary Card */}
-          <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200">
+          <div className="bg-linear-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200">
             <h4 className="font-semibold text-gray-900 mb-2">Summary</h4>
             <p className="text-sm text-gray-700 leading-relaxed">
               In <span className="font-semibold">{monthData.month}</span>, you attended <span className="font-semibold text-green-700">{monthData.presentDays} days</span> out of <span className="font-semibold">{monthData.totalDays} total days</span>, achieving an attendance rate of <span className="font-semibold text-blue-700">{monthData.attendanceRate}%</span>. You were on time for <span className="font-semibold text-emerald-700">{onTimeDays} days</span> and late for <span className="font-semibold text-orange-700">{monthData.lateDays} days</span>.
@@ -158,7 +158,7 @@ export default function MonthDetailsModal({ isOpen, onClose, monthData }: MonthD
         <div className="sticky bottom-0 bg-gray-50 p-4 rounded-b-2xl border-t">
           <button
             onClick={onClose}
-            className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl"
+            className="w-full bg-linear-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl"
           >
             Close
           </button>
