@@ -1,36 +1,57 @@
-export default function LineChart() {
+import { LineChart as RechartsLine, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+interface LineChartProps {
+  data: { day: number; status: number }[];
+}
+
+export default function LineChart({ data }: LineChartProps) {
+  const chartData = data.length > 0 ? data : Array.from({ length: 30 }, (_, i) => ({ day: i + 1, status: 0 }));
+  
   return (
-    <div className="h-40 rounded-2xl p-4">
-      <div className="relative h-full">
-        <svg className="w-full h-full" viewBox="0 0 300 120">
+    <div className="h-64 rounded-2xl p-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <RechartsLine data={chartData}>
           <defs>
-            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#3B82F6" />
               <stop offset="100%" stopColor="#10B981" />
             </linearGradient>
           </defs>
-          <polyline
-            fill="none"
-            stroke="url(#lineGradient)"
-            strokeWidth="3"
-            points="20,100 70,85 120,70 170,60 220,45 270,30"
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis 
+            dataKey="day" 
+            stroke="#888" 
+            fontSize={12}
+            tickFormatter={(value) => value % 5 === 0 ? value : ''}
           />
-          <circle cx="20" cy="100" r="4" fill="#3B82F6" />
-          <circle cx="70" cy="85" r="4" fill="#3B82F6" />
-          <circle cx="120" cy="70" r="4" fill="#059669" />
-          <circle cx="170" cy="60" r="4" fill="#059669" />
-          <circle cx="220" cy="45" r="4" fill="#10B981" />
-          <circle cx="270" cy="30" r="4" fill="#10B981" />
-        </svg>
-        <div className="flex justify-between mt-2 text-xs text-[#555]">
-          <span>Jul</span>
-          <span>Aug</span>
-          <span>Sep</span>
-          <span>Oct</span>
-          <span>Nov</span>
-          <span>Dec</span>
-        </div>
-      </div>
+          <YAxis 
+            stroke="#888" 
+            fontSize={12}
+            domain={[0, 100]}
+            ticks={[0, 50, 100]}
+          />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: '#fff', 
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              fontSize: '12px',
+              color: '#000'
+            }}
+            labelStyle={{ color: '#000', fontWeight: 'bold' }}
+            formatter={(value: number) => [value === 100 ? 'Present' : 'Absent', 'Status']}
+            labelFormatter={(label) => `Day ${label}`}
+          />
+          <Line 
+            type="monotone" 
+            dataKey="status" 
+            stroke="url(#lineGradient)" 
+            strokeWidth={3}
+            dot={{ fill: '#3B82F6', r: 4 }}
+            activeDot={{ r: 6 }}
+          />
+        </RechartsLine>
+      </ResponsiveContainer>
     </div>
   );
 }
