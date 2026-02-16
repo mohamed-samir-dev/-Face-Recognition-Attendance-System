@@ -143,7 +143,7 @@ export const useWorkTimer = (userId?: string) => {
     return () => clearInterval(interval);
   }, [userId]);
 
-  // Separate interval to update total hours in Firebase every minute
+  // Update total hours in Firebase every second during regular hours
   const isOvertimeRef = useRef(isOvertime);
   useEffect(() => {
     isOvertimeRef.current = isOvertime;
@@ -162,14 +162,14 @@ export const useWorkTimer = (userId?: string) => {
         isUpdating = true;
         try {
           const { addWorkedHours } = await import('@/lib/services/attendance/totalHoursService');
-          const minuteInHours = 1 / 60;
-          await addWorkedHours(userId!, minuteInHours);
+          const secondInHours = 1 / 3600; // 1 second = 1/3600 hours
+          await addWorkedHours(userId!, secondInHours);
         } catch (error) {
           console.error('Error adding worked hours:', error);
         } finally {
           isUpdating = false;
         }
-      }, 60000);
+      }, 1000); // Update every second
     }
 
     return () => {
