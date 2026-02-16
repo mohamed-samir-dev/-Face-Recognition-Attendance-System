@@ -1,5 +1,6 @@
 "use client";
 
+import { LogOut } from "lucide-react";
 import { AdminTopBarProps } from "../types";
 import { SearchBar, NotificationBell, UserProfile, MobileMenuButton } from "./topbar";
 
@@ -33,6 +34,13 @@ export default function AdminTopBar({
           pendingRequests={pendingRequests}
           onViewRequest={onViewRequest}
         />
+        <button
+          onClick={onLogout}
+          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          title="Logout"
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
         <UserProfile user={user} onLogout={onLogout} />
       </div>
     </div>

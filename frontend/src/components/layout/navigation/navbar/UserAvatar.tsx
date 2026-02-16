@@ -8,16 +8,15 @@ interface UserAvatarProps {
   onUserClick: () => void;
 }
 
-export default function UserAvatar({ user, onUserClick }: UserAvatarProps) {
+export default function UserAvatar({ user }: UserAvatarProps) {
   return (
     <Image
       src={user.image}
       alt={user.name}
       width={40}
       height={40}
-      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover cursor-pointer"
+      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
       unoptimized
-      onClick={onUserClick}
     />
   );
 }

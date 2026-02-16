@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { LogOut } from "lucide-react";
 import { useNotifications } from "@/components/common/hooks/useNotifications";
 import { markAsRead } from "@/lib/services/system/notificationService";
 import Toast from "@/components/common/feedback/Toast";
@@ -68,6 +69,13 @@ export default function Navbar({
                   onToggle={handleNotificationToggle}
                   onMarkAsRead={handleMarkAsRead}
                 />
+                <button
+                  onClick={onUserClick}
+                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
                 <UserAvatar user={user} onUserClick={onUserClick || (() => {})} />
               </>
             )}

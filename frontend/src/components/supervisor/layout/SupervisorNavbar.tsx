@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { LogOut } from "lucide-react";
 import { User } from "@/lib/types";
 import { useNotifications } from "@/components/common/hooks/useNotifications";
 import { markAsRead } from "@/lib/services/system/notificationService";
@@ -8,7 +9,6 @@ import Toast from "@/components/common/feedback/Toast";
 import NotificationDropdown from "@/components/layout/navigation/navbar/NotificationDropdown";
 import UserAvatar from "@/components/layout/navigation/navbar/UserAvatar";
 import { usePendingLeaveRequests } from "../leaves/usePendingLeaveRequests";
-// 
 interface SupervisorNavbarProps {
   user: User;
   onLogout: () => void;
@@ -95,6 +95,13 @@ export default function SupervisorNavbar({ user, onLogout, activeTab, onTabChang
                 onToggle={handleNotificationToggle}
                 onMarkAsRead={handleMarkAsRead}
               />
+              <button
+                onClick={onLogout}
+                className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
               <UserAvatar user={user} onUserClick={onLogout} />
             </div>
           </div>
