@@ -48,7 +48,12 @@ export interface CameraPreviewProps {
   attemptsRemaining: number;
   multipleFaces: boolean;
   checkedOut?: boolean;
-  checkOutData?: any;
+  checkOutData?: {
+    name: string;
+    checkIn: string;
+    checkOut: string;
+    workedHours: number;
+  } | null;
 }
 
 export interface Employee {
@@ -94,7 +99,12 @@ export interface CameraSectionProps {
   attemptsRemaining: number;
   multipleFaces: boolean;
   checkedOut: boolean;
-  checkOutData: any;
+  checkOutData: {
+    name: string;
+    checkIn: string;
+    checkOut: string;
+    workedHours: number;
+  } | null;
 }
 export interface ControlsSectionProps {
   cameraActive: boolean;
@@ -129,7 +139,12 @@ export interface CameraContentProps {
   detecting: boolean;
   mode: string;
   checkedOut: boolean;
-  checkOutData: any;
+  checkOutData: {
+    name: string;
+    checkIn: string;
+    checkOut: string;
+    workedHours: number;
+  } | null;
   onStartCamera: () => Promise<void>;
   onCaptureAndDetect: () => Promise<void>;
   onCheckOut: () => Promise<void>;
