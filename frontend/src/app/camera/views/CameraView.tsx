@@ -3,5 +3,5 @@
 import { CameraContainer } from "./containers";
 
 export default function CameraView() {
-  return <CameraContainer />;
+  return <CameraContainer mode="attendance" />;
 }
