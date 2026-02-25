@@ -20,8 +20,8 @@ const CameraPreview = forwardRef<HTMLVideoElement, CameraPreviewProps & {
   verifiedId?: string;
   showUnauthorizedWarning?: boolean;
   recognizedImage?: string;
-  detectedUser?: any;
-  expectedUser?: any;
+  detectedUser?: Record<string, unknown>;
+  expectedUser?: Record<string, unknown>;
 }>(
   (
     {

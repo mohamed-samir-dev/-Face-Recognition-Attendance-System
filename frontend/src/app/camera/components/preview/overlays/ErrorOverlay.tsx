@@ -5,14 +5,14 @@ interface ErrorOverlayProps {
   showUnauthorizedWarning?: boolean;
   recognizedName?: string;
   recognizedImage?: string;
-  recognizedUser?: any;
-  expectedUser?: any;
+  recognizedUser?: Record<string, unknown>;
+  expectedUser?: Record<string, unknown>;
 }
 
 export default function ErrorOverlay({ showUnauthorizedWarning, recognizedName, recognizedImage, recognizedUser, expectedUser }: ErrorOverlayProps) {
   if (showUnauthorizedWarning && recognizedName && recognizedUser) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center backdrop-blur-md bg-gradient-to-br from-red-50/95 to-red-100/95 p-3">
+      <div className="absolute inset-0 flex items-center justify-center backdrop-blur-md bg-linear-to-br from-red-50/95 to-red-100/95 p-3">
         <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-5 border-2 border-red-200">
           {/* Header */}
           <div className="flex items-center justify-center mb-4">
@@ -29,7 +29,7 @@ export default function ErrorOverlay({ showUnauthorizedWarning, recognizedName, 
           </p>
 
           {/* User Comparison */}
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-3 mb-4">
+          <div className="bg-linear-to-r from-red-50 to-orange-50 rounded-xl p-3 mb-4">
             <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
               {/* Detected Person */}
               <div className="text-center">
@@ -52,7 +52,7 @@ export default function ErrorOverlay({ showUnauthorizedWarning, recognizedName, 
                 </div>
                 <p className="text-[10px] font-semibold text-red-900 mb-0.5">Detected</p>
                 <p className="text-xs font-bold text-red-700 truncate">{recognizedName}</p>
-                <p className="text-[10px] text-red-600 mt-0.5">ID: {recognizedUser?.numericId || 'N/A'}</p>
+                <p className="text-[10px] text-red-600 mt-0.5">ID: {(recognizedUser?.numericId as string) || 'N/A'}</p>
               </div>
 
               {/* Arrow */}
@@ -66,8 +66,8 @@ export default function ErrorOverlay({ showUnauthorizedWarning, recognizedName, 
                 <div className="relative w-16 h-16 mx-auto mb-1.5">
                   {expectedUser?.image ? (
                     <Image
-                      src={expectedUser.image}
-                      alt={expectedUser.name}
+                      src={expectedUser.image as string}
+                      alt={(expectedUser.name as string) || 'Expected User'}
                       fill
                       className="rounded-full object-cover border-3 border-green-500 shadow-lg"
                     />
@@ -81,8 +81,8 @@ export default function ErrorOverlay({ showUnauthorizedWarning, recognizedName, 
                   </div>
                 </div>
                 <p className="text-[10px] font-semibold text-green-900 mb-0.5">Expected</p>
-                <p className="text-xs font-bold text-green-700 truncate">{expectedUser.name}</p>
-                <p className="text-[10px] text-green-600 mt-0.5">ID: {expectedUser.numericId}</p>
+                <p className="text-xs font-bold text-green-700 truncate">{(expectedUser?.name as string) || 'N/A'}</p>
+                <p className="text-[10px] text-green-600 mt-0.5">ID: {(expectedUser?.numericId as string) || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function ErrorOverlay({ showUnauthorizedWarning, recognizedName, 
               ⚠️ Security Alert
             </p>
             <p className="text-[11px] text-red-800 leading-relaxed">
-              <span className="font-bold">{recognizedName}</span> attempted to mark attendance for <span className="font-bold">{expectedUser.name}</span>. This action violates company policy and will be reported to management.
+              <span className="font-bold">{recognizedName}</span> attempted to mark attendance for <span className="font-bold">{(expectedUser?.name as string) || 'another user'}</span>. This action violates company policy and will be reported to management.
             </p>
           </div>
 
@@ -111,7 +111,7 @@ export default function ErrorOverlay({ showUnauthorizedWarning, recognizedName, 
   return (
     <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-gray-100/80">
       <div className="text-center max-w-sm mx-4">
-        <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+        <div className="w-20 h-20 bg-linear-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
           <AlertTriangle className="w-10 h-10 text-white" />
         </div>
         <h3 className="text-lg sm:text-xl font-bold text-[#1A1A1A] mb-2">
