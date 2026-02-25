@@ -13,6 +13,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState("");
   const [captured, setCaptured] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string>("");
 
   useEffect(() => {
     startCamera();
@@ -60,6 +61,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
     context.drawImage(video, 0, 0);
 
     const imageData = canvas.toDataURL("image/jpeg", 0.8);
+    setCapturedImage(imageData);
     onCapture(imageData);
     stopCamera();
     setCaptured(true);
@@ -67,6 +69,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
 
   const retakePhoto = () => {
     setCaptured(false);
+    setCapturedImage("");
     startCamera();
   };
 
@@ -78,7 +81,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
         </div>
       )}
 
-      <div className="relative bg-black rounded-lg overflow-hidden">
+      <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-2xl border-2 border-gray-700 max-h-[450px]">
         {!captured ? (
           <>
             <video
@@ -86,23 +89,29 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
               autoPlay
               playsInline
               muted
-              className="w-full h-auto"
+              className="w-full h-auto rounded-xl"
             />
             <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-64 h-64 border-4 border-white/50 rounded-full"></div>
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/70 backdrop-blur-sm px-6 py-2 rounded-full">
+                <p className="text-white text-sm font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  Live Camera
+                </p>
               </div>
             </div>
           </>
         ) : (
           <div className="relative">
-            <div className="w-full h-96 bg-gray-900 flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <CheckCircle className="w-20 h-20 text-green-500 mx-auto" />
-                <p className="text-white text-xl font-semibold">Photo Captured Successfully!</p>
-                <p className="text-gray-300 text-sm">Preview shown below</p>
-              </div>
+            <img 
+              src={capturedImage} 
+              alt="Captured" 
+              className="w-full h-auto rounded-xl"
+            />
+            <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-bounce">
+              <CheckCircle className="w-5 h-5" />
+              <span className="font-semibold">Captured!</span>
             </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none"></div>
           </div>
         )}
         <canvas ref={canvasRef} className="hidden" />
@@ -115,7 +124,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
               type="button"
               onClick={capturePhoto}
               disabled={!stream}
-              className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 flex items-center justify-center gap-2 font-medium"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3.5 rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:from-gray-300 disabled:to-gray-400 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
             >
               <Camera className="w-5 h-5" />
               Capture Photo
@@ -123,7 +132,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
             <button
               type="button"
               onClick={stopCamera}
-              className="px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              className="px-5 py-3.5 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95"
             >
               <X className="w-5 h-5" />
             </button>
@@ -132,7 +141,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
           <button
             type="button"
             onClick={retakePhoto}
-            className="flex-1 bg-orange-600 text-white px-4 py-3 rounded-lg hover:bg-orange-700 flex items-center justify-center gap-2 font-medium"
+            className="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3.5 rounded-xl hover:from-orange-700 hover:to-orange-800 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
           >
             <RotateCcw className="w-5 h-5" />
             Retake Photo
@@ -140,11 +149,13 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
         )}
       </div>
 
-      <p className="text-sm text-gray-600 text-center">
-        {!captured
-          ? "Position your face in the circle and click capture"
-          : "Click retake to capture a new photo"}
-      </p>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+        <p className="text-sm text-gray-700 text-center font-medium">
+          {!captured
+            ? "📸 Position your face in the circle and click capture"
+            : "✨ Photo captured successfully! Click retake if you want to capture again"}
+        </p>
+      </div>
     </div>
   );
 }
