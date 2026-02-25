@@ -11,7 +11,7 @@ import {
 import {CameraContentProps}from "../../../types"
 
 
-const CameraContent = forwardRef<HTMLVideoElement | null, CameraContentProps & { 
+const CameraContent = forwardRef<HTMLVideoElement, CameraContentProps & { 
   verificationStep?: 'face' | 'id' | 'complete' | '';
   faceStatus?: 'pending' | 'success' | 'failed';
   idStatus?: 'pending' | 'success' | 'failed';
@@ -19,8 +19,8 @@ const CameraContent = forwardRef<HTMLVideoElement | null, CameraContentProps & {
   verifiedId?: string;
   showUnauthorizedWarning?: boolean;
   recognizedImage?: string;
-  detectedUser?: any;
-  expectedUser?: any;
+  detectedUser?: Record<string, unknown>;
+  expectedUser?: Record<string, unknown>;
 }>(
   (props, videoRef) => {
     const {

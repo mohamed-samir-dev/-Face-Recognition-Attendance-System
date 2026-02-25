@@ -62,7 +62,7 @@ export default function CameraContainer({ mode }: { mode: string }) {
         detecting={detecting}
         mode={mode}
         checkedOut={checkedOut}
-        checkOutData={checkOutData}
+        checkOutData={checkOutData as { name: string; checkIn: string; checkOut: string; workedHours: number; } | null}
         verificationStep={verificationStep}
         faceStatus={faceStatus}
         idStatus={idStatus}
@@ -70,8 +70,8 @@ export default function CameraContainer({ mode }: { mode: string }) {
         verifiedId={verifiedId}
         showUnauthorizedWarning={showUnauthorizedWarning}
         recognizedImage={recognizedImage}
-        expectedUser={expectedUser}
-        detectedUser={detectedUser}
+        expectedUser={expectedUser as unknown as Record<string, unknown> | undefined}
+        detectedUser={detectedUser || undefined}
         onStartCamera={handleStartCamera}
         onCaptureAndDetect={handleCaptureAndDetect}
         onCheckOut={handleCheckOut}
