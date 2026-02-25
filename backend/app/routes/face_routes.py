@@ -285,6 +285,41 @@ def init_face_routes(app, face_model, encoding_cache):
         except (IOError, OSError):
             return jsonify({'error': 'Failed to add employee'}), 500
 
+    @app.route('/generate-encoding', methods=['POST'])
+    def generate_encoding():
+        """Generate single face encoding from 3 images"""
+        try:
+            data = request.get_json()
+            images = data.get('images', [])
+            
+            if len(images) != 3:
+                return jsonify({'error': '3 images required'}), 400
+            
+            encodings = []
+            for img_data in images:
+                encoding = get_face_encoding_from_base64(img_data)
+                if encoding is not None:
+                    encodings.append(encoding)
+            
+            if len(encodings) < 2:
+                return jsonify({'error': 'At least 2 valid faces required'}), 400
+            
+            # Average the encodings
+            import numpy as np
+            avg_encoding = np.mean(encodings, axis=0)
+            
+            # Convert to base64 for storage
+            encoding_b64 = base64.b64encode(avg_encoding.tobytes()).decode('utf-8')
+            
+            return jsonify({
+                'success': True,
+                'encoding': encoding_b64,
+                'images_processed': len(encodings)
+            })
+            
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
     @app.route('/clear-cache', methods=['POST'])
     def clear_cache():
         """Clear the encoding cache to free memory"""

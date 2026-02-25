@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 interface SuccessOverlayProps {
@@ -27,11 +26,9 @@ export default function SuccessOverlay({
         <div className="bg-white text-left rounded-lg p-4 mb-4 shadow-sm min-w-[400px] max-w-[700px] mx-auto">
           <div className="flex items-center justify-center mb-3">
             {recognizedUser.image && (
-              <Image
+              <img
                 src={recognizedUser.image}
                 alt={recognizedUser.name}
-                width={60}
-                height={60}
                 className="w-15 h-15 rounded-full object-cover ring-2 ring-blue-200"
               />
             )}

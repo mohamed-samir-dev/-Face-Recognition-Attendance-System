@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { X, Trash2, AlertTriangle } from 'lucide-react';
 import { DeleteModalProps } from '../../types';
 
@@ -8,6 +7,13 @@ import { DeleteModalProps } from '../../types';
 
 export default function DeleteModal({ isOpen, user, deleting, onConfirm, onCancel }: DeleteModalProps) {
   if (!isOpen || !user) return null;
+
+  let displayImage = user.image;
+  try {
+    const parsed = JSON.parse(user.image);
+    if (parsed.profileImage) displayImage = parsed.profileImage;
+    else if (Array.isArray(parsed)) displayImage = parsed[0];
+  } catch {}
 
   return (
     <div className="fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -37,11 +43,9 @@ export default function DeleteModal({ isOpen, user, deleting, onConfirm, onCance
           <div className="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 lg:p-4 mb-4 lg:mb-6">
             <div className="flex items-center space-x-3">
               {user.image && (
-                <Image
-                  src={user.image}
+                <img
+                  src={displayImage}
                   alt={user.name}
-                  width={48}
-                  height={48}
                   className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"
                 />
               )}

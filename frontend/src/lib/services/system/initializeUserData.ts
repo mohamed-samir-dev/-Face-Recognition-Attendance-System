@@ -15,6 +15,9 @@ export const initializeUserAccountTypes = async (): Promise<void> => {
       }
     }
     
+
+
+
     console.log('User account types initialized successfully');
   } catch (error) {
     console.error('Error initializing user account types:', error);

@@ -114,6 +114,31 @@ export function useAddEmployee() {
     setPhotoError('');
     setLoading(true);
 
+    // Process camera data (profile image + training images)
+    let profileImage = formData.image;
+    let faceEncoding = null;
+    
+    try {
+      const parsedData = JSON.parse(formData.image);
+      if (parsedData.profileImage && parsedData.trainingImages) {
+        // Camera capture with 3 images
+        profileImage = parsedData.profileImage;
+        
+        // Generate encoding from 3 training images
+        const response = await fetch('http://localhost:5000/generate-encoding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ images: parsedData.trainingImages }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          faceEncoding = data.encoding;
+        }
+      }
+    } catch {
+      // Not camera data, use as regular image
+    }
+
     // Validate email uniqueness
     try {
       const emailValidation = await validateEmailUniqueness(formData.email);
@@ -149,7 +174,8 @@ export function useAddEmployee() {
         department: formData.department,
         jobTitle: formData.jobTitle,
         salary: parseInt(formData.salary),
-        image: formData.image,
+        image: profileImage,              // Profile image for display
+        faceEncoding: faceEncoding,       // Face encoding for recognition
         password,
         status: 'Inactive',
         accountType: (formData.role || 'Employee') as 'Employee' | 'Admin' | 'Manager',

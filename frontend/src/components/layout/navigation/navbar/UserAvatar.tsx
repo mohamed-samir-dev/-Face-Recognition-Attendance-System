@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { DocumentData } from "firebase/firestore";
 
 interface UserAvatarProps {
@@ -9,14 +8,21 @@ interface UserAvatarProps {
 }
 
 export default function UserAvatar({ user }: UserAvatarProps) {
+  // Check if image is base64 encoding or actual image
+  const isBase64Image = user.image?.startsWith('data:image');
+  const isEncoding = user.image && !isBase64Image && user.image.length > 100 && !user.image.startsWith('http');
+  
+  // Use placeholder for encodings
+  const displayImage = isEncoding ? '/default-avatar.png' : user.image;
+  
   return (
-    <Image
-      src={user.image}
+    <img
+      src={displayImage}
       alt={user.name}
-      width={40}
-      height={40}
       className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-      unoptimized
+      onError={(e) => {
+        e.currentTarget.src = '/default-avatar.png';
+      }}
     />
   );
 }
