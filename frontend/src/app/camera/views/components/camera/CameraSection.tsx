@@ -12,8 +12,8 @@ const CameraSection = forwardRef<HTMLVideoElement, CameraSectionProps & {
   verifiedId?: string;
   showUnauthorizedWarning?: boolean;
   recognizedImage?: string;
-  detectedUser?: any;
-  expectedUser?: any;
+  detectedUser?: Record<string, unknown>;
+  expectedUser?: Record<string, unknown>;
 }>(
   (props, videoRef) => {
     return (
