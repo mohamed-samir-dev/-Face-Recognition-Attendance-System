@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { validateFaceInCircle } from "../utils/faceDetection";
 
 interface UseCameraHandlersProps {
@@ -12,7 +12,7 @@ interface UseCameraHandlersProps {
   resetState: () => void;
   setError: (error: string) => void;
   cameraActive: boolean;
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 export function useCameraHandlers({

@@ -7,7 +7,7 @@ import {
 } from "@/lib/services/auth/threeStepAuthService";
 import { updateUserSession } from "@/lib/services/auth/sessionService";
 import { recordDailyAttendance } from "@/lib/services/attendance/dailyAttendanceService";
-import { recordCheckOut, checkCanCheckOut } from "@/lib/services/attendance/checkoutService";
+import { recordCheckOut } from "@/lib/services/attendance/checkoutService";
 import { User } from "@/lib/types";
 import { useAuth } from "@/components/dashboard/hooks/useAuth";
 import { useWorkTimer } from "@/components/dashboard/hooks/useWorkTimer";
@@ -39,7 +39,7 @@ export function useAttendance() {
   const [detecting, setDetecting] = useState(false);
   const [showAlreadyTakenModal, setShowAlreadyTakenModal] = useState(false);
   const [checkedOut, setCheckedOut] = useState(false);
-  const [checkOutData, setCheckOutData] = useState<any>(null);
+  const [checkOutData, setCheckOutData] = useState<Record<string, unknown> | null>(null);
   const [verificationStep, setVerificationStep] = useState<'face' | 'id' | 'complete' | ''>("");
   const [faceStatus, setFaceStatus] = useState<'pending' | 'success' | 'failed'>('pending');
   const [idStatus, setIdStatus] = useState<'pending' | 'success' | 'failed'>('pending');
@@ -47,11 +47,11 @@ export function useAttendance() {
   const [verifiedId, setVerifiedId] = useState<string>("");
   const [showUnauthorizedWarning, setShowUnauthorizedWarning] = useState(false);
   const [recognizedImage, setRecognizedImage] = useState<string>("");
-  const [detectedUser, setDetectedUser] = useState<any>(null);
+  const [detectedUser, setDetectedUser] = useState<Record<string, unknown> | null>(null);
   const [expectedUser, setExpectedUser] = useState<User | null>(null);
 
   const { user } = useAuth();
-  const { startTimer } = useWorkTimer(user?.id);
+  useWorkTimer(user?.id);
   const router = useRouter();
 
   const processAttendance = async (
@@ -258,7 +258,7 @@ export function useAttendance() {
         await new Promise(resolve => setTimeout(resolve, 1200));
         setVerificationStep("");
 
-        const checkOutResult = await recordCheckOut(currentUser.id, currentUser.name);
+        const checkOutResult = await recordCheckOut(currentUser.id);
 
         if (checkOutResult.success) {
           const { localTimer } = await import('@/lib/services/attendance/timerService');
