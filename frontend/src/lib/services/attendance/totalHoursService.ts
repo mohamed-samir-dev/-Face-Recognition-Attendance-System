@@ -1,11 +1,7 @@
-import { doc, setDoc, getDoc, updateDoc, increment } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
-interface TotalHoursData {
-  userId: string;
-  totalHours: number;
-  lastUpdated: string;
-}
+
 
 export const getTotalHours = async (userId: string): Promise<number> => {
   try {

@@ -1,18 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FileText,
-  Calendar,
-  User as UserIcon,
   CheckCircle,
   XCircle,
-  Clock,
   Trash2,
 } from "lucide-react";
 import { User } from "@/lib/types";
-import { getUsers } from "@/lib/services/user/userService";
-import { updateDoc, doc } from "firebase/firestore";
 import { getSupervisorLeaveRequests } from "@/lib/services/leave/supervisorLeaveService";
 import { LeaveRequest } from "@/components/admin/attendance/types";
 import DeleteConfirmModal from "@/components/common/modals/DeleteConfirmModal";
@@ -27,11 +22,7 @@ export default function SupervisorLeaves({ user }: SupervisorLeavesProps) {
   const [statusFilter, setStatusFilter] = useState("All Request");
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; request: LeaveRequest | null }>({ isOpen: false, request: null });
 
-  useEffect(() => {
-    loadLeaveRequests();
-  }, [user]);
-
-  const loadLeaveRequests = async () => {
+  const loadLeaveRequests = useCallback(async () => {
     try {
       const requests = await getSupervisorLeaveRequests(user.id);
       setLeaveRequests(requests);
@@ -40,7 +31,11 @@ export default function SupervisorLeaves({ user }: SupervisorLeavesProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    loadLeaveRequests();
+  }, [loadLeaveRequests]);
 
   const handleStatusUpdate = async (
     requestId: string,

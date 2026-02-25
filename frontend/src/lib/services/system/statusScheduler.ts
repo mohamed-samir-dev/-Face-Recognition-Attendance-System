@@ -1,5 +1,4 @@
 import { checkAndUpdateEmployeeStatuses } from '../leave/leaveService';
-import { setAllEmployeesInactive } from '../user/statusService';
 
 class StatusScheduler {
   private intervalId: NodeJS.Timeout | null = null;

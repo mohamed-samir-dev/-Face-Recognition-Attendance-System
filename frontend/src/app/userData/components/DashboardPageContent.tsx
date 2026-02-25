@@ -22,9 +22,6 @@ export default function DashboardPageContent() {
     handleTakeAttendance,
     handleCheckOut,
     handleRequestLeave,
-    handleSettings,
-    handleReports,
-    handleDashboard,
   } = useDashboard();
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Users, UserCheck, UserX, Calendar } from "lucide-react";
 import { User } from "@/lib/types";
 import { getUsers } from "@/lib/services/user/userService";
@@ -27,11 +27,7 @@ export default function SupervisorDashboard({ user }: SupervisorDashboardProps) 
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboardStats();
-  }, [user]);
-
-  const loadDashboardStats = async () => {
+  const loadDashboardStats = useCallback(async () => {
     try {
       const [allUsers, todayAttendance, leaveRequests] = await Promise.all([
         getUsers(),
@@ -90,7 +86,11 @@ export default function SupervisorDashboard({ user }: SupervisorDashboardProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.department, user.id]);
+
+  useEffect(() => {
+    loadDashboardStats();
+  }, [loadDashboardStats]);
 
   if (loading) {
     return (

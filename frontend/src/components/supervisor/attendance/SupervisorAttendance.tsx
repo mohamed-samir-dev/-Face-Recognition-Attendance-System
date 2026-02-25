@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {Calendar, AlertCircle, CheckCircle, XCircle, Coffee, Filter } from "lucide-react";
 import { User as UserType } from "@/lib/types";
 import { getSupervisorTeamAttendance } from "@/lib/services/attendance/supervisorAttendanceService";
@@ -16,11 +16,7 @@ export default function SupervisorAttendance({ user }: SupervisorAttendanceProps
   const [loading, setLoading] = useState(true);
   const [filterDate, setFilterDate] = useState("");
 
-  useEffect(() => {
-    loadHistory();
-  }, [user]);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
       const teamHistory = await getSupervisorTeamAttendance(user.id);
       setHistory(teamHistory);
@@ -29,7 +25,11 @@ export default function SupervisorAttendance({ user }: SupervisorAttendanceProps
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const getStatusConfig = (status: string) => {
     const configs = {
@@ -143,7 +143,7 @@ export default function SupervisorAttendance({ user }: SupervisorAttendanceProps
             
             return (
               <div key={date} className="space-y-3">
-                <div className="bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-lg p-4 shadow">
+                <div className="bg-linear-to-r from-[#667eea] to-[#764ba2] rounded-lg p-4 shadow">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-white" />

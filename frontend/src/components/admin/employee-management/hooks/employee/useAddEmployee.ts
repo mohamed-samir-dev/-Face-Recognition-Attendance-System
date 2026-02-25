@@ -18,7 +18,7 @@ export function useAddEmployee() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const [showEmailWarning, setShowEmailWarning] = useState(false);
-  const [existingUser, setExistingUser] = useState<any>(null);
+  const [existingUser, setExistingUser] = useState<Record<string, unknown> | null>(null);
   const [generatedUsername, setGeneratedUsername] = useState('');
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -87,26 +87,21 @@ export function useAddEmployee() {
     }
   };
 
-  const previewUsername = useCallback(
-    (() => {
-      let timeoutId: NodeJS.Timeout;
-      return (name: string) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(async () => {
-          if (name.trim()) {
-            try {
-              const username = await generateProfessionalUsername(name);
-              setGeneratedUsername(username);
-            } catch (error) {
-              setGeneratedUsername('');
-            }
-          } else {
-            setGeneratedUsername('');
-          }
-        }, 500);
-      };
-    })()
-  , []);
+  const previewUsername = useCallback((name: string) => {
+    const timeoutId = setTimeout(async () => {
+      if (name.trim()) {
+        try {
+          const username = await generateProfessionalUsername(name);
+          setGeneratedUsername(username);
+        } catch  {
+          setGeneratedUsername('');
+        }
+      } else {
+        setGeneratedUsername('');
+      }
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,7 +132,7 @@ export function useAddEmployee() {
 
     try {
       const username = await generateProfessionalUsername(formData.name);
-      const password = formData.password || generateStrongPassword(formData.name);
+      const password = formData.password || generateStrongPassword();
 
       // Handle supervisor replacement if needed
       const { oldSupervisor, needsNotification } = await handleSupervisorReplacement({

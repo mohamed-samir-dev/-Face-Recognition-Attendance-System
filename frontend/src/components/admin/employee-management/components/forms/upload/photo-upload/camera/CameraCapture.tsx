@@ -13,11 +13,14 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState("");
   const [captured, setCaptured] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     startCamera();
-    return () => stopCamera();
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
   }, []);
 
   const startCamera = async () => {
@@ -31,8 +34,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
       }
       setError("");
       setCaptured(false);
-      setShowSuccess(false);
-    } catch (err) {
+    } catch {
       setError("Camera access denied. Please allow camera permissions.");
     }
   };
@@ -61,14 +63,10 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
     onCapture(imageData);
     stopCamera();
     setCaptured(true);
-    setShowSuccess(true);
-    
-    setTimeout(() => setShowSuccess(false), 3000);
   };
 
   const retakePhoto = () => {
     setCaptured(false);
-    setShowSuccess(false);
     startCamera();
   };
 

@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, orderBy, addDoc, Timestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { AttendanceHistoryRecord } from "@/lib/types/attendanceHistory";
 import { getLeaveRequests } from "../leave/leaveService";
@@ -35,7 +35,7 @@ export async function recordAttendanceHistory(
       u.accountType === 'Supervisor'
     );
 
-    const historyData: any = {
+    const historyData: Record<string, unknown> = {
       userId,
       employeeName: userName,
       date: today,
@@ -105,10 +105,10 @@ export async function recordAttendanceHistory(
           } else {
             historyData.checkInLocation = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
           }
-        } catch (geoError) {
+        } catch  {
           historyData.checkInLocation = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
         }
-      } catch (error) {
+      } catch  {
         historyData.checkInLocation = 'Location permission denied';
       }
     } else {
@@ -117,7 +117,6 @@ export async function recordAttendanceHistory(
     
     // Get detailed device information
     const ua = navigator.userAgent;
-    const platform = navigator.platform || 'Unknown';
     let deviceInfo = 'Unknown Device';
     
     if (ua.includes('Windows NT 10.0')) deviceInfo = 'Windows 10/11 PC';
@@ -166,7 +165,7 @@ export async function recordAttendanceHistory(
           historyData.ipLocation = `${ipGeoData.city}, ${ipGeoData.country_name}`;
         }
       } catch {}
-    } catch (error) {
+    } catch {
       historyData.ipAddress = 'Unable to detect';
     }
 

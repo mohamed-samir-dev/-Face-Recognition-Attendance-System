@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, updateDoc, increment } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
 export interface OvertimeRecord {
@@ -12,7 +12,6 @@ export const saveOvertimeRecord = async (
   userId: string,
   userName: string,
   overtimeHours: number,
-  checkInTime: string
 ): Promise<void> => {
   if (overtimeHours <= 0) return;
 

@@ -27,5 +27,4 @@ export interface AttendanceHistoryRecord {
   deviceInfo?: string;
   ipAddress?: string;
   ipLocation?: string;
-  ipLocation?: string;
 }

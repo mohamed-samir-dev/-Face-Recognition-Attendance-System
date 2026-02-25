@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc, setDoc, getDoc, where } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { LeaveRequest } from "@/components/admin";
 
@@ -59,7 +59,7 @@ export const submitLeaveRequest = async (requestData: Omit<LeaveRequest, 'id' | 
     const documentId = `leave_req_${requestData.employeeId}_${timestamp}`;
     const requestRef = doc(db, "leaveRequests", documentId);
     
-    const leaveData: any = {
+    const leaveData: Record<string, unknown> = {
       id: documentId,
       ...requestData,
       createdAt: now,

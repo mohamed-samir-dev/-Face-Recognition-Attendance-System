@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Mail, Building, Briefcase, DollarSign, Shield, AtSign, UserCheck, Lock } from 'lucide-react';
+import { User, Mail, Building, Briefcase, DollarSign, Shield, AtSign, Lock } from 'lucide-react';
 import { InputField, SelectField, DisabledField } from './components';
 import {BasicInfoFieldsProps}from "../../../types"
 import {departmentOptions} from "./data/data"

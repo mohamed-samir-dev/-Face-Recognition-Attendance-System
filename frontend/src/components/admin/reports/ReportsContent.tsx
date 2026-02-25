@@ -184,7 +184,7 @@ export default function ReportsContent() {
 
       {selectedUser && (
         <EmployeeReportModal
-          employee={selectedUser}
+          employee={{ ...selectedUser, numericId: selectedUser.numericId ?? '' }}
           onClose={() => setSelectedUser(null)}
         />
       )}

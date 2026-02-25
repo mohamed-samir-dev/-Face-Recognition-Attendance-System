@@ -15,6 +15,13 @@ import { getTeamMembers } from "@/lib/services/team/teamService";
 import EmployeeReportModal from "./EmployeeReportModal";
 import * as XLSX from 'xlsx';
 
+interface TeamMember {
+  id: string;
+  name: string;
+  numericId: string | number;
+  jobTitle?: string;
+}
+
 export default function SupervisorReport() {
   const { user } = useAuth();
   const { leaveDays, vacationDays } = useLeaveDays(user?.numericId?.toString());
@@ -24,8 +31,8 @@ export default function SupervisorReport() {
   const [absences, setAbsences] = useState<number>(0);
   const [records, setRecords] = useState<AttendanceHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<TeamMember | null>(null);
 
   const calculateAttendanceScore = () => {
     const DaysWorked = records.length;

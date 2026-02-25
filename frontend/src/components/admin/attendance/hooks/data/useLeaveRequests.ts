@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { LeaveRequest } from "../../types";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
 export const useLeaveRequests = () => {

@@ -12,8 +12,21 @@ import { AttendanceHistoryRecord } from "@/lib/types/attendanceHistory";
 import { formatHoursForCard } from "@/lib/utils/timeFormatters";
 import * as XLSX from 'xlsx';
 
+interface TeamMember {
+  id: string;
+  name: string;
+  numericId: string | number;
+  jobTitle?: string;
+  email?: string;
+  phone?: string;
+  department?: string;
+  Department?: string;
+  accountType?: string;
+  status?: string;
+}
+
 interface EmployeeReportModalProps {
-  employee: any;
+  employee: TeamMember;
   onClose: () => void;
 }
 
@@ -109,7 +122,7 @@ export default function EmployeeReportModal({ employee, onClose }: EmployeeRepor
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">{employee?.name}'s Attendance Report</h2>
+          <h2 className="text-xl font-bold text-gray-900">{employee?.name || 'Employee'}&apos;s Attendance Report</h2>
           <div className="flex gap-2">
             <button onClick={exportToExcel} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
               <Download className="w-4 h-4" />
@@ -122,7 +135,7 @@ export default function EmployeeReportModal({ employee, onClose }: EmployeeRepor
         </div>
 
         <div className="p-6">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md mb-6 overflow-x-auto border border-blue-200">
+          <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md mb-6 overflow-x-auto border border-blue-200">
             <div className="px-6 py-4 border-b border-blue-200 bg-white/50">
               <h3 className="text-lg font-bold text-blue-900">Employee Information</h3>
             </div>
@@ -130,9 +143,9 @@ export default function EmployeeReportModal({ employee, onClose }: EmployeeRepor
               <tbody>
                 <tr className="border-b border-blue-100 bg-white/30">
                   <td className="px-6 py-3 text-sm font-semibold text-blue-900 w-1/4">Employee Name</td>
-                  <td className="px-6 py-3 text-sm font-medium text-gray-900 w-1/4">{employee?.name}</td>
+                  <td className="px-6 py-3 text-sm font-medium text-gray-900 w-1/4">{employee?.name || 'N/A'}</td>
                   <td className="px-6 py-3 text-sm font-semibold text-blue-900 w-1/4">Employee ID</td>
-                  <td className="px-6 py-3 text-sm font-medium text-gray-900 w-1/4">{employee?.numericId}</td>
+                  <td className="px-6 py-3 text-sm font-medium text-gray-900 w-1/4">{employee?.numericId || 'N/A'}</td>
                 </tr>
                 <tr className="border-b border-blue-100 bg-white/50">
                   <td className="px-6 py-3 text-sm font-semibold text-blue-900">Email</td>
@@ -150,7 +163,7 @@ export default function EmployeeReportModal({ employee, onClose }: EmployeeRepor
             </table>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg shadow-md mb-6 overflow-x-auto border border-green-200">
+          <div className="bg-linear-to-br from-green-50 to-emerald-50 rounded-lg shadow-md mb-6 overflow-x-auto border border-green-200">
             <div className="px-6 py-4 border-b border-green-200 bg-white/50">
               <h3 className="text-lg font-bold text-green-900">Monthly Attendance Summary</h3>
             </div>
@@ -192,11 +205,11 @@ export default function EmployeeReportModal({ employee, onClose }: EmployeeRepor
           </div>
 
           <div className="bg-white rounded-lg shadow-md overflow-x-auto border border-gray-200">
-            <div className="px-6 py-4 border-b bg-gradient-to-r from-purple-50 to-pink-50">
+            <div className="px-6 py-4 border-b bg-linear-to-r from-purple-50 to-pink-50">
               <h3 className="text-lg font-bold text-purple-900">Detailed Attendance History</h3>
             </div>
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300">
+              <thead className="bg-linear-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Date</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Check In</th>

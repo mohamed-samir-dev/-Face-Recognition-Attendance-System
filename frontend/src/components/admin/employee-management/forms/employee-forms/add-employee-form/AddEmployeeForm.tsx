@@ -41,11 +41,13 @@ export default function AddEmployeeForm() {
         />
       </div>
       <AddEmployeeSuccessModal show={showSuccess} />
-      <EmailWarningModal 
-        show={showEmailWarning}
-        existingUser={existingUser}
-        onClose={() => setShowEmailWarning(false)}
-      />
+      {existingUser && (
+        <EmailWarningModal 
+          show={showEmailWarning}
+          existingUser={existingUser as { name: string; department: string; jobTitle: string; numericId: number; accountType: string; supervisor?: string }}
+          onClose={() => setShowEmailWarning(false)}
+        />
+      )}
     </div>
   );
 }

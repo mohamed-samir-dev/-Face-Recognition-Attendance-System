@@ -1,15 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { getTimerData, startWorkTimer, completeTimer, resetTimer, calculateRemainingTime } from '@/lib/services/attendance/timerService';
-import { getTotalHours, resetTotalHours } from '@/lib/services/attendance/totalHoursService';
+import { getTimerData, startWorkTimer, resetTimer, calculateRemainingTime } from '@/lib/services/attendance/timerService';
+import { resetTotalHours } from '@/lib/services/attendance/totalHoursService';
 import { getCompanySettings } from '@/lib/services/system/settingsService';
-import { getTodayOvertime, saveOvertimeRecord } from '@/lib/services/attendance/overtimeService';
+import { getTodayOvertime } from '@/lib/services/attendance/overtimeService';
 
 export const useWorkTimer = (userId?: string) => {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [isActive, setIsActive] = useState(false);
-  const [totalHours, setTotalHours] = useState<number>(0);
   const [baseTotalHours, setBaseTotalHours] = useState<number>(0);
-  const [currentSessionHours, setCurrentSessionHours] = useState<number>(0);
   const [overtimeHours, setOvertimeHours] = useState<number>(0);
   const [isOvertime, setIsOvertime] = useState(false);
 
@@ -101,23 +99,15 @@ export const useWorkTimer = (userId?: string) => {
           const now = new Date();
           const settings = await getCompanySettings();
           const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
-          const checkInTime = new Date(`${now.toDateString()} ${timerData.checkInTime}`);
           
           if (now.getTime() <= workEnd.getTime()) {
             // During regular hours: update total hours continuously
-            const sessionMs = now.getTime() - checkInTime.getTime();
-            const sessionHours = Math.max(0, sessionMs / (1000 * 60 * 60));
-            setCurrentSessionHours(sessionHours);
-            
             const newRemaining = await calculateRemainingTime(timerData);
             setTimeRemaining(newRemaining);
             setIsOvertime(false);
             setOvertimeHours(0);
           } else {
             // During overtime: cap regular hours and track overtime separately
-            const regularSessionMs = workEnd.getTime() - checkInTime.getTime();
-            const regularSessionHours = Math.max(0, regularSessionMs / (1000 * 60 * 60));
-            setCurrentSessionHours(regularSessionHours);
             
             const overtimeMs = now.getTime() - workEnd.getTime();
             const overtime = overtimeMs / (1000 * 60 * 60);
@@ -131,10 +121,9 @@ export const useWorkTimer = (userId?: string) => {
             const { db } = await import('@/lib/firebase/config');
             const userDoc = await getDoc(firestoreDoc(db, 'users', userId!));
             const userName = userDoc.exists() ? userDoc.data().name : 'Unknown';
-            await saveOvertimeRecord(userId!, userName, overtime, timerData.checkInTime);
+            await saveOvertimeRecord(userId!, userName, overtime);
           }
         } else {
-          setCurrentSessionHours(0);
           setIsActive(false);
         }
       }, 1000);
@@ -210,9 +199,7 @@ export const useWorkTimer = (userId?: string) => {
     await resetTotalHours(userId);
     setTimeRemaining(0);
     setIsActive(false);
-    setTotalHours(0);
     setBaseTotalHours(0);
-    setCurrentSessionHours(0);
   };
 
   // Display monthly total hours from Firebase (updated every minute)

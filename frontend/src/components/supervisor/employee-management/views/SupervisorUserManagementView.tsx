@@ -1,6 +1,5 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { User } from "@/lib/types";
 import {
   UserTable,
@@ -19,12 +18,9 @@ interface SupervisorUserManagementViewProps {
 export default function SupervisorUserManagementView({ user }: SupervisorUserManagementViewProps) {
   const {
     users,
-    departments,
     loading,
     filter,
     setFilter,
-    departmentFilter,
-    setDepartmentFilter,
     sortBy,
     setSortBy,
     deleting,

@@ -1,7 +1,6 @@
 import { doc, setDoc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { getCompanySettings } from "../system/settingsService";
-import { addWorkedHours } from "./totalHoursService";
 import {TimerData}from "../../types/services"
 
 
@@ -114,7 +113,7 @@ export const completeTimer = async (userId: string): Promise<void> => {
       const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
       const userDoc = await getDoc(firestoreDoc(db, 'users', userId));
       const userName = userDoc.exists() ? userDoc.data().name : 'Unknown';
-      await saveOvertimeRecord(userId, userName, overtimeHours, timerData.checkInTime);
+      await saveOvertimeRecord(userId, userName, overtimeHours);
     }
   } catch (error) {
     console.error('Error completing timer:', error);

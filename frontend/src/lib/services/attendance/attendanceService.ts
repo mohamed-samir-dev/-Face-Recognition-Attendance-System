@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import {  AttendanceStats, DepartmentStats, AbsenceReason } from "@/components/admin/attendance";
 import { AttendanceRecord } from "../../types";

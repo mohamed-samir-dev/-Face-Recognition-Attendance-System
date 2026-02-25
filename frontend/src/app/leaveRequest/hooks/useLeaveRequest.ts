@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { submitLeaveRequest } from "@/lib/services/leave/leaveService";
 import { getUserLeaveDays } from "@/lib/services/leave/leaveDaysService";
@@ -82,7 +82,7 @@ export function useLeaveRequest() {
     return Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end dates
   };
 
-  const validateLeaveDays = (startDate: string, endDate: string) => {
+  const validateLeaveDays = useCallback((startDate: string, endDate: string) => {
     if (startDate && endDate && allowedLeaveDays !== null) {
       const requestedDays = calculateLeaveDays(startDate, endDate);
       const remainingDays = allowedLeaveDays - leaveDaysTaken;
@@ -101,7 +101,7 @@ export function useLeaveRequest() {
     } else {
       setLeaveWarning("");
     }
-  };
+  }, [allowedLeaveDays, leaveDaysTaken]);
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
@@ -216,7 +216,7 @@ export function useLeaveRequest() {
     if (formData.startDate && formData.endDate && allowedLeaveDays !== null) {
       validateLeaveDays(formData.startDate, formData.endDate);
     }
-  }, [allowedLeaveDays]);
+  }, [allowedLeaveDays, formData.startDate, formData.endDate, validateLeaveDays]);
 
   const isDisabled = () => {
     if (formData.startDate && formData.endDate) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Building, Mail, Briefcase, DollarSign, Shield, UserCheck } from 'lucide-react';
+import { User, Building, Mail, Briefcase, DollarSign, Shield } from 'lucide-react';
 import { InputField, SelectField, DisabledField } from './components';
 import {EditFormFieldsProps}from "../../../types"
 import {departmentOptions} from "./data/data"

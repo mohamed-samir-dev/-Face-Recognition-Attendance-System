@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User as UserIcon, Building2, Mail, Phone, Briefcase } from "lucide-react";
 import { User } from "@/lib/types";
 import { getUsers } from "@/lib/services/user/userService";
@@ -15,11 +15,7 @@ export default function SupervisorUserManagement({ user }: SupervisorUserManagem
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    loadEmployees();
-  }, [user]);
-
-  const loadEmployees = async () => {
+  const loadEmployees = useCallback(async () => {
     try {
       const allUsers = await getUsers();
       const managedEmployees = allUsers.filter(
@@ -31,7 +27,11 @@ export default function SupervisorUserManagement({ user }: SupervisorUserManagem
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.department]);
+
+  useEffect(() => {
+    loadEmployees();
+  }, [loadEmployees]);
 
   const filteredEmployees = employees.filter((emp) =>
     emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

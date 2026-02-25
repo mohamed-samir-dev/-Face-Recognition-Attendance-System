@@ -11,12 +11,12 @@ interface EmailWarningModalProps {
     numericId: number;
     accountType: string;
     supervisor?: string;
-  };
+  } | null;
   onClose: () => void;
 }
 
 export default function EmailWarningModal({ show, existingUser, onClose }: EmailWarningModalProps) {
-  if (!show) return null;
+  if (!show || !existingUser) return null;
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm  flex items-center justify-center z-50 p-4">
@@ -24,7 +24,7 @@ export default function EmailWarningModal({ show, existingUser, onClose }: Email
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+              <div className="shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Email Already in Use</h3>

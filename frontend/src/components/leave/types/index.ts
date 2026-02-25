@@ -15,8 +15,8 @@ export interface LeaveRequestFormProps {
   disabled?: boolean;
   dateError?: string;
   leaveWarning?: string;
-  leaveDaysTaken?: number;
-  allowedLeaveDays?: number;
+  leaveDaysTaken?: number | null;
+  allowedLeaveDays?: number | null;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onCancel: () => void;
@@ -46,8 +46,8 @@ export interface LeaveDetailsSectionProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   dateError?: string;
   leaveWarning?: string;
-  leaveDaysTaken?: number;
-  allowedLeaveDays?: number;
+  leaveDaysTaken?: number | null;
+  allowedLeaveDays?: number | null;
 }
 export interface LeaveRequestLayoutProps {
   user: User;

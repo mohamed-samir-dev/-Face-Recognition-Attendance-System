@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, doc, setDoc, deleteDoc, Timestamp } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
 export interface AbsenceRecord {
@@ -70,10 +70,10 @@ export const checkAndRecordAbsences = async (targetDate?: string): Promise<void>
     const attendanceCollection = collection(db, "attendance");
     const attendanceQuery = query(attendanceCollection, where("date", "==", dateStr));
     const attendanceSnapshot = await getDocs(attendanceQuery);
-    const todayAttendance = attendanceSnapshot.docs.map(doc => doc.data());
+    const todayAttendance = attendanceSnapshot.docs.map(doc => doc.data() as Record<string, unknown>);
     
     const employees = users.filter(user => user.numericId !== 1);
-    const attendedUserIds = new Set(todayAttendance.map((record: any) => record.userId));
+    const attendedUserIds = new Set(todayAttendance.map((record) => record.userId as string));
     
     const leaveCollection = collection(db, "leaveRequests");
     const leaveQuery = query(leaveCollection, where("status", "==", "Approved"));
@@ -98,7 +98,7 @@ export const checkAndRecordAbsences = async (targetDate?: string): Promise<void>
       const absenceData: AbsenceRecord = {
         id: absenceId,
         userId: employee.id,
-        employeeId: employee.numericId,
+        employeeId: employee.numericId || 0,
         employeeName: employee.name,
         department: employee.department || employee.Department || 'N/A',
         date: dateStr,

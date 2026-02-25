@@ -2,11 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
-interface DailyAttendance {
-  date: string;
-  present: boolean;
-  late: boolean;
-}
+
 
 interface MonthlyStats {
   dailyData: { day: number; status: number }[];

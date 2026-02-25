@@ -62,7 +62,7 @@ export default function BarChart({ data, onBarClick }: BarChartProps) {
           <Bar 
             dataKey="attendance" 
             radius={[8, 8, 0, 0]}
-            onClick={(data) => onBarClick && onBarClick(data.month)}
+            onClick={(data: unknown) => onBarClick && onBarClick((data as { month: string }).month)}
           >
             {chartData.map((entry, index) => (
               <Cell 

@@ -3,13 +3,11 @@
 import { useState, useEffect } from "react";
 import { Clock, Save } from "lucide-react";
 import toast from "react-hot-toast";
+import { getCompanySettings, updateSettings } from "@/lib/services/system/settingsService";
+import { CompanySettings } from "./types";
 
 export default function AttendanceSettings() {
-  const [settings, setSettings] = useState<SystemSettings>({
-    id: "attendance",
-    attendanceDeadlineTime: "09:00",
-    penaltyDaysPerAbsence: 1
-  });
+  const [settings, setSettings] = useState<CompanySettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -19,7 +17,7 @@ export default function AttendanceSettings() {
 
   const loadSettings = async () => {
     try {
-      const data = await getSystemSettings();
+      const data = await getCompanySettings();
       setSettings(data);
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -30,9 +28,10 @@ export default function AttendanceSettings() {
   };
 
   const handleSave = async () => {
+    if (!settings) return;
     setSaving(true);
     try {
-      await updateSystemSettings(settings);
+      await updateSettings(settings);
       toast.success('Settings saved successfully');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -42,7 +41,7 @@ export default function AttendanceSettings() {
     }
   };
 
-  if (loading) {
+  if (loading || !settings) {
     return <div className="p-6">Loading...</div>;
   }
 
@@ -56,32 +55,33 @@ export default function AttendanceSettings() {
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Attendance Deadline Time
+            Grace Period (minutes)
           </label>
           <input
-            type="time"
-            value={settings.attendanceDeadlineTime}
-            onChange={(e) => setSettings({ ...settings, attendanceDeadlineTime: e.target.value })}
+            type="number"
+            min="0"
+            value={settings.attendanceRules.gracePeriod}
+            onChange={(e) => setSettings({ ...settings, attendanceRules: { ...settings.attendanceRules, gracePeriod: parseInt(e.target.value) || 0 } })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-sm text-gray-500 mt-1">
-            Employees must register attendance before this time to avoid penalties
+            Grace period in minutes before marking attendance as late
           </p>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Penalty Days Per Absence
+            Vacation Days
           </label>
           <input
             type="number"
-            min="1"
-            value={settings.penaltyDaysPerAbsence}
-            onChange={(e) => setSettings({ ...settings, penaltyDaysPerAbsence: parseInt(e.target.value) || 1 })}
+            min="0"
+            value={settings.attendanceRules.vacationDays || 30}
+            onChange={(e) => setSettings({ ...settings, attendanceRules: { ...settings.attendanceRules, vacationDays: parseInt(e.target.value) || 30 } })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-sm text-gray-500 mt-1">
-            Number of penalty days deducted from salary per unexcused absence
+            Annual vacation days per employee
           </p>
         </div>
 

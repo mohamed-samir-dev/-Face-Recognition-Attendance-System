@@ -158,6 +158,7 @@ export interface UserCardProps {
   onChangePassword?: (user: User) => void;
   getStatusColor: (status?: string) => string;
   getStatusText: (status?: string) => string;
+  hideDelete?: boolean;
 }
 export interface UserHeaderProps {
   user: User;

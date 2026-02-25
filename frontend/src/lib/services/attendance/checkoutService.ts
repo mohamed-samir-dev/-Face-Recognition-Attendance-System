@@ -2,7 +2,7 @@ import { collection, query, where, getDocs, updateDoc, doc } from "firebase/fire
 import { db } from "@/lib/firebase/config";
 import { completeTimer } from "./timerService";
 
-export async function recordCheckOut(userId: string, userName: string): Promise<{
+export async function recordCheckOut(userId: string): Promise<{
   success: boolean;
   message: string;
   workedHours?: number;
