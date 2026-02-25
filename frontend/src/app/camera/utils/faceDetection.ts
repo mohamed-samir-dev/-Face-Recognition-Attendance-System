@@ -39,7 +39,7 @@ export async function validateFaceInCircle(
       isValid: true,
       message: "Face detected correctly",
     };
-  } catch (error) {
+  } catch  {
     return {
       isValid: false,
       message: "Face detection failed. Please try again.",
