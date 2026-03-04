@@ -32,20 +32,14 @@ export default function BarChart({ data, onBarClick }: BarChartProps) {
     <div className="h-64 rounded-2xl p-4">
       <ResponsiveContainer width="100%" height="100%">
         <RechartsBar data={chartData}>
-          <defs>
-            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3B82F6" />
-              <stop offset="100%" stopColor="#10B981" />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis 
             dataKey="month" 
-            stroke="#888" 
+            stroke="#6b7280" 
             fontSize={12}
           />
           <YAxis 
-            stroke="#888" 
+            stroke="#6b7280" 
             fontSize={12}
             domain={[0, 100]}
             ticks={[0, 25, 50, 75, 100]}
@@ -61,6 +55,7 @@ export default function BarChart({ data, onBarClick }: BarChartProps) {
           />
           <Bar 
             dataKey="attendance" 
+            fill="#14b8a6"
             radius={[8, 8, 0, 0]}
             onClick={(data: unknown) => onBarClick && onBarClick((data as { month: string }).month)}
           >

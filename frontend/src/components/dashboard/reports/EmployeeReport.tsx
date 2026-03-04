@@ -12,6 +12,7 @@ import { getUserAttendanceHistory } from "@/lib/services/attendance/attendanceHi
 import { AttendanceHistoryRecord } from "@/lib/types/attendanceHistory";
 import { formatHoursForCard } from "@/lib/utils/timeFormatters";
 import * as XLSX from 'xlsx';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function EmployeeReport() {
   const { user } = useAuth();
@@ -22,6 +23,8 @@ export default function EmployeeReport() {
   const [absences, setAbsences] = useState<number>(0);
   const [records, setRecords] = useState<AttendanceHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const COLORS = ['#14b8a6', '#06b6d4', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#6366f1', '#ec4899'];
 
   const calculateAttendanceScore = () => {
     const DaysWorked = records.length;
@@ -136,8 +139,8 @@ export default function EmployeeReport() {
   if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-full space-y-6 p-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -190,7 +193,7 @@ export default function EmployeeReport() {
               <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
                 user?.status === 'Active' ? 'bg-green-100 text-green-800' :
                 user?.status === 'OnLeave' ? 'bg-blue-100 text-blue-800' :
-                'bg-gray-100 text-gray-800'
+                'bg-red-100 text-red-800'
               }`}>
                 {user?.status || 'N/A'}
               </span>
@@ -251,6 +254,94 @@ export default function EmployeeReport() {
               <p className="text-xs text-gray-600 mt-1">Score</p>
             </div>
           </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Line Chart - Hours Over Time */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Hours Worked Over Time</h3>
+            {records.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={records.map(r => ({ date: r.date, hours: r.workedHours || 0 }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" stroke="#6b7280" angle={-45} textAnchor="end" height={80} />
+                  <YAxis stroke="#6b7280" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                    formatter={(value: number | undefined) => `${(value || 0).toFixed(2)}h`}
+                  />
+                  <Line type="monotone" dataKey="hours" stroke="#14b8a6" strokeWidth={2} dot={{ fill: '#14b8a6' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">No data available</div>
+            )}
+          </div>
+
+          {/* Bar Chart - Weekly Hours */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Hours Distribution</h3>
+            <p className="text-xs text-gray-500 mb-3">Shows completed work sessions only (after checkout)</p>
+            {records.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={records.slice(0, 10).map(r => ({ date: r.date, hours: r.workedHours || 0 }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" stroke="#6b7280" angle={-45} textAnchor="end" height={80} />
+                  <YAxis stroke="#6b7280" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                    formatter={(value: number | undefined) => `${(value || 0).toFixed(2)}h`}
+                  />
+                  <Bar dataKey="hours" fill="#14b8a6" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">No completed sessions yet. Check out to see data.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Pie Chart - Status Distribution */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Attendance Status Distribution</h3>
+          {records.length > 0 ? (
+            <div className="w-full h-[400px] flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Present', value: records.filter(r => r.status === 'Present').length },
+                      { name: 'Late', value: records.filter(r => r.status === 'Late').length },
+                      { name: 'On Leave', value: records.filter(r => r.status === 'OnLeave').length },
+                      { name: 'Absent', value: records.filter(r => r.status === 'Absent').length }
+                    ].filter(d => d.value > 0)}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    label={(entry) => `${entry.name}: ${entry.value}`}
+                    outerRadius={120}
+                    fill="#8884d8"
+                    dataKey="value"
+                    animationBegin={0}
+                    animationDuration={800}
+                  >
+                    {[
+                      { name: 'Present', value: records.filter(r => r.status === 'Present').length },
+                      { name: 'Late', value: records.filter(r => r.status === 'Late').length },
+                      { name: 'On Leave', value: records.filter(r => r.status === 'OnLeave').length },
+                      { name: 'Absent', value: records.filter(r => r.status === 'Absent').length }
+                    ].filter(d => d.value > 0).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-[400px] flex items-center justify-center text-gray-400">No data available</div>
+          )}
         </div>
 
         {/* Attendance History */}
