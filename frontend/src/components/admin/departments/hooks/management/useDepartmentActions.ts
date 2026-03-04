@@ -7,6 +7,7 @@ import {
   updateDepartment,
   deleteDepartment,
 } from "@/lib/services/system/settingsService";
+import { updateUser } from "@/lib/services/user/userService";
 
 export function useDepartmentActions(onDepartmentsChange: () => void) {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -35,6 +36,15 @@ export function useDepartmentActions(onDepartmentsChange: () => void) {
         location: newDepartment.location,
       });
 
+      // Update user to Supervisor if they are Employee
+      if (newDepartment.headId) {
+        try {
+          await updateUser(newDepartment.headId, { accountType: 'Supervisor' });
+        } catch (error) {
+          console.error('Error updating user to supervisor:', error);
+        }
+      }
+
       resetForm();
       setShowAddForm(false);
       onDepartmentsChange();
@@ -51,6 +61,16 @@ export function useDepartmentActions(onDepartmentsChange: () => void) {
 
     try {
       await updateDepartment(editingDept.id, editingDept);
+      
+      // Update user to Supervisor if they are Employee
+      if (editingDept.headId) {
+        try {
+          await updateUser(editingDept.headId, { accountType: 'Supervisor' });
+        } catch (error) {
+          console.error('Error updating user to supervisor:', error);
+        }
+      }
+      
       setEditingDept(null);
       onDepartmentsChange();
     } catch (error) {
