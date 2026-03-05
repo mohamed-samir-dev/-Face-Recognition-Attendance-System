@@ -26,39 +26,78 @@ export const saveOvertimeRecord = async (
 };
 
 export const getTodayOvertime = async (userId: string): Promise<number> => {
-  const docRef = doc(db, "overtime", userId);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? (docSnap.data().overtimeHours || 0) : 0;
+  try {
+    const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
+    const { getCompanySettings } = await import('../system/settingsService');
+    
+    const timerDoc = await getDoc(firestoreDoc(db, 'timers', userId));
+    if (timerDoc.exists()) {
+      const timerData = timerDoc.data();
+      if (timerData.checkInTime && timerData.active) {
+        const now = new Date();
+        const settings = await getCompanySettings();
+        const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
+        
+        if (now.getTime() > workEnd.getTime()) {
+          const overtimeMs = now.getTime() - workEnd.getTime();
+          return overtimeMs / (1000 * 60 * 60);
+        }
+      }
+    }
+    return 0;
+  } catch (error) {
+    console.error('Error getting today overtime:', error);
+    return 0;
+  }
 };
 
 export const getMonthlyOvertime = async (userId: string): Promise<number> => {
   try {
-    const { collection, query, where, getDocs } = await import('firebase/firestore');
+    const { collection, query, where, getDocs, doc: firestoreDoc, getDoc } = await import('firebase/firestore');
+    const { getCompanySettings } = await import('../system/settingsService');
     const currentDate = new Date();
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const today = currentDate.toISOString().split('T')[0];
     
     const attendanceRef = collection(db, 'attendance');
     const q = query(
       attendanceRef,
       where('userId', '==', userId),
       where('date', '>=', startOfMonth.toISOString().split('T')[0]),
-      where('date', '<=', endOfMonth.toISOString().split('T')[0])
+      where('date', '<=', today)
     );
     
     const snapshot = await getDocs(q);
     let totalOvertime = 0;
+    let todayRecorded = false;
     
     snapshot.forEach(doc => {
       const data = doc.data();
       if (data.overtimeHours) {
         totalOvertime += data.overtimeHours;
+        if (data.date === today) {
+          todayRecorded = true;
+        }
       }
     });
     
-    // Add today's ongoing overtime if exists
-    const todayOvertime = await getTodayOvertime(userId);
-    totalOvertime += todayOvertime;
+    if (!todayRecorded) {
+      const timerDoc = await getDoc(firestoreDoc(db, 'timers', userId));
+      if (timerDoc.exists()) {
+        const timerData = timerDoc.data();
+        if (timerData.checkInTime && timerData.active) {
+          const now = new Date();
+          const settings = await getCompanySettings();
+          const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
+          
+          if (now.getTime() > workEnd.getTime()) {
+            const overtimeMs = now.getTime() - workEnd.getTime();
+            const currentOvertime = overtimeMs / (1000 * 60 * 60);
+            totalOvertime += currentOvertime;
+          }
+        }
+      }
+    }
     
     return totalOvertime;
   } catch (error) {

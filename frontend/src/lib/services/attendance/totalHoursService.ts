@@ -46,7 +46,7 @@ export const resetTotalHours = async (userId: string): Promise<void> => {
 
 export const getMonthlyTotalHours = async (userId: string): Promise<number> => {
   try {
-    const { collection, query, where, getDocs } = await import('firebase/firestore');
+    const { collection, query, where, getDocs, doc: firestoreDoc, getDoc } = await import('firebase/firestore');
     const currentDate = new Date();
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const today = currentDate.toISOString().split('T')[0];
@@ -56,28 +56,40 @@ export const getMonthlyTotalHours = async (userId: string): Promise<number> => {
       attendanceRef,
       where('userId', '==', userId),
       where('date', '>=', startOfMonth.toISOString().split('T')[0]),
-      where('date', '<', today) // Only get completed days, not today
+      where('date', '<=', today)
     );
     
     const snapshot = await getDocs(q);
     let totalHours = 0;
+    let todayRecorded = false;
     
     snapshot.forEach(doc => {
       const data = doc.data();
       if (data.workedHours) {
         totalHours += data.workedHours;
+        if (data.date === today) {
+          todayRecorded = true;
+        }
       }
     });
     
-    // Add today's current session hours from totalHours collection (live counter)
-    const currentTotal = await getTotalHours(userId);
-    totalHours += currentTotal;
-    
-    console.log(`📊 Monthly Total: ${totalHours.toFixed(2)}h (Previous days: ${(totalHours - currentTotal).toFixed(2)}h + Today: ${currentTotal.toFixed(2)}h)`);
+    if (!todayRecorded) {
+      const timerDoc = await getDoc(firestoreDoc(db, 'timers', userId));
+      if (timerDoc.exists()) {
+        const timerData = timerDoc.data();
+        if (timerData.checkInTime && timerData.active) {
+          const now = new Date();
+          const todayStr = now.toDateString();
+          const checkInTime = new Date(`${todayStr} ${timerData.checkInTime}`);
+          const currentSessionHours = (now.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
+          totalHours += currentSessionHours;
+        }
+      }
+    }
     
     return totalHours;
   } catch (error) {
     console.error('Error getting monthly total hours:', error);
-    return await getTotalHours(userId);
+    return 0;
   }
 };
