@@ -1,9 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { User, Mail, Building, Briefcase, DollarSign, Shield, AtSign, Lock } from 'lucide-react';
 import { InputField, SelectField, DisabledField } from './components';
 import {BasicInfoFieldsProps}from "../../../types"
-import {departmentOptions} from "./data/data"
+import { getCompanySettings } from '@/lib/services/system/settingsService';
 
 const roleOptions = [
   { value: 'Employee', label: 'Employee' },
@@ -11,6 +12,30 @@ const roleOptions = [
 ];
 
 export default function BasicInfoFields({ formData, setFormData, generatedUsername, onNameChange }: BasicInfoFieldsProps) {
+  const [departmentOptions, setDepartmentOptions] = useState<{ value: string; label: string }[]>([
+    { value: '', label: 'Loading departments...' }
+  ]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const settings = await getCompanySettings();
+        const options = [
+          { value: '', label: 'Select Department' },
+          ...settings.departments.map(dept => ({
+            value: dept.name,
+            label: dept.name
+          }))
+        ];
+        setDepartmentOptions(options);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        setDepartmentOptions([{ value: '', label: 'Error loading departments' }]);
+      }
+    };
+    fetchDepartments();
+  }, []);
+
   const handleNameChange = (value: string) => {
     // Only allow English letters and spaces
     const englishOnly = /^[a-zA-Z\s]*$/;

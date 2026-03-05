@@ -1,9 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { User, Building, Mail, Briefcase, DollarSign, Shield } from 'lucide-react';
 import { InputField, SelectField, DisabledField } from './components';
 import {EditFormFieldsProps}from "../../../types"
-import {departmentOptions} from "./data/data"
+import { getCompanySettings } from '@/lib/services/system/settingsService';
 
 const roleOptions = [
   { value: 'Employee', label: 'Employee' },
@@ -12,6 +13,30 @@ const roleOptions = [
 ];
 
 export default function EditFormFields({ formData, setFormData }: EditFormFieldsProps) {
+  const [departmentOptions, setDepartmentOptions] = useState<{ value: string; label: string }[]>([
+    { value: '', label: 'Loading departments...' }
+  ]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const settings = await getCompanySettings();
+        const options = [
+          { value: '', label: 'Select Department' },
+          ...settings.departments.map(dept => ({
+            value: dept.name,
+            label: dept.name
+          }))
+        ];
+        setDepartmentOptions(options);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        setDepartmentOptions([{ value: '', label: 'Error loading departments' }]);
+      }
+    };
+    fetchDepartments();
+  }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
       <InputField

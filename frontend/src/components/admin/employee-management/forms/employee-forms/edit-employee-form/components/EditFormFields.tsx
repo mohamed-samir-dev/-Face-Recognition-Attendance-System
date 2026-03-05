@@ -2,11 +2,10 @@
 
 import {
   EditFormFields as EditFields,
-  FacialDataSection
+  PhotoUploadSection
 } from '../../../../components';
 import { EditFormFieldsProps } from '../../../../types';
-
-
+import { useState } from 'react';
 
 export default function EditFormFields({
   formData,
@@ -17,6 +16,8 @@ export default function EditFormFields({
   handlePhotoUpload,
   onResetClick
 }: EditFormFieldsProps) {
+  const [imageOption, setImageOption] = useState<'upload' | 'camera' | 'url'>('upload');
+
   return (
     <>
       <EditFields 
@@ -29,12 +30,13 @@ export default function EditFormFields({
         onResetClick={onResetClick}
       />
 
-      <FacialDataSection
-        updating={updating}
-        hasNewPhoto={hasNewPhoto}
-        photoMessage={{ type: "success", text: photoMessage }}
-        onPhotoUpload={handlePhotoUpload}
-        onResetClick={onResetClick}
+      <PhotoUploadSection
+        formData={formData}
+        setFormData={setFormData}
+        imageOption={imageOption}
+        setImageOption={setImageOption}
+        photoError=""
+        onFileUpload={handlePhotoUpload}
       />
     </> 
   );

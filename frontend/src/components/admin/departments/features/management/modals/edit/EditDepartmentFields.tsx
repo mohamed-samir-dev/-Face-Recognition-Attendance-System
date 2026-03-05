@@ -20,6 +20,7 @@ export default function EditDepartmentFields({ editingDept, setEditingDept, user
         headId={editingDept.headId || ""}
         users={users}
         onChange={(headId, headName) => setEditingDept(prev => prev ? { ...prev, headId, head: headName } : null)}
+        departmentName={editingDept.name}
       />
 
       <EditLocationField

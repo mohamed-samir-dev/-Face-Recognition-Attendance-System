@@ -62,7 +62,10 @@ export const getDepartmentStats = async (): Promise<DepartmentStats[]> => {
   const users = await getUsers();
   const todayAttendance = await getTodayAttendance();
   
-  const departments = ['IT', 'HR', 'Finance', 'Marketing', 'Sales'];
+  // Get departments from Firebase
+  const { getCompanySettings } = await import('../system/settingsService');
+  const settings = await getCompanySettings();
+  const departments = settings.departments.map(dept => dept.name);
   
   return departments.map(dept => {
     const deptUsers = users.filter(user => 

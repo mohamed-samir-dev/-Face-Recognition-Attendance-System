@@ -156,6 +156,7 @@ export interface EditHeadFieldProps {
   headId: string;
   users: User[];
   onChange: (headId: string, headName: string) => void;
+  departmentName?: string;
 }
 export interface EditLocationFieldProps {
   value: string;

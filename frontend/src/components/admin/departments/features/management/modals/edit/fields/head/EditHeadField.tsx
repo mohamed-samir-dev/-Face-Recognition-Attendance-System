@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {EditHeadFieldProps}from "../../../../../../types"
 import { X } from 'lucide-react';
 
-export default function EditHeadField({ headId, users, onChange }: EditHeadFieldProps) {
+export default function EditHeadField({ headId, users, onChange, departmentName }: EditHeadFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const selectedUser = users.find(u => u.id === headId);
+  
+  const filteredUsers = useMemo(() => {
+    if (!departmentName) return users;
+    return users.filter(user => user.department === departmentName);
+  }, [users, departmentName]);
+  
+  const selectedUser = filteredUsers.find(u => u.id === headId);
 
   return (
     <div>
@@ -38,7 +44,7 @@ export default function EditHeadField({ headId, users, onChange }: EditHeadField
               </div>
               <div className="p-4 overflow-y-auto max-h-[60vh]">
                 <div className="grid gap-3">
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <button
                       key={user.id}
                       type="button"
