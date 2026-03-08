@@ -51,7 +51,7 @@ export default function BarChart({ data, onBarClick }: BarChartProps) {
               borderRadius: '8px',
               fontSize: '12px'
             }}
-            formatter={(value: number) => [`${value}%`, 'Attendance']}
+            formatter={(value: number | undefined) => [`${value ?? 0}%`, 'Attendance']}
           />
           <Bar 
             dataKey="attendance" 

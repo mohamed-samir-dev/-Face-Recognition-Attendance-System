@@ -5,6 +5,7 @@ export interface User {
   username: string;
   email?: string;
   image: string;
+  faceEncoding?: number[] | null;
   password?: string;
   department?: string;
   Department?: string;

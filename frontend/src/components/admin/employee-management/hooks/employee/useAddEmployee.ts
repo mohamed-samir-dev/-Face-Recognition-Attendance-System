@@ -43,7 +43,7 @@ export function useAddEmployee() {
     };
     updateSupervisor();
   }, [formData.department]);
-  const [imageOption, setImageOption] = useState('upload');
+  const [imageOption, setImageOption] = useState<'upload' | 'camera' | 'url'>('upload');
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {

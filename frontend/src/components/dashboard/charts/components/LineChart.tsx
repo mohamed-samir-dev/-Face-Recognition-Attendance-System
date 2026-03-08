@@ -31,7 +31,7 @@ export default function LineChart({ data }: LineChartProps) {
               borderRadius: '8px',
               fontSize: '12px'
             }}
-            formatter={(value: number) => [value === 100 ? 'Present' : 'Absent', 'Status']}
+            formatter={(value: number | undefined) => [(value ?? 0) === 100 ? 'Present' : 'Absent', 'Status']}
             labelFormatter={(label) => `Day ${label}`}
           />
           <Line 
