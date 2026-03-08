@@ -7,9 +7,9 @@ interface FaceRecognitionResponse {
 
 export async function recognizeFace(imageData: string): Promise<FaceRecognitionResponse> {
   try {
-    console.log('Attempting face recognition request to localhost:5001');
+    console.log('Attempting face recognition request');
     
-    const response = await fetch("http://localhost:5001/recognize", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/recognize`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

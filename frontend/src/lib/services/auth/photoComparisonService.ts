@@ -85,7 +85,7 @@ async function comparePhotos(capturedImage: string, userSpecificFirebaseImage: s
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
     
-    const response = await fetch("http://localhost:5001/compare", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/compare`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

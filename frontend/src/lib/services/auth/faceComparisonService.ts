@@ -95,7 +95,7 @@ async function compareWithFirebasePhoto(capturedImage: string, firebasePhotoUrl:
           const firebaseImageBase64 = reader.result as string;
           
           // Send both images to Python server for comparison
-          const comparisonResponse = await fetch("http://localhost:5001/compare", {
+          const comparisonResponse = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/compare`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

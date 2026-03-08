@@ -8,7 +8,7 @@ export async function performThreeStepAuthentication(
   try {
     console.log(`Starting three-step authentication for ${user.name} (ID: ${user.numericId})`);
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL || 'http://localhost:5001'}/three-step-verify`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/three-step-verify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
