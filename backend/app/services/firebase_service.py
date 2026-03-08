@@ -5,6 +5,8 @@ import face_recognition  # pylint: disable=import-error
 import numpy as np  # pylint: disable=import-error
 from PIL import Image
 import io
+import json
+import os
 from datetime import datetime
 
 
@@ -26,16 +28,25 @@ class FirebaseService:
         
         try:
             if not firebase_admin._apps:
-                # Try to initialize Firebase with service account key
-                import os
-                key_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'user-login-data-7d185-firebase-adminsdk-fbsvc-3c8a31d30f.json')
-                if os.path.exists(key_path):
-                    cred = credentials.Certificate(key_path)
-                    firebase_admin.initialize_app(cred, {
-                        'projectId': 'user-login-data-7d185'
-                    })
+                # Try Railway environment variable first (JSON string)
+                firebase_json = os.getenv('FIREBASE_CREDENTIALS_JSON')
+                
+                if firebase_json:
+                    print("Loading Firebase from environment variable...")
+                    cred_dict = json.loads(firebase_json)
+                    cred = credentials.Certificate(cred_dict)
                 else:
-                    raise FirebaseInitializationError("Firebase service account key file not found")
+                    # Fallback to file (local development)
+                    print("Loading Firebase from file...")
+                    key_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'user-login-data-7d185-firebase-adminsdk-fbsvc-3c8a31d30f.json')
+                    if os.path.exists(key_path):
+                        cred = credentials.Certificate(key_path)
+                    else:
+                        raise FirebaseInitializationError("Firebase service account key file not found")
+                
+                firebase_admin.initialize_app(cred, {
+                    'projectId': 'user-login-data-7d185'
+                })
             
             self.db = firestore.client()
             self.firebase_enabled = True

@@ -15,10 +15,13 @@ from .routes.common_routes import init_common_routes
 def create_app(enhanced=False):
     app = Flask(__name__)
     
-    if enhanced:
-        CORS(app, origins=Config.CORS_ORIGINS, methods=Config.CORS_METHODS, allow_headers=Config.CORS_HEADERS)
-    else:
-        CORS(app)
+    # Configure CORS with proper settings
+    CORS(app, 
+         origins=Config.CORS_ORIGINS,
+         methods=Config.CORS_METHODS,
+         allow_headers=Config.CORS_HEADERS,
+         supports_credentials=True,
+         expose_headers=['Content-Type', 'Authorization'])
     
     # Initialize Firebase-first face recognition model
     face_model = FirebaseFaceModel()
