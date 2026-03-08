@@ -133,7 +133,6 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
               {capturedImages.map((img, index) => (
                 <div key={index} className="relative group">
                   <div className="relative rounded-xl overflow-hidden border-2 border-green-400 shadow-lg hover:shadow-xl transition-shadow">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={img} alt={`Photo ${index + 1}`} className="w-32 h-32 object-cover" />
                     <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
                     <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full shadow-lg">
