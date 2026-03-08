@@ -2,6 +2,7 @@
 *firebase*.json
 *adminsdk*.json
 serviceAccountKey.json
+FIREBASE_VARIABLES.md
 
 # Environment Variables
 .env
