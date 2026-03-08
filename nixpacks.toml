@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["python311", "cmake", "gcc", "g++"]
+
+[phases.install]
+cmds = [
+  "pip install --upgrade pip",
+  "pip install cmake",
+  "pip install -r requirements.txt"
+]
+
+[phases.build]
+cmds = ["echo 'Build complete'"]
+
+[start]
+cmd = "python backend/enhanced_face_api_server.py"
