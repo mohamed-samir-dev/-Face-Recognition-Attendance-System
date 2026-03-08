@@ -1,5 +1,43 @@
+# Dependencies
 node_modules
+
+# Build outputs
 .next
+out
+build
+
+# Environment files
+.env
 .env.local
+.env.production
+
+# Firebase credentials
+*firebase*.json
+*adminsdk*.json
+serviceAccountKey.json
+
+# AI Models
+*.pkl
+*.pickle
+
+# Logs
 *.log
+logs
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+
+# Testing
+.coverage
+.pytest_cache
+
+# Temporary
+*.tmp
+*.temp
+temp
+tmp
