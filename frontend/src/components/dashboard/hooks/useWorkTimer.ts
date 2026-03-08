@@ -25,7 +25,7 @@ export const useWorkTimer = (userId?: string) => {
       setBaseTotalHours(monthlyTotal);
       
       // Listen for real-time updates every second
-      const unsubscribe = onSnapshot(doc(db, 'totalHours', userId), async (snapshot) => {
+      const unsubscribe = onSnapshot(doc(db, 'totalHours', userId), async () => {
         const updatedMonthlyTotal = await getMonthlyTotalHours(userId);
         setBaseTotalHours(updatedMonthlyTotal);
       });

@@ -1,8 +1,8 @@
 "use client";
 
 interface ImageOptionSelectorProps {
-  imageOption: string;
-  setImageOption: React.Dispatch<React.SetStateAction<string>>;
+  imageOption: 'upload' | 'camera' | 'url';
+  setImageOption: React.Dispatch<React.SetStateAction<'upload' | 'camera' | 'url'>>;
 }
 
 export default function ImageOptionSelector({
