@@ -132,8 +132,8 @@ export interface URLInputProps {
 export interface PhotoUploadSectionProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  imageOption: string;
-  setImageOption: React.Dispatch<React.SetStateAction<string>>;
+  imageOption: 'upload' | 'camera' | 'url';
+  setImageOption: React.Dispatch<React.SetStateAction<'upload' | 'camera' | 'url'>>;
   photoError: string;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
