@@ -2,6 +2,7 @@ import { getUsers } from "../user/userService";
 import { User } from "@/lib/types";
 import { compressBase64Image } from "@/lib/utils/imageOptimizer";
 import { performanceMonitor } from "@/lib/utils/performanceMonitor";
+import { smartFetch } from '@/lib/utils/apiConfig';
 
 // SECURITY: This service ensures only the logged-in user's image is used for comparison
 
@@ -85,7 +86,7 @@ async function comparePhotos(capturedImage: string, userSpecificFirebaseImage: s
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/compare`, {
+    const response = await smartFetch('/compare', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

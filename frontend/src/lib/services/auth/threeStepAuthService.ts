@@ -1,5 +1,6 @@
 import { User } from "@/lib/types";
 import {ThreeStepVerificationResult}from "../../types/services"
+import { smartFetch } from '@/lib/utils/apiConfig';
 
 export async function performThreeStepAuthentication(
   capturedImageData: string,
@@ -8,7 +9,7 @@ export async function performThreeStepAuthentication(
   try {
     console.log(`Starting three-step authentication for ${user.name} (ID: ${user.numericId})`);
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/three-step-verify`, {
+    const response = await smartFetch('/three-step-verify', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
