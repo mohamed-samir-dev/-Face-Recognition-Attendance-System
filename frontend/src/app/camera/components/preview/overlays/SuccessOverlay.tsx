@@ -17,7 +17,7 @@ export default function SuccessOverlay({
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-green-50">
       <div className="text-center p-4">
-        <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mt-2">
+        <div className="w-14 h-14 bg-linear-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mt-2">
           <CheckCircle2 className="w-8 h-8 text-green-600" />
         </div>
         <h3 className="text-base sm:text-lg font-semibold text-[#1A1A1A] mb-2">

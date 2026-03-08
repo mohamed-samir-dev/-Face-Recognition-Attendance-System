@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 
@@ -104,7 +104,7 @@ export default function DepartmentAttendancePieChart() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
@@ -122,7 +122,7 @@ export default function DepartmentAttendancePieChart() {
                   borderRadius: '8px',
                   fontSize: '12px'
                 }}
-                formatter={(value: number) => [`${value} employees`, 'Present']}
+                formatter={(value: number | undefined) => [`${value ?? 0} employees`, 'Present']}
               />
             </PieChart>
           </ResponsiveContainer>
