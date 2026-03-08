@@ -1,6 +1,7 @@
 'use client';
 
 import { X, Trash2, AlertTriangle } from 'lucide-react';
+import Image from 'next/image';
 import { DeleteModalProps } from '../../types';
 
 
@@ -43,10 +44,13 @@ export default function DeleteModal({ isOpen, user, deleting, onConfirm, onCance
           <div className="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 lg:p-4 mb-4 lg:mb-6">
             <div className="flex items-center space-x-3">
               {user.image && (
-                <img
+                <Image
                   src={displayImage}
                   alt={user.name}
+                  width={48}
+                  height={48}
                   className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"
+                  unoptimized
                 />
               )}
               <div className="flex-1 min-w-0">

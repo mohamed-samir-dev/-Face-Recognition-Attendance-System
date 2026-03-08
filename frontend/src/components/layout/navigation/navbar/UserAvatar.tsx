@@ -1,6 +1,7 @@
 "use client";
 
 import { DocumentData } from "firebase/firestore";
+import Image from "next/image";
 
 interface UserAvatarProps {
   user: DocumentData;
@@ -16,10 +17,13 @@ export default function UserAvatar({ user }: UserAvatarProps) {
   const displayImage = isEncoding ? '/default-avatar.png' : user.image;
   
   return (
-    <img
+    <Image
       src={displayImage}
       alt={user.name}
+      width={40}
+      height={40}
       className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+      unoptimized
       onError={(e) => {
         e.currentTarget.src = '/default-avatar.png';
       }}
