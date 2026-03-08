@@ -8,7 +8,7 @@ interface CameraLayoutProps {
 
 export default function CameraLayout({ children }: CameraLayoutProps) {
   return (
-    <Card className="w-full max-w-md sm:max-w-lg lg:max-w-2xl">
+    <Card className="w-full max-w-[95%] sm:max-w-md md:max-w-lg lg:max-w-2xl">
       {children}
     </Card>
   );

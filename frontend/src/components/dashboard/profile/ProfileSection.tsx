@@ -52,9 +52,9 @@ export default function ProfileSection({
   }, [user.id]);
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 p-8 mb-8">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 space-y-4 sm:space-y-0">
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-200 p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
           <ProfileImage image={currentUser.image} name={currentUser.name} />
           <ProfileInfo 
             name={currentUser.name}

@@ -47,7 +47,7 @@ const CameraPreview = forwardRef<HTMLVideoElement, CameraPreviewProps & {
     ref
   ) => {
     return (
-      <div className="bg-gray-100 rounded-xl h-[450px] sm:h-[520px] lg:h-[450px] relative overflow-hidden">
+      <div className="bg-gray-100 rounded-lg sm:rounded-xl h-[350px] sm:h-[420px] md:h-[480px] lg:h-[450px] relative overflow-hidden">
         <VideoElement ref={ref} cameraActive={cameraActive} />
 
         {!cameraActive && !attendanceMarked && !isProcessing && !error && (

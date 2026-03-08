@@ -15,17 +15,17 @@ export default function ProfileInfo({ name, numericId, department, status }: Pro
   };
 
   return (
-    <div className="text-center sm:text-left">
-      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#1A1A1A] mb-2">
+    <div className="text-center sm:text-left space-y-1">
+      <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-[#1A1A1A]">
         {name || "Sophia Clark"}
       </h2>
-      <p className="text-xs sm:text-sm text-[#555] mb-1">
+      <p className="text-xs sm:text-sm text-[#555]">
         Employee ID: {numericId || "12345"}
       </p>
-      <p className="text-xs sm:text-sm text-[#555] mb-1">
+      <p className="text-xs sm:text-sm text-[#555]">
         Department: {department || "Not Assigned"}
       </p>
-      <p className={`text-xs  sm:text-sm font-medium ${getStatusColor(status)}`}>
+      <p className={`text-xs sm:text-sm font-medium ${getStatusColor(status)}`}>
         Status: {status || "Active"}
       </p>
     </div>

@@ -61,6 +61,10 @@ export interface NavigationMenuProps {
   navigationItems: NavigationItem[];
   isMenuOpen: boolean;
   onToggleMenu: () => void;
+  user?: DocumentData | null;
+  notifications?: Notification[];
+  unreadCount?: number;
+  onLogout?: () => void;
 }
 
 export interface AdminNavigationMenuProps {

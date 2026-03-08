@@ -19,7 +19,7 @@ export default function LoginForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 md:space-y-5">
       <FormInput
         type="text"
         value={formData.email}

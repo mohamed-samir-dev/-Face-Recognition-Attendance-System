@@ -44,7 +44,7 @@ export default function CameraLayout({ user, children }: CameraLayoutProps) {
         />
       )}
 
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-3 sm:p-6 relative">
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-2 sm:p-4 md:p-6 relative">
         {children}
       </div>
     </div>

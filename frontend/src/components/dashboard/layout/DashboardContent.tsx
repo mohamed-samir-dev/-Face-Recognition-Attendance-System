@@ -32,7 +32,7 @@ export default function DashboardContent({
   }, [monthlyData]);
 
   return (
-    <div className="max-w-full mx-auto p-6">
+    <div className="max-w-full mx-auto p-3 sm:p-4 md:p-6">
       <ProfileSection 
         user={user}
         onTakePhoto={onTakeAttendance}
@@ -42,7 +42,7 @@ export default function DashboardContent({
 
       <AttendanceSummary />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
         <AttendanceChart 
           title="Attendance Trends"
           percentage={attendancePercentage}

@@ -20,7 +20,7 @@ export default function CameraControls({
   onRetry
 }: CameraControlsProps) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       {!cameraActive && !attendanceMarked && (
         <StartCameraButton
           onStartCamera={onStartCamera}

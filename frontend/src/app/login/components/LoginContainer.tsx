@@ -26,15 +26,15 @@ export default function LoginContainer({
       
       <FacialRecognitionButton onClick={onFacialRecognition} loading={faceLoading} />
       
-      <p className="text-center text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4 leading-relaxed">
+      <p className="text-center text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 md:mt-4 leading-relaxed px-2">
         Position your face in the frame with good lighting for accurate recognition.
       </p>
       
-      <div className="mt-4 text-center">
+      <div className="mt-3 sm:mt-4 text-center">
         <button
           type="button"
           onClick={onClearSession}
-          className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 underline cursor-pointer"
+          className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 underline cursor-pointer transition-colors duration-200"
         >
           Clear saved session
         </button>

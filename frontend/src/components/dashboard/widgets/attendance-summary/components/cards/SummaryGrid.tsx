@@ -10,7 +10,7 @@ interface SummaryGridProps {
 
 export function SummaryGrid({ data }: SummaryGridProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
       <SummaryCard
         title="Total Hours Worked"
         value={formatHoursForCard(data.totalHours)}

@@ -11,8 +11,8 @@ export default function AttendanceSummary() {
   const { showLateToast, setShowLateToast } = useLateToast();
 
   return (
-    <div className="mb-8">
-      <h3 className="text-lg font-bold text-[#1A1A1A] mb-4">
+    <div className="mb-6 sm:mb-8">
+      <h3 className="text-base sm:text-lg font-bold text-[#1A1A1A] mb-3 sm:mb-4 px-1">
         Monthly Attendance Summary
       </h3>
       <SummaryGrid data={data} />

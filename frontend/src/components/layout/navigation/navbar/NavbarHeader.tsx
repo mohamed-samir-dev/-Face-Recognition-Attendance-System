@@ -8,9 +8,9 @@ interface NavbarHeaderProps {
 
 export default function NavbarHeader({ title }: NavbarHeaderProps) {
   return (
-    <div className="flex items-center space-x-2 sm:space-x-3">
+    <div className="flex items-center gap-2 sm:gap-3">
       <AppLogo size="md" showText={false} />
-      <h1 className="text-base sm:text-lg font-semibold text-[#1A1A1A] truncate">
+      <h1 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 truncate max-w-[120px] sm:max-w-none">
         {title}
       </h1>
     </div>

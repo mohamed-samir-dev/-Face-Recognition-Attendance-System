@@ -13,7 +13,7 @@ export default function ProfileImage({ image, name }: ProfileImageProps) {
         alt={name}
         width={120}
         height={120}
-        className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full object-cover ring-4 ring-blue-100 shadow-lg"
+        className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full object-cover ring-4 ring-blue-100 shadow-lg"
         unoptimized
       />
     </div>

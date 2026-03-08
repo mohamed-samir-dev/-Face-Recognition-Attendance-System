@@ -23,29 +23,29 @@ export function SummaryCard({
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-semibold text-[#555]">{title}</h4>
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-200 p-4 sm:p-5 md:p-6">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <h4 className="text-xs sm:text-sm font-semibold text-[#555] line-clamp-2">{title}</h4>
         <div
-          className={`p-2 rounded-full bg-gradient-to-r ${colorClasses[color]}`}
+          className={`p-1.5 sm:p-2 rounded-full bg-linear-to-r ${colorClasses[color]} shrink-0`}
         >
           <div className={iconColors[color]}>{icon}</div>
         </div>
       </div>
       {value !== undefined && (
-        <div className="text-3xl font-bold text-black">{value}</div>
+        <div className="text-xl sm:text-2xl md:text-3xl font-bold text-black mb-1">{value}</div>
       )}
       {timer && (
         <div>
-          <div className="text-lg font-bold text-blue-700 tracking-wider">
-            <span>Today Hour:</span> {timer}
+          <div className="text-sm sm:text-base md:text-lg font-bold text-blue-700 tracking-wider">
+            <span className="text-xs sm:text-sm md:text-base">Today Hour:</span> {timer}
           </div>
         </div>
       )}
       {overtimeTimer && (
         <div>
-          <div className="text-lg font-bold text-green-700 tracking-wider">
-            <span>Overtime:</span> {overtimeTimer}
+          <div className="text-sm sm:text-base md:text-lg font-bold text-green-700 tracking-wider">
+            <span className="text-xs sm:text-sm md:text-base">Overtime:</span> {overtimeTimer}
           </div>
         </div>
       )}

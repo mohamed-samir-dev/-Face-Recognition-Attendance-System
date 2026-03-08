@@ -9,7 +9,7 @@ export default function AbsenceRequestsCard() {
   const { data, loading, showAll, setShowAll } = useAbsenceData();
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 p-6">
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-200 p-4 sm:p-5 md:p-6">
       <AbsenceHeader approvedCount={data.approvedRequests.length} />
 
       {loading ? (

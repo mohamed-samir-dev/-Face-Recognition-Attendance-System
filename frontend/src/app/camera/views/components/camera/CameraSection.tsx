@@ -17,7 +17,7 @@ const CameraSection = forwardRef<HTMLVideoElement, CameraSectionProps & {
 }>(
   (props, videoRef) => {
     return (
-      <div className="mb-4 sm:mb-6">
+      <div className="mb-3 sm:mb-4 md:mb-6">
         <CameraPreview ref={videoRef} {...props} />
       </div>
     );

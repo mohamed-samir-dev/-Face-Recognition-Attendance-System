@@ -43,7 +43,7 @@ export default function AttendanceChart({
 
   return (
     <>
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-200 p-4 sm:p-5 md:p-6 hover:shadow-lg transition-shadow duration-200">
         <ChartHeader title={title} type={type} />
         <ChartStats percentage={percentage} improvement={improvement} />
         {type === "line" ? (

@@ -6,7 +6,7 @@ export function ViewAllButton({ totalCount, showAll, onToggle }: ViewAllButtonPr
   return (
     <button
       onClick={onToggle}
-      className="w-full mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium"
+      className="w-full mt-2 sm:mt-3 text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium py-1"
     >
       {showAll ? "Show Less" : `View All (${totalCount})`}
     </button>

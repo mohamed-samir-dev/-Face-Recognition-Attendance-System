@@ -29,18 +29,23 @@ export default function BarChart({ data, onBarClick }: BarChartProps) {
   };
 
   return (
-    <div className="h-64 rounded-2xl p-4">
+    <div className="h-48 sm:h-56 md:h-64 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4">
       <ResponsiveContainer width="100%" height="100%">
         <RechartsBar data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis 
             dataKey="month" 
             stroke="#6b7280" 
-            fontSize={12}
+            fontSize={10}
+            tick={{ fontSize: 10 }}
+            angle={-45}
+            textAnchor="end"
+            height={60}
           />
           <YAxis 
             stroke="#6b7280" 
-            fontSize={12}
+            fontSize={10}
+            tick={{ fontSize: 10 }}
             domain={[0, 100]}
             ticks={[0, 25, 50, 75, 100]}
           />
@@ -49,7 +54,8 @@ export default function BarChart({ data, onBarClick }: BarChartProps) {
               backgroundColor: '#fff', 
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
-              fontSize: '12px'
+              fontSize: '11px',
+              padding: '8px'
             }}
             formatter={(value: number | undefined) => [`${value ?? 0}%`, 'Attendance']}
           />

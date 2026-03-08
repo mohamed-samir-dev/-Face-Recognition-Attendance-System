@@ -1,6 +1,6 @@
 export default function AuthDivider() {
   return (
-    <div className="relative my-4 sm:my-6">
+    <div className="relative my-3 sm:my-4 md:my-5">
       <div className="absolute inset-0 flex items-center">
         <div className="w-full border-t border-gray-300"></div>
       </div>
