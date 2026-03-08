@@ -1,3 +1,5 @@
+import { smartFetch } from '@/lib/utils/apiConfig';
+
 interface FaceRecognitionResponse {
   success: boolean;
   name?: string;
@@ -9,7 +11,7 @@ export async function recognizeFace(imageData: string): Promise<FaceRecognitionR
   try {
     console.log('Attempting face recognition request');
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/recognize`, {
+    const response = await smartFetch('/recognize', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -32,9 +34,6 @@ export async function recognizeFace(imageData: string): Promise<FaceRecognitionR
     return result;
   } catch (error) {
     console.error('Face recognition fetch error:', error);
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error('Face recognition server not running. Please start servers on ports 5000 and 5001.');
-    }
     throw error;
   }
 }

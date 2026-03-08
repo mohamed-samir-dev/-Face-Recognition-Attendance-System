@@ -2,6 +2,7 @@ import { db } from "@/lib/firebase/config";
 import { collection, getDocs } from "firebase/firestore";
 import { recognizeFace } from "@/utils/faceRecognition";
 import {FaceComparisonResult,Employee}from "../../types/services"
+import { smartFetch } from '@/lib/utils/apiConfig';
 
 export async function compareAndRetrieveEmployee(capturedImageData: string): Promise<FaceComparisonResult> {
   try {
@@ -95,7 +96,7 @@ async function compareWithFirebasePhoto(capturedImage: string, firebasePhotoUrl:
           const firebaseImageBase64 = reader.result as string;
           
           // Send both images to Python server for comparison
-          const comparisonResponse = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/compare`, {
+          const comparisonResponse = await smartFetch('/compare', {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
