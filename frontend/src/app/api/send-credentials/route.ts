@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-export const runtime = 'nodejs';
+import { sendCredentialsEmail } from '@/lib/services/system/emailService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +18,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Employee created successfully. Email configuration not available.' });
     }
 
-    const { sendCredentialsEmail } = await import('@/lib/services/system/emailService');
     await sendCredentialsEmail({ name, email, username, password, supervisor, accountType, department, jobTitle });
 
     return NextResponse.json({ success: true });

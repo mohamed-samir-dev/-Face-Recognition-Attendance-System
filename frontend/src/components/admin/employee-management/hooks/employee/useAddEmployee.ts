@@ -9,7 +9,7 @@ import { validateEmailUniqueness } from '@/lib/services/user/emailValidationServ
 import { getSupervisorByDepartment } from '@/lib/services/department/supervisorService';
 import { handleSupervisorReplacement, sendSupervisorDemotionEmail, updateDepartmentSupervisor } from '@/lib/services/department/supervisorManagementService';
 import {FormData} from "../../types"
-import { smartFetch } from '@/lib/utils/apiConfig';
+
 
 
 
@@ -126,7 +126,7 @@ export function useAddEmployee() {
         profileImage = parsedData.profileImage;
         
         // Generate encoding from 3 training images
-        const response = await smartFetch('/generate-encoding', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/generate-encoding`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ images: parsedData.trainingImages }),

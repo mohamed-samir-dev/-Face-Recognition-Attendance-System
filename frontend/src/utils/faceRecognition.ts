@@ -1,4 +1,4 @@
-import { smartFetch } from '@/lib/utils/apiConfig';
+
 
 interface FaceRecognitionResponse {
   success: boolean;
@@ -11,7 +11,7 @@ export async function recognizeFace(imageData: string): Promise<FaceRecognitionR
   try {
     console.log('Attempting face recognition request');
     
-    const response = await smartFetch('/recognize', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/recognize`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
