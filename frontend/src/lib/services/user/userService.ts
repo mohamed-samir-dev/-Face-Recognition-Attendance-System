@@ -32,7 +32,7 @@ export const createUserWithId = async (userData: Omit<User, 'id' | 'numericId'>)
   if (userData.image) {
     try {
       console.log('Calling /add-employee API...');
-      const response = await fetch('http://localhost:5001/add-employee', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/add-employee`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -108,7 +108,7 @@ export const updateUser = async (userId: string, userData: Partial<User>): Promi
     const user = users.find(u => u.id === userId);
     if (user) {
       try {
-        const response = await fetch('http://localhost:5001/add-employee', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/add-employee`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

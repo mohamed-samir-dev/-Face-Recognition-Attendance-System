@@ -125,7 +125,7 @@ export function useAddEmployee() {
         profileImage = parsedData.profileImage;
         
         // Generate encoding from 3 training images
-        const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL || 'http://localhost:5001'}/generate-encoding`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/generate-encoding`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ images: parsedData.trainingImages }),
