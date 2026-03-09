@@ -2,7 +2,7 @@
 
 import { User } from "@/lib/types";
 import SupervisorUserManagementView from "@/components/supervisor/employee-management/views/SupervisorUserManagementView";
-import SupervisorAttendance from "@/components/supervisor/attendance/SupervisorAttendance";
+import SupervisorAttendanceWrapper from "@/components/supervisor/attendance/SupervisorAttendanceWrapper";
 import SupervisorLeaves from "@/components/supervisor/leaves/SupervisorLeaves";
 import ProfileSettingsForm from "@/components/profile/forms/ProfileSettingsForm";
 import EmployeeReport from "@/components/dashboard/reports/EmployeeReport";
@@ -17,7 +17,7 @@ export default function ContentRenderer({ activeTab, user }: ContentRendererProp
     case "UserManagement":
       return <SupervisorUserManagementView user={user} />;
     case "Attendance":
-      return <SupervisorAttendance user={user} />;
+      return <SupervisorAttendanceWrapper user={user} />;
     case "Leaves":
       return <SupervisorLeaves user={user} />;
     case "Reports":
