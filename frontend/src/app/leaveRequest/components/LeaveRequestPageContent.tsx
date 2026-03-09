@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import LeaveRequestLayout from "@/components/leave/layouts/LeaveRequestLayout";
 import SupervisorNavbar from "@/components/supervisor/layout/SupervisorNavbar";
 import NavigationBlocker from "@/components/NavigationBlocker";
-import Toast from "@/components/common/feedback/Toast";
+import Toast from "@/components/common/toasts/Toast";
 import LeaveRequestForm from "@/components/leave/forms/LeaveRequestForm";
 
 export default function LeaveRequestPageContent() {
