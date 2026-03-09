@@ -10,7 +10,7 @@ interface ToastNotificationProps {
 export function showToast({ type, title, message, duration = 3000 }: ToastNotificationProps) {
   const toastContent = (
     <div className="flex items-center space-x-3">
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <div className={`w-10 h-10 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} rounded-full flex items-center justify-center`}>
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
             {type === 'success' ? (

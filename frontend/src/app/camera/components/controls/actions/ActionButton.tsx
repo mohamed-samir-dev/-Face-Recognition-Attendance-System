@@ -10,7 +10,7 @@ export default function ActionButton({ onClick, disabled, loading, children }: A
     <button
       onClick={onClick}
       disabled={disabled}
-      className="w-full bg-gradient-to-r from-[#2563EB] to-blue-600 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-6 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:scale-[1.01] active:scale-[0.99]"
+      className="w-full bg-linear-to-r from-[#2563EB] to-blue-600 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-6 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg transform hover:scale-[1.01] active:scale-[0.99]"
     >
       {loading && (
         <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

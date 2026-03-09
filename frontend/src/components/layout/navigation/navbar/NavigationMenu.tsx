@@ -1,10 +1,10 @@
 "use client";
 
-import { Menu, X, LayoutDashboard, FileText, Settings, Bell, LogOut, User } from "lucide-react";
+import { Menu, X, LayoutDashboard, FileText, Settings, Bell, LogOut, User, LucideIcon } from "lucide-react";
 import {NavigationMenuProps}from "../../types"
 import Image from "next/image";
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   Dashboard: LayoutDashboard,
   Reports: FileText,
   Settings: Settings,
@@ -49,7 +49,7 @@ export default function NavigationMenu({
         aria-label="Toggle menu"
       >
         {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        {unreadCount > 0 && (
+        {(unreadCount ?? 0) > 0 && (
           <span className="absolute top-1 right-1 bg-red-500 rounded-full h-2 w-2"></span>
         )}
       </button>
@@ -58,7 +58,7 @@ export default function NavigationMenu({
       {isMenuOpen && (
         <div className="absolute top-14 sm:top-16 left-0 right-0 md:hidden bg-white border-t border-b border-gray-200 shadow-lg z-50">
           {/* User Profile Section */}
-          <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div className="px-4 py-4 border-b border-gray-100 bg-linear-to-r from-blue-50 to-purple-50">
             <div className="flex items-center gap-3">
               {displayImage ? (
                 <Image
@@ -73,7 +73,7 @@ export default function NavigationMenu({
                   }}
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-2 border-white shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center border-2 border-white shadow-sm">
                   <User className="w-6 h-6 text-white" />
                 </div>
               )}
@@ -112,7 +112,7 @@ export default function NavigationMenu({
                   <Bell className="w-4 h-4 text-gray-600" />
                   <span className="font-medium text-gray-900">Notifications</span>
                 </div>
-                {unreadCount > 0 && (
+                {(unreadCount ?? 0) > 0 && (
                   <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                     {unreadCount}
                   </span>

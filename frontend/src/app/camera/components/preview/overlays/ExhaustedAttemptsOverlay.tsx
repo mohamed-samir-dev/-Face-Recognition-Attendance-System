@@ -4,7 +4,7 @@ export default function ExhaustedAttemptsOverlay() {
   return (
     <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-red-50/90">
       <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+        <div className="w-16 h-16 bg-linear-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
           <AlertTriangle className="w-8 h-8 text-red-600" />
         </div>
         <h3 className="text-base sm:text-lg font-semibold text-[#1A1A1A] mb-2">
