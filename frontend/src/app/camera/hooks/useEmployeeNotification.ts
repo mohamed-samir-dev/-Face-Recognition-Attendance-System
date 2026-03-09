@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { showToast } from "../components/employee/ToastNotification";
+import { showWelcomeToast } from "@/components/common/toasts";
 import { Employee } from "../types";
 
 export function useEmployeeNotification(employee: Employee) {
@@ -17,7 +17,7 @@ export function useEmployeeNotification(employee: Employee) {
     const redirectPath = isSupervisor ? "/supervisor" : "/userData";
 
     if (employee.id === "attendance_taken") {
-      showToast({
+      showWelcomeToast({
         type: "error",
         title: "Attendance Already Taken",
         message: "You can only take attendance once per day",
@@ -27,7 +27,7 @@ export function useEmployeeNotification(employee: Employee) {
       return;
     }
 
-    showToast({
+    showWelcomeToast({
       type: "success",
       title: `Welcome, ${employee.name}!`,
       message: "Attendance marked successfully",
