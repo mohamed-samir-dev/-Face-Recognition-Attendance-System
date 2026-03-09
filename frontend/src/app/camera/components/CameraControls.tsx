@@ -14,6 +14,7 @@ export default function CameraControls({
   attemptsRemaining,
   multipleFaces,
   mode,
+  checkedOut,
   onStartCamera,
   onCaptureAndDetect,
   onCheckOut,
@@ -21,7 +22,7 @@ export default function CameraControls({
 }: CameraControlsProps) {
   return (
     <div className="space-y-2 sm:space-y-3">
-      {!cameraActive && !attendanceMarked && (
+      {!cameraActive && !attendanceMarked && !checkedOut && (
         <StartCameraButton
           onStartCamera={onStartCamera}
           isProcessing={isProcessing}
