@@ -83,33 +83,43 @@ async function comparePhotos(capturedImage: string, userSpecificFirebaseImage: s
     ]);
     
     // Use AbortController for timeout to prevent hanging requests
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/compare`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        image1: compressedCaptured,
-        image2: compressedUserImage  // Only the specific user's image
-      }),
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    if (response.ok) {
-      const result = await response.json();
-      console.log("SECURITY: User-specific photo comparison result:", result);
-      // Only accept exact match with the specific user's image
-      return result.match === true;
-    } else {
-      const errorText = await response.text();
-      console.log("SECURITY: Server error during user-specific comparison:", response.status, errorText);
-      return false;
+    const urls = [
+      process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL,
+      'http://localhost:5001'
+    ].filter(Boolean);
+
+    for (const url of urls) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        
+        const response = await fetch(`${url}/compare`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image1: compressedCaptured,
+            image2: compressedUserImage
+          }),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log("SECURITY: User-specific photo comparison result:", result);
+          return result.match === true;
+        }
+      } catch  {
+        console.log(`Failed to connect to ${url}, trying next...`);
+        continue;
+      }
     }
+    
+    console.log("SECURITY: All comparison services unavailable");
+    return false;
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
       console.error("SECURITY: User-specific photo comparison timed out");

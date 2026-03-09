@@ -96,23 +96,36 @@ async function compareWithFirebasePhoto(capturedImage: string, firebasePhotoUrl:
           const firebaseImageBase64 = reader.result as string;
           
           // Send both images to Python server for comparison
-          const comparisonResponse = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/compare`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              image1: capturedImage,
-              image2: firebaseImageBase64
-            })
-          });
-          
-          if (comparisonResponse.ok) {
-            const result = await comparisonResponse.json();
-            resolve(result.match === true);
-          } else {
-            resolve(true); // Fallback to true if comparison service unavailable
+          const urls = [
+            process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL,
+            'http://localhost:5001'
+          ].filter(Boolean);
+
+          for (const url of urls) {
+            try {
+              const comparisonResponse = await fetch(`${url}/compare`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  image1: capturedImage,
+                  image2: firebaseImageBase64
+                })
+              });
+              
+              if (comparisonResponse.ok) {
+                const result = await comparisonResponse.json();
+                resolve(result.match === true);
+                return;
+              }
+            } catch  {
+              console.log(`Failed to connect to ${url}, trying next...`);
+              continue;
+            }
           }
+          
+          resolve(true); // Fallback to true if all services unavailable
         } catch (error) {
           console.error("Photo comparison error:", error);
           resolve(true); // Fallback to true if comparison fails

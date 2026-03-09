@@ -9,32 +9,42 @@ export async function performThreeStepAuthentication(
   try {
     console.log(`Starting three-step authentication for ${user.name} (ID: ${user.numericId})`);
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL}/three-step-verify`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        image: capturedImageData,
-        expected_numeric_id: user.numericId
-      }),
-    });
+    const urls = [
+      process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL,
+      'http://localhost:5001'
+    ].filter(Boolean);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Server error: ${response.status} - ${errorText}`);
+    for (const url of urls) {
+      try {
+        const response = await fetch(`${url}/three-step-verify`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image: capturedImageData,
+            expected_numeric_id: user.numericId
+          }),
+        });
+
+        if (response.ok) {
+          const result: ThreeStepVerificationResult = await response.json();
+          
+          console.log("Two-step authentication results:", {
+            step1: result.step1_face_recognition.success ? "✓ PASSED" : "✗ FAILED",
+            step2: result.step2_numeric_id_verification.success ? "✓ PASSED" : "✗ FAILED",
+            overall: result.overall_success ? "✓ SUCCESS" : "✗ FAILED"
+          });
+
+          return result;
+        }
+      } catch (err) {
+        console.log(`Failed to connect to ${url}, trying next...`);
+        continue;
+      }
     }
-
-    const result: ThreeStepVerificationResult = await response.json();
     
-    // Log detailed results for debugging
-    console.log("Two-step authentication results:", {
-      step1: result.step1_face_recognition.success ? "✓ PASSED" : "✗ FAILED",
-      step2: result.step2_numeric_id_verification.success ? "✓ PASSED" : "✗ FAILED",
-      overall: result.overall_success ? "✓ SUCCESS" : "✗ FAILED"
-    });
-
-    return result;
+    throw new Error("All face recognition services unavailable");
   } catch (error) {
     console.error("Three-step authentication error:", error);
     
