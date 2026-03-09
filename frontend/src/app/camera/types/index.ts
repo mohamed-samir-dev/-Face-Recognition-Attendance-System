@@ -32,6 +32,7 @@ export interface CameraControlsProps {
   attemptsRemaining: number;
   multipleFaces: boolean;
   mode: string;
+  checkedOut?: boolean;
   onStartCamera: () => void;
   onCaptureAndDetect: () => void;
   onCheckOut: () => void;
@@ -116,6 +117,7 @@ export interface ControlsSectionProps {
   attemptsRemaining: number;
   multipleFaces: boolean;
   mode: string;
+  checkedOut?: boolean;
   onStartCamera: () => Promise<void>;
   onCaptureAndDetect: () => Promise<void>;
   onCheckOut: () => Promise<void>;
