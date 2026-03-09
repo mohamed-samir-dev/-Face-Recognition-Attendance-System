@@ -145,53 +145,51 @@ export default function ProfileSidebar({
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6">
+        <h3 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-2 sm:mb-3 lg:mb-4">
           Quick Actions
         </h3>
-        <div className="space-y-2 sm:space-y-3">
-         
+        <div className="space-y-2">
           <button 
             onClick={onUpdatePicture}
-            className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm sm:text-base"
+            className="w-full text-left px-3 py-2 sm:px-4 sm:py-2.5 lg:py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs sm:text-sm lg:text-base"
           >
             Update Profile Picture
           </button>
           <button 
             onClick={onChangePassword}
-            className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm sm:text-base"
+            className="w-full text-left px-3 py-2 sm:px-4 sm:py-2.5 lg:py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-xs sm:text-sm lg:text-base"
           >
             Change Password
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6">
+        <h3 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-2 sm:mb-3 lg:mb-4">
           Account Status
         </h3>
-        <div className="space-y-2 sm:space-y-3">
-          <div className="flex justify-between items-center">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center gap-2">
             <span className="text-xs sm:text-sm text-gray-600">Account Type</span>
-            <span className={`text-xs sm:text-sm font-medium ${getAccountTypeColor(accountType)}`}>
+            <span className={`text-xs sm:text-sm font-medium ${getAccountTypeColor(accountType)} truncate`}>
               {accountType}
             </span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-2">
             <span className="text-xs sm:text-sm text-gray-600">Status</span>
-            <span className={`text-xs sm:text-sm font-medium ${getStatusColor(accountStatus)}`}>
+            <span className={`text-xs sm:text-sm font-medium ${getStatusColor(accountStatus)} truncate`}>
               {accountStatus}
             </span>
-          
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-2">
             <span className="text-xs sm:text-sm text-gray-600">Last Login</span>
-            <span className="text-xs sm:text-sm text-gray-900">{lastLoginText}</span>
+            <span className="text-xs sm:text-sm text-gray-900 truncate">{lastLoginText}</span>
           </div>
           
           <div className="pt-2 border-t border-gray-100">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Timer Details</h4>
+            <h4 className="text-xs sm:text-sm font-medium text-gray-900 mb-2">Timer Details</h4>
             <TimerDetailsSection />
           </div>
         </div>

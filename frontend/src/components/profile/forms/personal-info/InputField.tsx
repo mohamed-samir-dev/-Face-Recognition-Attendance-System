@@ -11,7 +11,7 @@ export default function InputField({
 }: InputFieldProps) {
   return (
     <div>
-      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
         {label}
       </label>
       <input
@@ -20,7 +20,7 @@ export default function InputField({
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         readOnly={readOnly}
         placeholder={placeholder}
-        className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm sm:text-base ${
+        className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-xs sm:text-sm lg:text-base ${
           readOnly ? "bg-gray-50" : ""
         }`}
       />

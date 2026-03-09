@@ -31,14 +31,6 @@ export interface ModalProps {
 }
 
 
-export interface ToastProps {
-  message: string;
-  type: "success" | "error" | "warning";
-  isVisible: boolean;
-  onClose: () => void;
-  duration?: number;
-}
-
 export interface MetricCardProps {
   title: string;
   value: number;

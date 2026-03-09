@@ -11,7 +11,7 @@ export default function PersonalInfoForm({
 }: PersonalInfoFormProps) {
   return (
     <div>
-      <h2 className="text-lg font-medium text-gray-900 mb-4">
+      <h2 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
         Personal Information
       </h2>
       

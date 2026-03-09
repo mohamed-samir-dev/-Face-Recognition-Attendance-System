@@ -3,7 +3,7 @@
 import { useAttendanceData } from "../../hooks/useAttendanceData";
 import { useLateToast } from "../../hooks/useLateToast";
 import { SummaryGrid } from "./components/cards/SummaryGrid";
-import { LateToast } from "./components/notifications/LateToast";
+import { LateToast } from "@/components/common/toasts";
 import AbsenceRequestsCard from "../AbsenceRequestsCard";
 
 export default function AttendanceSummary() {

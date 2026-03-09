@@ -53,8 +53,8 @@ export default function ProfileSettingsForm({ user }: ProfileSettingsFormProps) 
         showPasswordSuccess={showPasswordSuccess} 
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-        <div className="xl:col-span-2">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+        <div className="xl:col-span-2 order-2 xl:order-1">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <ProfileHeader />
             
@@ -75,11 +75,13 @@ export default function ProfileSettingsForm({ user }: ProfileSettingsFormProps) 
           </div>
         </div>
 
-        <ProfileSidebar
-          user={user}
-          onUpdatePicture={() => profilePictureRef.current?.triggerFileInput()}
-          onChangePassword={() => setShowPasswordModal(true)}
-        />
+        <div className="order-1 xl:order-2">
+          <ProfileSidebar
+            user={user}
+            onUpdatePicture={() => profilePictureRef.current?.triggerFileInput()}
+            onChangePassword={() => setShowPasswordModal(true)}
+          />
+        </div>
       </div>
 
       <PasswordModal

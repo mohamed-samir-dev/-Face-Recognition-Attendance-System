@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/navigation/Navbar";
 import NavigationBlocker from "@/components/NavigationBlocker";
-import Toast from "@/components/common/feedback/Toast";
+import Toast from "@/components/common/toasts/Toast";
 import {LeaveRequestLayoutProps}from "../types"
 
 export default function LeaveRequestLayout({

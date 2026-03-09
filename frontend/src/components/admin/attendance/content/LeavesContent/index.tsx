@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLeaveRequests } from "@/components/admin/attendance/hooks/data/useLeaveRequests";
-import Toast from "@/components/common/feedback/Toast";
+import Toast from "@/components/common/toasts/Toast";
 import { LeavesContentProps } from "../../types";
 import { useLeaveActions } from "../../hooks/actions/useLeaveActions";
 import { useModalState } from "../../hooks/ui/useModalState";

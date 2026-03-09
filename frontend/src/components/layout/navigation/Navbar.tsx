@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { useNotifications } from "@/components/common/hooks/useNotifications";
 import { markAsRead } from "@/lib/services/system/notificationService";
-import Toast from "@/components/common/feedback/Toast";
+import Toast from "@/components/common/toasts/Toast";
 import { NavbarProps } from "../types";
 import { NavbarHeader, NotificationDropdown, UserAvatar, NavigationMenu } from "./navbar/index";
 

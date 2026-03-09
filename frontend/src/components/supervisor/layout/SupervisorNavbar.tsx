@@ -5,7 +5,7 @@ import { LogOut } from "lucide-react";
 import { User } from "@/lib/types";
 import { useNotifications } from "@/components/common/hooks/useNotifications";
 import { markAsRead } from "@/lib/services/system/notificationService";
-import Toast from "@/components/common/feedback/Toast";
+import Toast from "@/components/common/toasts/Toast";
 import NotificationDropdown from "@/components/layout/navigation/navbar/NotificationDropdown";
 import UserAvatar from "@/components/layout/navigation/navbar/UserAvatar";
 import { usePendingLeaveRequests } from "../leaves/usePendingLeaveRequests";

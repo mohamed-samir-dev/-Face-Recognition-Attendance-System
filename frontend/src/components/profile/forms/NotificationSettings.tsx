@@ -8,7 +8,7 @@ export default function NotificationSettings({
 }: NotificationSettingsProps) {
   return (
     <div>
-      <h2 className="text-base sm:text-lg font-medium text-gray-900 mb-4">
+      <h2 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
         Notification Preferences
       </h2>
       <NotificationList formData={formData} onInputChange={onInputChange} />

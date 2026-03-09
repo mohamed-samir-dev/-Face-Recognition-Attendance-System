@@ -1,4 +1,4 @@
-import Toast from "@/components/common/feedback/Toast";
+import Toast from "./Toast";
 
 interface LateToastProps {
   isVisible: boolean;

@@ -20,12 +20,12 @@ const ProfilePicture = forwardRef<ProfilePictureRef, ProfilePictureProps>(
     const handleFileInputClick = () => fileInputRef.current?.click();
 
     return (
-      <div className="mb-6 sm:mb-8">
+      <div className="mb-4 sm:mb-6 lg:mb-8">
         <div className="rounded-xl">
-          <h3 className="text-black text-base sm:text-lg font-semibold mb-4 sm:mb-6">
+          <h3 className="text-black text-sm sm:text-base lg:text-lg font-semibold mb-3 sm:mb-4 lg:mb-6">
             Profile Picture
           </h3>
-          <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 lg:space-x-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4 lg:space-x-6">
             <ProfileImage
               selectedImage={selectedImage}
               userImage={userImage}

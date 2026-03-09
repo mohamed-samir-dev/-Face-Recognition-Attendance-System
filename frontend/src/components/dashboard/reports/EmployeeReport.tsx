@@ -53,6 +53,54 @@ export default function EmployeeReport() {
     return Math.round(FinalScore_percent * 10) / 10;
   };
 
+  const groupedChartData = () => {
+    const grouped = records.reduce((acc, record) => {
+      const existing = acc.find(item => item.date === record.date);
+      if (existing) {
+        existing.hours += record.workedHours || 0;
+      } else {
+        acc.push({ date: record.date, hours: record.workedHours || 0 });
+      }
+      return acc;
+    }, [] as { date: string; hours: number }[]);
+    return grouped.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  const overtimeChartData = () => {
+    if (records.length === 0) return [];
+    
+    const dates = records.map(r => new Date(r.date));
+    const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    
+    const allDays: { date: string; overtime: number }[] = [];
+    for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      const dayRecords = records.filter(r => r.date === dateStr);
+      const overtime = dayRecords.reduce((sum, r) => sum + Math.max(0, (r.workedHours || 0) - 8), 0);
+      allDays.push({ date: dateStr, overtime });
+    }
+    return allDays;
+  };
+
+  const weeklyChartData = () => {
+    const grouped = records.reduce((acc, record) => {
+      const date = new Date(record.date);
+      const weekStart = new Date(date.setDate(date.getDate() - date.getDay()));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      const weekLabel = `${weekStart.getDate()}/${weekStart.getMonth() + 1} - ${weekEnd.getDate()}/${weekEnd.getMonth() + 1}`;
+      const existing = acc.find(item => item.week === weekLabel);
+      if (existing) {
+        existing.hours += record.workedHours || 0;
+      } else {
+        acc.push({ week: weekLabel, hours: record.workedHours || 0 });
+      }
+      return acc;
+    }, [] as { week: string; hours: number }[]);
+    return grouped;
+  };
+
   useEffect(() => {
     if (user?.id) {
       getUserAttendanceHistory(user.id).then(data => {
@@ -140,16 +188,16 @@ export default function EmployeeReport() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="w-full space-y-6 p-6">
+      <div className="w-full space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Attendance Report</h1>
-            <p className="text-sm text-gray-500 mt-1">Monthly overview and detailed history</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Attendance Report</h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">Monthly overview and detailed history</p>
           </div>
           <button
             onClick={exportToExcel}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm w-full sm:w-auto justify-center"
           >
             <Download className="w-4 h-4" />
             Export Excel
@@ -157,9 +205,9 @@ export default function EmployeeReport() {
         </div>
 
         {/* Employee Info */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Employee Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Employee Information</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div>
               <p className="text-xs text-gray-500 mb-1">Name</p>
               <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
@@ -202,93 +250,93 @@ export default function EmployeeReport() {
         </div>
 
         {/* Summary Stats */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Summary</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{formatHoursForCard(totalHours)}</p>
-              <p className="text-xs text-gray-600 mt-1">Total Hours</p>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Monthly Summary</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+            <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">{formatHoursForCard(totalHours)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Total Hours</p>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{formatHoursForCard(monthlyOvertime)}</p>
-              <p className="text-xs text-gray-600 mt-1">Overtime</p>
+            <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">{formatHoursForCard(monthlyOvertime)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Overtime</p>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <p className="text-2xl font-bold text-purple-600">{((totalHours / 160) * 100).toFixed(1)}%</p>
-              <p className="text-xs text-gray-600 mt-1">Progress</p>
+            <div className="text-center p-3 sm:p-4 bg-purple-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600">{((totalHours / 160) * 100).toFixed(1)}%</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Progress</p>
             </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <p className="text-2xl font-bold text-yellow-600">{lateArrivals}</p>
-              <p className="text-xs text-gray-600 mt-1">Late Days</p>
+            <div className="text-center p-3 sm:p-4 bg-yellow-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-600">{lateArrivals}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Late Days</p>
             </div>
-            <div className="text-center p-4 bg-red-50 rounded-lg">
-              <p className="text-2xl font-bold text-red-600">{absences}</p>
-              <p className="text-xs text-gray-600 mt-1">Absences</p>
+            <div className="text-center p-3 sm:p-4 bg-red-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-red-600">{absences}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Absences</p>
             </div>
-            <div className="text-center p-4 bg-indigo-50 rounded-lg">
-              <p className="text-2xl font-bold text-indigo-600">{records.length}</p>
-              <p className="text-xs text-gray-600 mt-1">Days Worked</p>
+            <div className="text-center p-3 sm:p-4 bg-indigo-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-indigo-600">{records.length}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Days Worked</p>
             </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <p className="text-2xl font-bold text-orange-600">{leaveDays}</p>
-              <p className="text-xs text-gray-600 mt-1">Leave Taken</p>
+            <div className="text-center p-3 sm:p-4 bg-orange-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-orange-600">{leaveDays}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Leave Taken</p>
             </div>
-            <div className="text-center p-4 bg-teal-50 rounded-lg">
-              <p className="text-2xl font-bold text-teal-600">{vacationDays - leaveDays}</p>
-              <p className="text-xs text-gray-600 mt-1">Leave Left</p>
+            <div className="text-center p-3 sm:p-4 bg-teal-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-teal-600">{vacationDays - leaveDays}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Leave Left</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-600">{formatHoursForCard(Math.max(0, totalHours - monthlyOvertime))}</p>
-              <p className="text-xs text-gray-600 mt-1">Regular Hours</p>
+            <div className="text-center p-3 sm:p-4 bg-gray-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-600">{formatHoursForCard(Math.max(0, totalHours - monthlyOvertime))}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Regular Hours</p>
             </div>
-            <div className="text-center p-4 bg-cyan-50 rounded-lg">
-              <p className="text-2xl font-bold text-cyan-600">{vacationDays}</p>
-              <p className="text-xs text-gray-600 mt-1">Total Leave</p>
+            <div className="text-center p-3 sm:p-4 bg-cyan-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-cyan-600">{vacationDays}</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Total Leave</p>
             </div>
-            <div className="text-center p-4 bg-pink-50 rounded-lg">
-              <p className="text-2xl font-bold text-pink-600">160h</p>
-              <p className="text-xs text-gray-600 mt-1">Expected</p>
+            <div className="text-center p-3 sm:p-4 bg-pink-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-pink-600">160h</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Expected</p>
             </div>
-            <div className="text-center p-4 bg-emerald-50 rounded-lg">
-              <p className="text-2xl font-bold text-emerald-600">{calculateAttendanceScore()}%</p>
-              <p className="text-xs text-gray-600 mt-1">Score</p>
+            <div className="text-center p-3 sm:p-4 bg-emerald-50 rounded-lg">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-emerald-600">{calculateAttendanceScore()}%</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-1">Score</p>
             </div>
           </div>
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Line Chart - Hours Over Time */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Hours Worked Over Time</h3>
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Overtime Hours Over Time</h3>
             {records.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={records.map(r => ({ date: r.date, hours: r.workedHours || 0 }))}>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={overtimeChartData()}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="date" stroke="#6b7280" angle={-45} textAnchor="end" height={80} />
-                  <YAxis stroke="#6b7280" />
+                  <XAxis dataKey="date" stroke="#6b7280" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 10 }} interval={0} />
+                  <YAxis stroke="#6b7280" tick={{ fontSize: 10 }} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                     formatter={(value: number | undefined) => `${(value || 0).toFixed(2)}h`}
                   />
-                  <Line type="monotone" dataKey="hours" stroke="#14b8a6" strokeWidth={2} dot={{ fill: '#14b8a6' }} />
+                  <Line type="monotone" dataKey="overtime" stroke="#14b8a6" strokeWidth={2} dot={{ fill: '#14b8a6' }} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-400">No data available</div>
+              <div className="h-[250px] flex items-center justify-center text-gray-400 text-sm">No data available</div>
             )}
           </div>
 
           {/* Bar Chart - Weekly Hours */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Hours Distribution</h3>
-            <p className="text-xs text-gray-500 mb-3">Shows completed work sessions only (after checkout)</p>
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Weekly Hours Distribution</h3>
+            <p className="text-[10px] sm:text-xs text-gray-500 mb-3">Total hours worked per week</p>
             {records.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={records.slice(0, 10).map(r => ({ date: r.date, hours: r.workedHours || 0 }))}>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={weeklyChartData()}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="date" stroke="#6b7280" angle={-45} textAnchor="end" height={80} />
-                  <YAxis stroke="#6b7280" />
+                  <XAxis dataKey="week" stroke="#6b7280" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#6b7280" tick={{ fontSize: 10 }} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                     formatter={(value: number | undefined) => `${(value || 0).toFixed(2)}h`}
@@ -297,74 +345,32 @@ export default function EmployeeReport() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-400">No completed sessions yet. Check out to see data.</div>
+              <div className="h-[250px] flex items-center justify-center text-gray-400 text-sm px-4 text-center">No completed sessions yet. Check out to see data.</div>
             )}
           </div>
         </div>
 
-        {/* Pie Chart - Status Distribution */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Attendance Status Distribution</h3>
-          {records.length > 0 ? (
-            <div className="w-full h-[400px] flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Present', value: records.filter(r => r.status === 'Present').length },
-                      { name: 'Late', value: records.filter(r => r.status === 'Late').length },
-                      { name: 'On Leave', value: records.filter(r => r.status === 'OnLeave').length },
-                      { name: 'Absent', value: records.filter(r => r.status === 'Absent').length }
-                    ].filter(d => d.value > 0)}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    label={(entry) => `${entry.name}: ${entry.value}`}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                    animationBegin={0}
-                    animationDuration={800}
-                  >
-                    {[
-                      { name: 'Present', value: records.filter(r => r.status === 'Present').length },
-                      { name: 'Late', value: records.filter(r => r.status === 'Late').length },
-                      { name: 'On Leave', value: records.filter(r => r.status === 'OnLeave').length },
-                      { name: 'Absent', value: records.filter(r => r.status === 'Absent').length }
-                    ].filter(d => d.value > 0).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-[400px] flex items-center justify-center text-gray-400">No data available</div>
-          )}
-        </div>
-
         {/* Attendance History */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Attendance History</h2>
-            <p className="text-xs text-gray-500 mt-1">{records.length} records</p>
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Attendance History</h2>
+            <p className="text-[10px] sm:text-xs text-gray-500 mt-1">{records.length} records</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[800px]">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Day</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Check In</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Check Out</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Late</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Hours</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Location</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">IP Location</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Device</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">IP Address</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Date</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Day</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Check In</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Check Out</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Status</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Late</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Hours</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Location</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">IP Location</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">Device</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-700">IP Address</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -372,12 +378,12 @@ export default function EmployeeReport() {
                   const dayName = new Date(record.date).toLocaleDateString('en-US', { weekday: 'short' });
                   return (
                     <tr key={record.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">{record.date}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{dayName}</td>
-                      <td className="px-4 py-3 text-sm text-green-600 font-medium">{record.checkIn || 'N/A'}</td>
-                      <td className="px-4 py-3 text-sm text-red-600 font-medium">{record.checkOut || 'N/A'}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900">{record.date}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">{dayName}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-green-600 font-medium">{record.checkIn || 'N/A'}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-red-600 font-medium">{record.checkOut || 'N/A'}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
+                        <span className={`px-2 py-1 rounded text-[10px] sm:text-xs font-medium ${
                           record.status === 'Present' ? 'bg-green-100 text-green-700' :
                           record.status === 'Late' ? 'bg-yellow-100 text-yellow-700' :
                           record.status === 'OnLeave' ? 'bg-blue-100 text-blue-700' :
@@ -386,12 +392,12 @@ export default function EmployeeReport() {
                           {record.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-orange-600 font-medium">{record.lateMinutes || 0} min</td>
-                      <td className="px-4 py-3 text-sm text-blue-600 font-medium">{record.workedHours?.toFixed(2) || '0.00'}h</td>
-                      <td className="px-4 py-3 text-xs text-gray-600 max-w-[200px] truncate" title={record.checkInLocation}>{record.checkInLocation || 'N/A'}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600 max-w-[150px] truncate" title={record.ipLocation}>{record.ipLocation || 'N/A'}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600 max-w-[180px] truncate" title={record.deviceInfo}>{record.deviceInfo || 'N/A'}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600 font-mono">{record.ipAddress || 'N/A'}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-orange-600 font-medium">{record.lateMinutes || 0} min</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-blue-600 font-medium">{record.workedHours?.toFixed(2) || '0.00'}h</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs text-gray-600 max-w-[150px] sm:max-w-[200px] truncate" title={record.checkInLocation}>{record.checkInLocation || 'N/A'}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs text-gray-600 max-w-[120px] sm:max-w-[150px] truncate" title={record.ipLocation}>{record.ipLocation || 'N/A'}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs text-gray-600 max-w-[150px] sm:max-w-[180px] truncate" title={record.deviceInfo}>{record.deviceInfo || 'N/A'}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs text-gray-600 font-mono">{record.ipAddress || 'N/A'}</td>
                     </tr>
                   );
                 })}
