@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { User as UserIcon, Building2, Mail, Phone, Briefcase } from "lucide-react";
+import { User as UserIcon } from "lucide-react";
 import { User } from "@/lib/types";
 import { getUsers } from "@/lib/services/user/userService";
 import { SupervisorDashboard } from "../dashboard";
@@ -72,57 +72,48 @@ export default function SupervisorUserManagement({ user }: SupervisorUserManagem
           <p className="text-gray-500">No employees in your department.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEmployees.map((employee) => (
-            <div key={employee.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-lg">
-                  {employee.name.charAt(0)}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900">{employee.name}</h3>
-                  <p className="text-sm text-gray-500">ID: #{employee.numericId}</p>
-                </div>
-              </div>
-              
-              <div className="mt-4 space-y-2">
-                {employee.jobTitle && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Briefcase className="w-4 h-4" />
-                    <span>{employee.jobTitle}</span>
-                  </div>
-                )}
-                {employee.department && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Building2 className="w-4 h-4" />
-                    <span>{employee.department}</span>
-                  </div>
-                )}
-                {employee.email && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Mail className="w-4 h-4" />
-                    <span className="truncate">{employee.email}</span>
-                  </div>
-                )}
-                {employee.phone && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Phone className="w-4 h-4" />
-                    <span>{employee.phone}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  employee.status === "Active" ? "bg-green-100 text-green-800" :
-                  employee.status === "OnLeave" ? "bg-yellow-100 text-yellow-800" :
-                  "bg-gray-100 text-gray-800"
-                }`}>
-                  {employee.status || "Active"}
-                </span>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+          <table className="w-full min-w-max">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Employee</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Job Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Phone</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredEmployees.map((employee) => (
+                <tr key={employee.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                        {employee.name.charAt(0)}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{employee.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">#{employee.numericId}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{employee.jobTitle || "-"}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{employee.department || "-"}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{employee.email || "-"}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{employee.phone || "-"}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      employee.status === "Active" ? "bg-green-100 text-green-800" :
+                      employee.status === "OnLeave" ? "bg-yellow-100 text-yellow-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {employee.status || "Active"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

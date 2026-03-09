@@ -96,27 +96,27 @@ export default function SupervisorLeaves({ user }: SupervisorLeavesProps) {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="p-3 sm:p-6 flex items-center justify-center h-32 sm:h-64">
+        <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Leave Requests</h1>
-        <p className="text-gray-600 mt-1">
+    <div className="p-3 sm:p-4 lg:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Leave Requests</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">
           Manage leave requests from your department
         </p>
       </div>
 
-      <div className="mb-6 flex space-x-2">
+      <div className="mb-4 sm:mb-6 flex flex-wrap gap-2">
         {["All Request", "Pending", "Approved", "Rejected"].map((status) => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               statusFilter === status
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -129,106 +129,175 @@ export default function SupervisorLeaves({ user }: SupervisorLeavesProps) {
 
       <div className="bg-white rounded-lg border border-gray-200">
         {filteredRequests.length === 0 ? (
-          <div className="p-12 text-center">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          <div className="p-6 sm:p-12 text-center">
+            <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
               No Leave Requests
             </h3>
-            <p className="text-gray-500">No leave requests found.</p>
+            <p className="text-sm sm:text-base text-gray-500">No leave requests found.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Employee
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Leave Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Duration
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredRequests.map((request) => (
-                  <tr
-                    key={request.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {request.employeeName}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {request.leaveType}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600">
-                        {new Date(request.startDate).toLocaleDateString()}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        to {new Date(request.endDate).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                          request.status
-                        )}`}
-                      >
-                        {request.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex space-x-2">
-                        {request.status === "Pending" && (
-                          <>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Employee
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Leave Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Duration
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredRequests.map((request) => (
+                    <tr
+                      key={request.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {request.employeeName}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {request.leaveType}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-600">
+                          {new Date(request.startDate).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          to {new Date(request.endDate).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                            request.status
+                          )}`}
+                        >
+                          {request.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex space-x-2">
+                          {request.status === "Pending" && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleStatusUpdate(request.id, "Approved")
+                                }
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 hover:text-green-700 transition-colors cursor-pointer"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Approve
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleStatusUpdate(request.id, "Rejected")
+                                }
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+                              >
+                                <XCircle className="w-4 h-4 mr-1" />
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          {request.status === "Approved" && (
                             <button
-                              onClick={() =>
-                                handleStatusUpdate(request.id, "Approved")
-                              }
-                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 hover:text-green-700 transition-colors cursor-pointer"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStatusUpdate(request.id, "Rejected")
-                              }
+                              onClick={() => setDeleteModal({ isOpen: true, request })}
                               className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 transition-colors cursor-pointer"
                             >
-                              <XCircle className="w-4 h-4 mr-1" />
-                              Reject
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Delete
                             </button>
-                          </>
-                        )}
-                        {request.status === "Approved" && (
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="lg:hidden divide-y divide-gray-100">
+              {filteredRequests.map((request) => (
+                <div key={request.id} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-medium text-gray-900 text-sm">
+                        {request.employeeName}
+                      </h3>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {request.leaveType}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                        request.status
+                      )}`}
+                    >
+                      {request.status}
+                    </span>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-600">
+                      <span className="font-medium">Duration:</span>
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  {(request.status === "Pending" || request.status === "Approved") && (
+                    <div className="flex flex-wrap gap-2">
+                      {request.status === "Pending" && (
+                        <>
                           <button
-                            onClick={() => setDeleteModal({ isOpen: true, request })}
-                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+                            onClick={() => handleStatusUpdate(request.id, "Approved")}
+                            className="flex items-center px-3 py-1.5 text-xs font-medium text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                           >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Delete
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Approve
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                          <button
+                            onClick={() => handleStatusUpdate(request.id, "Rejected")}
+                            className="flex items-center px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                          >
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {request.status === "Approved" && (
+                        <button
+                          onClick={() => setDeleteModal({ isOpen: true, request })}
+                          className="flex items-center px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
       
