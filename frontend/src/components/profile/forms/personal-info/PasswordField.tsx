@@ -6,11 +6,11 @@ export default function PasswordField({ userPassword, onPasswordModalOpen }: Pas
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="mt-4 sm:mt-6">
-      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+    <div className="mt-3 sm:mt-4 lg:mt-6">
+      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
         Password
       </label>
-      <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
         <div className="relative w-full sm:max-w-xs">
           <input
             type={showPassword ? "text" : "password"}
@@ -20,17 +20,17 @@ export default function PasswordField({ userPassword, onPasswordModalOpen }: Pas
                 : "•".repeat((userPassword || "").length)
             }
             readOnly
-            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900 pr-10 text-sm sm:text-base"
+            className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900 pr-9 sm:pr-10 text-xs sm:text-sm lg:text-base"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
             {showPassword ? (
-              <EyeOff className="w-4 h-4" />
+              <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             ) : (
-              <Eye className="w-4 h-4" />
+              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
           </button>
         </div>
