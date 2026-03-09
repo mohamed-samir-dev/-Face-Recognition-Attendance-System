@@ -107,22 +107,22 @@ export default function SupervisorAttendance({ user }: SupervisorAttendanceProps
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-3 sm:p-4 md:p-6">
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Attendance Records</h1>
-          <p className="text-gray-600 text-sm mt-1">Complete attendance history and details</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Attendance Records</h1>
+          <p className="text-gray-600 text-xs sm:text-sm mt-1">Complete attendance history and details</p>
         </div>
-        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300">
-          <Filter className="w-4 h-4 text-gray-500" />
+        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-gray-500 shrink-0" />
           <input
             type="date"
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="text-gray-900 text-sm border-0 focus:ring-0 focus:outline-none"
+            className="text-gray-900 text-sm border-0 focus:ring-0 focus:outline-none flex-1 sm:flex-initial"
           />
           {filterDate && (
-            <button onClick={() => setFilterDate("")} className="text-xs text-[#667eea] hover:text-[#764ba2] font-medium">
+            <button onClick={() => setFilterDate("")} className="text-xs text-[#667eea] hover:text-[#764ba2] font-medium shrink-0">
               Clear
             </button>
           )}
@@ -143,32 +143,36 @@ export default function SupervisorAttendance({ user }: SupervisorAttendanceProps
             
             return (
               <div key={date} className="space-y-3">
-                <div className="bg-linear-to-r from-[#667eea] to-[#764ba2] rounded-lg p-4 shadow">
-                  <div className="flex items-center justify-between">
+                <div className="bg-linear-to-r from-[#667eea] to-[#764ba2] rounded-lg p-3 sm:p-4 shadow">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-white" />
+                      <Calendar className="w-5 h-5 text-white shrink-0" />
                       <div>
-                        <h2 className="text-lg font-bold text-white">{getDayLabel(date)}</h2>
+                        <h2 className="text-base sm:text-lg font-bold text-white">{getDayLabel(date)}</h2>
                         <p className="text-white/80 text-xs">{stats.total} employees</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex gap-3 text-white text-sm">
-                        <div className="flex items-center gap-1">
-                          <CheckCircle className="w-4 h-4" />
-                          <span>{stats.present} Present</span>
+                    <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto overflow-x-auto">
+                      <div className="flex gap-2 sm:gap-3 text-white text-xs sm:text-sm">
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">{stats.present} Present</span>
+                          <span className="sm:hidden">{stats.present}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{stats.late} Late</span>
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">{stats.late} Late</span>
+                          <span className="sm:hidden">{stats.late}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Coffee className="w-4 h-4" />
-                          <span>{stats.onLeave} Leave</span>
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <Coffee className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">{stats.onLeave} Leave</span>
+                          <span className="sm:hidden">{stats.onLeave}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <XCircle className="w-4 h-4" />
-                          <span>{stats.absent} Absent</span>
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">{stats.absent} Absent</span>
+                          <span className="sm:hidden">{stats.absent}</span>
                         </div>
                       </div>
                     </div>
@@ -183,98 +187,104 @@ export default function SupervisorAttendance({ user }: SupervisorAttendanceProps
                     
                     return (
                       <div key={record.id} className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                        <div className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h3 className="text-lg font-bold text-gray-900">{record.employeeName}</h3>
-                                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusConfig.badge}`}>
-                                    {record.status}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-gray-600">
-                                  {record.numericId && <span className="font-semibold">ID: {record.numericId}</span>}
-                                  {record.jobTitle && <span className="font-medium">{record.jobTitle}</span>}
-                                  {record.department && <span className="font-medium">{record.department}</span>}
-                                  <span className="text-gray-400">•</span>
-                                  <span className="text-gray-500">{new Date(record.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</span>
-                                </div>
-                              </div>
-                            </div>
+                        <div className="p-3 sm:p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <StatusIcon className={`w-5 h-5 ${statusConfig.color} shrink-0`} />
+                            <h3 className="text-lg font-bold text-gray-900">{record.employeeName}</h3>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusConfig.badge}`}>
+                              {record.status}
+                            </span>
                           </div>
 
-                          <div className="flex flex-wrap gap-2 mb-3">
-                          
-                            {record.accountType && (
-                              <span className="bg-indigo-100 rounded-md px-3 py-1.5 text-xs">
-                                <span className="text-indigo-700">Account:</span> <span className="font-semibold text-indigo-900">{record.accountType}</span>
-                              </span>
-                            )}
-                          
-                            {record.checkInLocation && (
-                              <span className="bg-blue-100 rounded-md px-3 py-1.5 text-xs">
-                                <span className="text-blue-700">Check-in Location:</span> <span className="font-semibold text-blue-900">{record.checkInLocation}</span>
-                              </span>
-                            )}
-                            {record.deviceInfo && (
-                              <span className="bg-gray-100 rounded-md px-3 py-1.5 text-xs">
-                                <span className="text-gray-600">Device Used:</span> <span className="font-semibold text-gray-900">{record.deviceInfo}</span>
-                              </span>
-                            )}
-                            {record.ipAddress && (
-                              <span className="bg-gray-100 rounded-md px-3 py-1.5 text-xs">
-                                <span className="text-gray-600">IP Address:</span> <span className="font-semibold text-gray-900">{record.ipAddress}</span>
-                              </span>
-                            )}
-                            {record.ipLocation && (
-                              <span className="bg-gray-100 rounded-md px-3 py-1.5 text-xs">
-                                <span className="text-gray-600">IP Location:</span> <span className="font-semibold text-gray-900">{record.ipLocation}</span>
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                            <div className="bg-gray-50 rounded-md px-3 py-2">
-                              <p className="text-xs font-medium text-gray-600 mb-1">Check-in Time</p>
-                              <p className="text-sm font-bold text-gray-900">{formatTime(record.checkIn)}</p>
+                          <div className="overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4">
+                            <div className="flex gap-2 min-w-max pb-2">
+                              {record.numericId && (
+                                <div className="bg-purple-50 rounded-md px-3 py-2 min-w-[100px]">
+                                  <p className="text-xs font-medium text-purple-700 mb-1">ID</p>
+                                  <p className="text-sm font-bold text-purple-900">{record.numericId}</p>
+                                </div>
+                              )}
+                              {record.jobTitle && (
+                                <div className="bg-cyan-50 rounded-md px-3 py-2 min-w-[120px]">
+                                  <p className="text-xs font-medium text-cyan-700 mb-1">Job Title</p>
+                                  <p className="text-sm font-bold text-cyan-900">{record.jobTitle}</p>
+                                </div>
+                              )}
+                              {record.department && (
+                                <div className="bg-teal-50 rounded-md px-3 py-2 min-w-[120px]">
+                                  <p className="text-xs font-medium text-teal-700 mb-1">Department</p>
+                                  <p className="text-sm font-bold text-teal-900">{record.department}</p>
+                                </div>
+                              )}
+                              {record.accountType && (
+                                <div className="bg-indigo-50 rounded-md px-3 py-2 min-w-[100px]">
+                                  <p className="text-xs font-medium text-indigo-700 mb-1">Account</p>
+                                  <p className="text-sm font-bold text-indigo-900">{record.accountType}</p>
+                                </div>
+                              )}
+                              <div className="bg-gray-50 rounded-md px-3 py-2 min-w-[100px]">
+                                <p className="text-xs font-medium text-gray-600 mb-1">Check-in</p>
+                                <p className="text-sm font-bold text-gray-900">{formatTime(record.checkIn)}</p>
+                              </div>
+                              {record.checkOut && (
+                                <div className="bg-gray-50 rounded-md px-3 py-2 min-w-[100px]">
+                                  <p className="text-xs font-medium text-gray-600 mb-1">Check-out</p>
+                                  <p className="text-sm font-bold text-gray-900">{formatTime(record.checkOut)}</p>
+                                </div>
+                              )}
+                              {duration && (
+                                <div className="bg-gray-50 rounded-md px-3 py-2 min-w-[100px]">
+                                  <p className="text-xs font-medium text-gray-600 mb-1">Duration</p>
+                                  <p className="text-sm font-bold text-gray-900">{duration}</p>
+                                </div>
+                              )}
+                              {record.isLate && record.lateMinutes ? (
+                                <div className="bg-orange-50 rounded-md px-3 py-2 min-w-[100px]">
+                                  <p className="text-xs font-medium text-orange-700 mb-1">Late</p>
+                                  <p className="text-sm font-bold text-orange-900">{Math.round(record.lateMinutes)} min</p>
+                                </div>
+                              ) : null}
+                              {record.wasOnLeave && (
+                                <div className="bg-blue-50 rounded-md px-3 py-2 min-w-[120px]">
+                                  <p className="text-xs font-medium text-blue-700 mb-1">Leave</p>
+                                  <p className="text-xs font-bold text-blue-900">{record.leaveReason || 'N/A'}</p>
+                                </div>
+                              )}
+                              {record.workedHours !== undefined && record.workedHours > 0 && (
+                                <div className="bg-green-50 rounded-md px-3 py-2 min-w-[100px]">
+                                  <p className="text-xs font-medium text-green-700 mb-1">Worked</p>
+                                  <p className="text-sm font-bold text-green-900">{formatHoursForCard(record.workedHours)}</p>
+                                </div>
+                              )}
+                              {record.checkInLocation && (
+                                <div className="bg-blue-50 rounded-md px-3 py-2 min-w-[140px]">
+                                  <p className="text-xs font-medium text-blue-700 mb-1">Location</p>
+                                  <p className="text-sm font-bold text-blue-900">{record.checkInLocation}</p>
+                                </div>
+                              )}
+                              {record.deviceInfo && (
+                                <div className="bg-slate-50 rounded-md px-3 py-2 min-w-[140px]">
+                                  <p className="text-xs font-medium text-slate-700 mb-1">Device</p>
+                                  <p className="text-sm font-bold text-slate-900">{record.deviceInfo}</p>
+                                </div>
+                              )}
+                              {record.ipAddress && (
+                                <div className="bg-zinc-50 rounded-md px-3 py-2 min-w-[120px]">
+                                  <p className="text-xs font-medium text-zinc-700 mb-1">IP Address</p>
+                                  <p className="text-sm font-bold text-zinc-900">{record.ipAddress}</p>
+                                </div>
+                              )}
+                              {record.ipLocation && (
+                                <div className="bg-stone-50 rounded-md px-3 py-2 min-w-[140px]">
+                                  <p className="text-xs font-medium text-stone-700 mb-1">IP Location</p>
+                                  <p className="text-sm font-bold text-stone-900">{record.ipLocation}</p>
+                                </div>
+                              )}
+                              <div className="bg-amber-50 rounded-md px-3 py-2 min-w-[160px]">
+                                <p className="text-xs font-medium text-amber-700 mb-1">Timestamp</p>
+                                <p className="text-xs font-bold text-amber-900">{new Date(record.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+                              </div>
                             </div>
-                            
-                            {record.checkOut && (
-                              <div className="bg-gray-50 rounded-md px-3 py-2">
-                                <p className="text-xs font-medium text-gray-600 mb-1">Check-out Time</p>
-                                <p className="text-sm font-bold text-gray-900">{formatTime(record.checkOut)}</p>
-                              </div>
-                            )}
-
-                            {duration && (
-                              <div className="bg-gray-50 rounded-md px-3 py-2">
-                                <p className="text-xs font-medium text-gray-600 mb-1">Total Duration</p>
-                                <p className="text-sm font-bold text-gray-900">{duration}</p>
-                              </div>
-                            )}
-                            
-                            {record.isLate && record.lateMinutes ? (
-                              <div className="bg-orange-50 rounded-md px-3 py-2">
-                                <p className="text-xs font-medium text-orange-700 mb-1">Late Arrival</p>
-                                <p className="text-sm font-bold text-orange-900">{Math.round(record.lateMinutes)} minutes</p>
-                              </div>
-                            ) : null}
-                            
-                            {record.wasOnLeave && (
-                              <div className="bg-blue-50 rounded-md px-3 py-2">
-                                <p className="text-xs font-medium text-blue-700 mb-1">Leave Reason</p>
-                                <p className="text-xs font-bold text-blue-900">{record.leaveReason || 'N/A'}</p>
-                              </div>
-                            )}
-                            
-                            {record.workedHours !== undefined && record.workedHours > 0 && (
-                              <div className="bg-green-50 rounded-md px-3 py-2">
-                                <p className="text-xs font-medium text-green-700 mb-1">Hours Worked</p>
-                                <p className="text-sm font-bold text-green-900">{formatHoursForCard(record.workedHours)}</p>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
