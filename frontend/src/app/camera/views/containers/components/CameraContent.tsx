@@ -96,6 +96,7 @@ const CameraContent = forwardRef<HTMLVideoElement, CameraContentProps & {
           attemptsRemaining={attemptsRemaining}
           multipleFaces={multipleFaces}
           mode={mode}
+          checkedOut={checkedOut}
           onStartCamera={onStartCamera}
           onCaptureAndDetect={onCaptureAndDetect}
           onCheckOut={onCheckOut}
