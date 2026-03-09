@@ -29,7 +29,7 @@ export default function CameraControls({
         />
       )}
       
-      {cameraActive && !attendanceMarked && (
+      {cameraActive && !attendanceMarked && !error && !multipleFaces && (
         <>
           {mode === 'checkout' ? (
             <CheckOutButton
