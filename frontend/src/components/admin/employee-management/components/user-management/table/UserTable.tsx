@@ -10,8 +10,7 @@ export default function UserTable({ users, deleting, onEdit, onDelete, onChangeP
   }
 
   return (
-    <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
         <table className="w-full min-w-max">
         <TableHeader />
         <tbody className="bg-white divide-y divide-gray-200">
@@ -30,7 +29,6 @@ export default function UserTable({ users, deleting, onEdit, onDelete, onChangeP
           ))}
         </tbody>
         </table>
-      </div>
     </div>
   );
 }

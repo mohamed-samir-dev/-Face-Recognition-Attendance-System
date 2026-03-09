@@ -7,7 +7,7 @@ import {UserCardProps}from "../../../../../types"
 
 export default function UserCard({ user, deleting, onEdit, onDelete, onChangePassword, getStatusColor, getStatusText, hideDelete }: UserCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
       <UserHeader 
         user={user}
         getStatusColor={getStatusColor}

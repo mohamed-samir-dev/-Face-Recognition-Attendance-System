@@ -12,21 +12,21 @@ export default function UserDetails({ user }: UserDetailsProps) {
   // const { unexcusedAbsences, loading } = useUnexcusedAbsences(user.id);
 
   return (
-    <div className="space-y-2 mb-4">
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-500">Contact:</span>
-        <span className="text-gray-900">{user.email || "No contact"}</span>
+    <div className="space-y-2 mb-3 sm:mb-4">
+      <div className="flex justify-between text-xs sm:text-sm gap-2">
+        <span className="text-gray-500 flex-shrink-0">Contact:</span>
+        <span className="text-gray-900 truncate text-right">{user.email || "No contact"}</span>
       </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-500">Department:</span>
-        <span className="text-gray-900">{user.Department || user.department || "Not Assigned"}</span>
+      <div className="flex justify-between text-xs sm:text-sm gap-2">
+        <span className="text-gray-500 flex-shrink-0">Department:</span>
+        <span className="text-gray-900 truncate text-right">{user.Department || user.department || "Not Assigned"}</span>
       </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-500">Job Title:</span>
-        <span className="text-gray-900">{user.jobTitle || "Not Assigned"}</span>
+      <div className="flex justify-between text-xs sm:text-sm gap-2">
+        <span className="text-gray-500 flex-shrink-0">Job Title:</span>
+        <span className="text-gray-900 truncate text-right">{user.jobTitle || "Not Assigned"}</span>
       </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-500">Salary:</span>
+      <div className="flex justify-between text-xs sm:text-sm gap-2">
+        <span className="text-gray-500 flex-shrink-0">Salary:</span>
         <span className="text-gray-900 font-semibold">${user.salary?.toLocaleString() || "Not Set"}</span>
       </div>
       {/* <div className="flex justify-between text-sm">

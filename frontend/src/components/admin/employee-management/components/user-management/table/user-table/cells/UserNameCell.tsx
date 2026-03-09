@@ -29,10 +29,10 @@ export default function UserNameCell({ image, name }: UserNameCellProps) {
           alt={name}
           width={32}
           height={32}
-          className="w-8 h-8 rounded-full mr-3 object-cover"
+          className="w-8 h-8 rounded-full mr-3 object-cover flex-shrink-0"
           unoptimized
         />
-        <div className="text-sm font-medium text-gray-900">
+        <div className="text-sm font-medium text-gray-900 whitespace-nowrap">
           {name}
         </div>
       </div>
