@@ -23,12 +23,12 @@ export default function PasswordModal({
   if (!showPasswordModal) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50 p-4">
-      <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 w-full max-w-lg">
-        <div className="p-4 sm:p-6">
+    <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl shadow-xl border border-white/20 w-full max-w-lg">
+        <div className="p-3 sm:p-4 lg:p-6">
           <PasswordModalHeader onClose={onClose} />
           
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-2.5 sm:space-y-3 lg:space-y-4">
             <PasswordInput
               label="Current Password"
               value={passwordData.current}
