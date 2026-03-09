@@ -11,6 +11,7 @@ from ai.firebase_face_model import FirebaseFaceModel
 from .config.settings import Config
 from .routes.face_routes import init_face_routes
 from .routes.common_routes import init_common_routes
+from .routes.detection_routes import init_detection_routes
 
 def create_app(enhanced=False):
     app = Flask(__name__)
@@ -35,4 +36,5 @@ def create_app(enhanced=False):
     
     init_face_routes(app, face_model, encoding_cache)
     init_common_routes(app, encoding_cache if enhanced else None)
+    init_detection_routes(app)
     return app, face_model, encoding_cache

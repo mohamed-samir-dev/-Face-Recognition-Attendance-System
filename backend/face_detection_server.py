@@ -79,6 +79,51 @@ def detect_face():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/detect_faces_realtime', methods=['POST'])
+def detect_faces_realtime():
+    """Real-time face detection with bounding boxes"""
+    try:
+        data = request.get_json()
+        
+        if 'image' not in data:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        # Decode image
+        image = decode_base64_image(data['image'])
+        
+        if image is None:
+            return jsonify({'error': 'Invalid image format'}), 400
+        
+        # Load face cascade classifier
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        
+        # Convert to grayscale
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+        # Detect faces
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        
+        # Convert face coordinates to list of dicts
+        face_boxes = []
+        for (x, y, w, h) in faces:
+            face_boxes.append({
+                'x': int(x),
+                'y': int(y),
+                'width': int(w),
+                'height': int(h)
+            })
+        
+        return jsonify({
+            'success': True,
+            'face_count': len(faces),
+            'can_capture': len(faces) == 1,
+            'faces': face_boxes
+        })
+            
+    except Exception as e:
+        print(f"Error in detect_faces_realtime: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/', methods=['GET'])
 def home():
     """Root endpoint"""
@@ -86,7 +131,8 @@ def home():
         'message': 'Face Detection Server is running',
         'endpoints': {
             'health': '/health',
-            'detect_face': '/detect-face (POST)'
+            'detect_face': '/detect-face (POST)',
+            'detect_faces_realtime': '/detect_faces_realtime (POST)'
         },
         'port': 5000
     })

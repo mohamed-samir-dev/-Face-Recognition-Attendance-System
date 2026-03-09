@@ -1,30 +1,148 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Webcam from "react-webcam";
-import { Camera, RotateCcw, CheckCircle, Image as ImageIcon, Calendar, Clock } from "lucide-react";
+import { Camera, RotateCcw, CheckCircle, Image as ImageIcon, Calendar, Clock, AlertTriangle } from "lucide-react";
 
 interface CameraCaptureProps {
   onCapture: (imageData: string) => void;
 }
 
+interface FaceBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const webcamRef = useRef<Webcam>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [captureTime, setCaptureTime] = useState<Date | null>(null);
+  const [faceBoxes, setFaceBoxes] = useState<FaceBox[]>([]);
+  const [faceCount, setFaceCount] = useState<number>(0);
+  const [canCapture, setCanCapture] = useState<boolean>(false);
+  const [isDetecting, setIsDetecting] = useState<boolean>(false);
+
+  const allCaptured = capturedImages.length === 3;
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (!allCaptured && !isDetecting) {
+      interval = setInterval(() => {
+        detectFaces();
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [capturedImages, isDetecting, allCaptured]);
+
+  const detectFaces = async () => {
+    const imageSrc = webcamRef.current?.getScreenshot();
+    if (!imageSrc || isDetecting) return;
+
+    setIsDetecting(true);
+    try {
+      const response = await fetch('http://localhost:5001/detect_faces_realtime', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageSrc })
+      });
+
+      if (!response.ok) throw new Error('Detection failed');
+
+      const data = await response.json();
+      console.log('Detection result:', data);
+      if (data.success) {
+        setFaceBoxes(data.faces || []);
+        setFaceCount(data.face_count);
+        setCanCapture(data.can_capture);
+        drawFaceBoxes(data.faces || []);
+      }
+    } catch (error) {
+      setCanCapture(true);
+      setFaceCount(0);
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+
+  const drawFaceBoxes = (faces: FaceBox[]) => {
+    const canvas = canvasRef.current;
+    const video = webcamRef.current?.video;
+    if (!canvas || !video) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Get container size
+    const containerRect = video.getBoundingClientRect();
+    
+    // Get actual video stream dimensions
+    const videoWidth = video.videoWidth;
+    const videoHeight = video.videoHeight;
+    
+    if (!videoWidth || !videoHeight) return;
+    
+    // Calculate the actual displayed video size (considering object-contain)
+    const videoAspect = videoWidth / videoHeight;
+    const containerAspect = containerRect.width / containerRect.height;
+    
+    let displayWidth, displayHeight, offsetX, offsetY;
+    
+    if (containerAspect > videoAspect) {
+      displayHeight = containerRect.height;
+      displayWidth = displayHeight * videoAspect;
+      offsetX = (containerRect.width - displayWidth) / 2;
+      offsetY = 0;
+    } else {
+      displayWidth = containerRect.width;
+      displayHeight = displayWidth / videoAspect;
+      offsetX = 0;
+      offsetY = (containerRect.height - displayHeight) / 2;
+    }
+    
+    // Set canvas to container size
+    canvas.width = containerRect.width;
+    canvas.height = containerRect.height;
+    
+    // Calculate scale based on actual display size
+    const scaleX = displayWidth / videoWidth;
+    const scaleY = displayHeight / videoHeight;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    faces.forEach((face) => {
+      const color = faces.length === 1 ? '#10b981' : '#ef4444';
+      
+      // Scale and offset coordinates
+      const x = (face.x * scaleX) + offsetX;
+      const y = (face.y * scaleY) + offsetY;
+      const width = face.width * scaleX;
+      
+      // Draw only text label without rectangle
+      ctx.fillStyle = color;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 10;
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(faces.length === 1 ? '✓ Face Detected' : '❌ Multiple Faces', x, y - 10);
+      ctx.shadowBlur = 0;
+    });
+  };
 
   const capturePhoto = () => {
+    if (!canCapture) return;
+    
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc && capturedImages.length < 3) {
       const newImages = [...capturedImages, imageSrc];
       setCapturedImages(newImages);
       if (!captureTime) setCaptureTime(new Date());
       
-      // Send first image as profile photo and all 3 for encoding
       if (newImages.length === 3) {
         onCapture(JSON.stringify({
-          profileImage: newImages[0], // First image for display
-          trainingImages: newImages    // All 3 for face recognition
+          profileImage: newImages[0],
+          trainingImages: newImages
         }));
       }
     }
@@ -33,13 +151,15 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const retakeAll = () => {
     setCapturedImages([]);
     setCaptureTime(null);
+    setFaceBoxes([]);
+    setFaceCount(0);
+    setCanCapture(false);
+    setIsDetecting(false);
   };
 
   const removeImage = (index: number) => {
     setCapturedImages(capturedImages.filter((_, i) => i !== index));
   };
-
-  const allCaptured = capturedImages.length === 3;
 
   const captureTips = [
     "Look straight at the camera with good lighting",
@@ -52,19 +172,42 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
       {!allCaptured && (
         <>
           <div className="relative rounded-xl overflow-hidden bg-linear-to-br from-gray-900 to-gray-800 shadow-2xl border-2 border-gray-700">
-            <Webcam
-              ref={webcamRef}
-              audio={false}
-              screenshotFormat="image/jpeg"
-              videoConstraints={{
-                width: 1280,
-                height: 720,
-                facingMode: "user"
-              }}
-              className="w-full"
-            />
+            <div className="relative aspect-video bg-black">
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                screenshotFormat="image/jpeg"
+                mirrored={false}
+                videoConstraints={{
+                  width: 1280,
+                  height: 720,
+                  facingMode: "user"
+                }}
+                className="w-full h-full object-contain"
+                onLoadedMetadata={() => {
+                  setTimeout(() => detectFaces(), 500);
+                }}
+              />
+              <canvas
+                ref={canvasRef}
+                className="absolute top-0 left-0 w-full h-full pointer-events-none"
+              />
+            </div>
             <div className="absolute top-4 left-4 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-lg font-bold shadow-lg">
               Photo {capturedImages.length + 1} of 3
+            </div>
+            
+            {/* Face Detection Status */}
+            <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 backdrop-blur-md rounded-lg px-4 py-2 border shadow-lg ${
+              faceCount === 0 ? 'bg-yellow-500/20 border-yellow-500/50' :
+              faceCount === 1 ? 'bg-green-500/20 border-green-500/50' :
+              'bg-red-500/20 border-red-500/50'
+            }`}>
+              <p className="text-white text-sm font-bold flex items-center gap-2">
+                {faceCount === 0 && '⚠️ No face detected'}
+                {faceCount === 1 && '✓ Face detected - Ready to capture'}
+                {faceCount > 1 && `❌ ${faceCount} faces detected - Only 1 allowed`}
+              </p>
             </div>
             
             {/* Tip Box */}
@@ -75,13 +218,30 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
             </div>
           </div>
 
+          {faceCount > 1 && (
+            <div className="bg-red-50 border-2 border-red-500 rounded-xl p-4 flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-bold text-red-900 mb-1">Multiple Faces Detected</h4>
+                <p className="text-sm text-red-700">
+                  Please ensure only one person is visible in the camera frame. {faceCount} faces are currently detected.
+                </p>
+              </div>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={capturePhoto}
-            className="w-full bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+            disabled={!canCapture}
+            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all transform ${
+              canCapture
+                ? 'bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-xl hover:-translate-y-0.5 cursor-pointer'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+            }`}
           >
             <Camera className="w-5 h-5" />
-            Capture Photo {capturedImages.length + 1}
+            {canCapture ? `Capture Photo ${capturedImages.length + 1}` : 'Position face to capture'}
           </button>
         </>
       )}
