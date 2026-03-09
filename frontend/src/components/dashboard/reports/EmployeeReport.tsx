@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLeaveDays } from "../hooks/useLeaveDays";
 import { useWorkTimer } from "../hooks/useWorkTimer";
@@ -11,8 +11,17 @@ import { getMonthlyAbsences } from "@/lib/services/attendance/absenceService";
 import { getUserAttendanceHistory } from "@/lib/services/attendance/attendanceHistoryService";
 import { AttendanceHistoryRecord } from "@/lib/types/attendanceHistory";
 import { formatHoursForCard } from "@/lib/utils/timeFormatters";
+import { getTeamMembers } from "@/lib/services/team/teamService";
+import EmployeeReportModal from "./EmployeeReportModal";
 import * as XLSX from 'xlsx';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar,  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+interface TeamMember {
+  id: string;
+  name: string;
+  numericId: string | number;
+  jobTitle?: string;
+}
 
 export default function EmployeeReport() {
   const { user } = useAuth();
@@ -23,8 +32,10 @@ export default function EmployeeReport() {
   const [absences, setAbsences] = useState<number>(0);
   const [records, setRecords] = useState<AttendanceHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<TeamMember | null>(null);
 
-  const COLORS = ['#14b8a6', '#06b6d4', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#6366f1', '#ec4899'];
+  const isSupervisor = user?.accountType === 'Supervisor';
 
   const calculateAttendanceScore = () => {
     const DaysWorked = records.length;
@@ -53,18 +64,7 @@ export default function EmployeeReport() {
     return Math.round(FinalScore_percent * 10) / 10;
   };
 
-  const groupedChartData = () => {
-    const grouped = records.reduce((acc, record) => {
-      const existing = acc.find(item => item.date === record.date);
-      if (existing) {
-        existing.hours += record.workedHours || 0;
-      } else {
-        acc.push({ date: record.date, hours: record.workedHours || 0 });
-      }
-      return acc;
-    }, [] as { date: string; hours: number }[]);
-    return grouped.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  };
+
 
   const overtimeChartData = () => {
     if (records.length === 0) return [];
@@ -109,8 +109,11 @@ export default function EmployeeReport() {
       });
       getMonthlyLateArrivals(user.id).then(setLateArrivals);
       getMonthlyAbsences(user.id).then(setAbsences);
+      if (user.accountType === 'Supervisor') {
+        getTeamMembers(user.id).then(setTeamMembers);
+      }
     }
-  }, [user?.id]);
+  }, [user?.id, user?.accountType]);
 
   const exportToExcel = () => {
     const wb = XLSX.utils.book_new();
@@ -405,6 +408,60 @@ export default function EmployeeReport() {
             </table>
           </div>
         </div>
+
+        {/* Team Members - Only for Supervisors */}
+        {isSupervisor && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Team Members</h2>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">View reports for your team</p>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {teamMembers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+                  <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mb-2 sm:mb-3" />
+                  <p className="text-sm sm:text-base text-gray-500 font-medium">No team members found</p>
+                </div>
+              ) : (
+                teamMembers.map((member) => (
+                  <div key={member.id} className="px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm sm:text-base shrink-0">
+                        {member.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{member.name}</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-500 truncate">{member.jobTitle || 'Employee'} • ID: {member.numericId}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => setSelectedEmployee(member)}
+                        className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex-1 sm:flex-initial"
+                      >
+                        <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+                        View Report
+                      </button>
+                      <button
+                        onClick={() => setTeamMembers(prev => prev.filter(m => m.id !== member.id))}
+                        className="px-3 py-2 text-xs sm:text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {selectedEmployee && (
+          <EmployeeReportModal
+            employee={selectedEmployee}
+            onClose={() => setSelectedEmployee(null)}
+          />
+        )}
       </div>
     </div>
   );
