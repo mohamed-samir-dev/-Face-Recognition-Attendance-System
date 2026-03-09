@@ -2,30 +2,30 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {Calendar, AlertCircle, CheckCircle, XCircle, Coffee, Filter } from "lucide-react";
-import { User as UserType } from "@/lib/types";
-import { getSupervisorTeamAttendance } from "@/lib/services/attendance/supervisorAttendanceService";
 import { AttendanceHistoryRecord } from "@/lib/types/attendanceHistory";
 import { formatHoursForCard } from "@/lib/utils/timeFormatters";
 
-interface SupervisorAttendanceProps {
-  user: UserType;
+interface AttendanceTableViewProps {
+  fetchData: () => Promise<AttendanceHistoryRecord[]>;
+  title: string;
+  subtitle: string;
 }
 
-export default function SupervisorAttendance({ user }: SupervisorAttendanceProps) {
+export default function AttendanceTableView({ fetchData, title, subtitle }: AttendanceTableViewProps) {
   const [history, setHistory] = useState<AttendanceHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterDate, setFilterDate] = useState("");
 
   const loadHistory = useCallback(async () => {
     try {
-      const teamHistory = await getSupervisorTeamAttendance(user.id);
-      setHistory(teamHistory);
+      const data = await fetchData();
+      setHistory(data);
     } catch (error) {
       console.error("Error loading history:", error);
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, [fetchData]);
 
   useEffect(() => {
     loadHistory();
@@ -107,22 +107,23 @@ export default function SupervisorAttendance({ user }: SupervisorAttendanceProps
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6">
-      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+    <div className="p-3 sm:p-6">
+      {/* Header */}
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Attendance Records</h1>
-          <p className="text-gray-600 text-xs sm:text-sm mt-1">Complete attendance history and details</p>
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">{title}</h1>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1">{subtitle}</p>
         </div>
-        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-300 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-gray-500 shrink-0" />
+        <div className="flex items-center gap-2 bg-white px-3 sm:px-4 py-2 rounded-lg border border-gray-200 shadow-sm w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-gray-400" />
           <input
             type="date"
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="text-gray-900 text-sm border-0 focus:ring-0 focus:outline-none flex-1 sm:flex-initial"
+            className="text-gray-700 text-sm border-0 focus:ring-0 focus:outline-none flex-1 sm:flex-initial"
           />
           {filterDate && (
-            <button onClick={() => setFilterDate("")} className="text-xs text-[#667eea] hover:text-[#764ba2] font-medium shrink-0">
+            <button onClick={() => setFilterDate("")} className="text-xs text-[#667eea] hover:text-[#764ba2] font-semibold whitespace-nowrap">
               Clear
             </button>
           )}
@@ -130,166 +131,135 @@ export default function SupervisorAttendance({ user }: SupervisorAttendanceProps
       </div>
 
       {filteredHistory.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-gray-700 mb-1">No Records Found</h3>
-          <p className="text-gray-500 text-sm">No attendance records available.</p>
+        <div className="bg-white rounded-xl border border-gray-100 p-8 sm:p-16 text-center shadow-sm">
+          <Calendar className="w-16 sm:w-20 h-16 sm:h-20 text-gray-300 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No Records Found</h3>
+          <p className="text-sm sm:text-base text-gray-400">No attendance records available for the selected date.</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {sortedDates.map((date) => {
             const records = groupedHistory[date];
             const stats = getDateStats(records);
             
             return (
-              <div key={date} className="space-y-3">
-                <div className="bg-linear-to-r from-[#667eea] to-[#764ba2] rounded-lg p-3 sm:p-4 shadow">
+              <div key={date} className="space-y-3 sm:space-y-4">
+                {/* Date Header with Stats */}
+                <div className="bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-lg p-3 sm:p-4 shadow-md">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-white shrink-0" />
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+                        <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-white" />
+                      </div>
                       <div>
                         <h2 className="text-base sm:text-lg font-bold text-white">{getDayLabel(date)}</h2>
-                        <p className="text-white/80 text-xs">{stats.total} employees</p>
+                        <p className="text-white/80 text-xs sm:text-sm">{stats.total} team members</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto overflow-x-auto">
-                      <div className="flex gap-2 sm:gap-3 text-white text-xs sm:text-sm">
-                        <div className="flex items-center gap-1 whitespace-nowrap">
-                          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">{stats.present} Present</span>
-                          <span className="sm:hidden">{stats.present}</span>
+                    <div className="flex gap-3 sm:gap-6 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+                      <div className="text-center min-w-[60px]">
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-white/90 mb-1 justify-center">
+                          <CheckCircle className="w-3 sm:w-4 h-3 sm:h-4" />
+                          <span className="text-xs font-medium">Present</span>
                         </div>
-                        <div className="flex items-center gap-1 whitespace-nowrap">
-                          <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">{stats.late} Late</span>
-                          <span className="sm:hidden">{stats.late}</span>
+                        <p className="text-lg sm:text-xl font-bold text-white">{stats.present}</p>
+                      </div>
+                      <div className="text-center min-w-[60px]">
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-white/90 mb-1 justify-center">
+                          <AlertCircle className="w-3 sm:w-4 h-3 sm:h-4" />
+                          <span className="text-xs font-medium">Late</span>
                         </div>
-                        <div className="flex items-center gap-1 whitespace-nowrap">
-                          <Coffee className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">{stats.onLeave} Leave</span>
-                          <span className="sm:hidden">{stats.onLeave}</span>
+                        <p className="text-lg sm:text-xl font-bold text-white">{stats.late}</p>
+                      </div>
+                      <div className="text-center min-w-[60px]">
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-white/90 mb-1 justify-center">
+                          <Coffee className="w-3 sm:w-4 h-3 sm:h-4" />
+                          <span className="text-xs font-medium">Leave</span>
                         </div>
-                        <div className="flex items-center gap-1 whitespace-nowrap">
-                          <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">{stats.absent} Absent</span>
-                          <span className="sm:hidden">{stats.absent}</span>
+                        <p className="text-lg sm:text-xl font-bold text-white">{stats.onLeave}</p>
+                      </div>
+                      <div className="text-center min-w-[60px]">
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-white/90 mb-1 justify-center">
+                          <XCircle className="w-3 sm:w-4 h-3 sm:h-4" />
+                          <span className="text-xs font-medium">Absent</span>
                         </div>
+                        <p className="text-lg sm:text-xl font-bold text-white">{stats.absent}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  {records.map((record) => {
-                    const statusConfig = getStatusConfig(record.status);
-                    const StatusIcon = statusConfig.icon;
-                    const duration = calculateDuration(record.checkIn, record.checkOut);
-                    
-                    return (
-                      <div key={record.id} className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                        <div className="p-3 sm:p-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <StatusIcon className={`w-5 h-5 ${statusConfig.color} shrink-0`} />
-                            <h3 className="text-lg font-bold text-gray-900">{record.employeeName}</h3>
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusConfig.badge}`}>
-                              {record.status}
-                            </span>
-                          </div>
-
-                          <div className="overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4">
-                            <div className="flex gap-2 min-w-max pb-2">
-                              {record.numericId && (
-                                <div className="bg-purple-50 rounded-md px-3 py-2 min-w-[100px]">
-                                  <p className="text-xs font-medium text-purple-700 mb-1">ID</p>
-                                  <p className="text-sm font-bold text-purple-900">{record.numericId}</p>
+                {/* Records Table */}
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-max">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Employee</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Status</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">ID</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Job Title</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Department</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Check In</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Check Out</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Duration</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Worked Hours</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Late</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Leave Reason</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Location</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Device</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">IP Address</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">IP Location</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Timestamp</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {records.map((record) => {
+                          const statusConfig = getStatusConfig(record.status);
+                          const StatusIcon = statusConfig.icon;
+                          const duration = calculateDuration(record.checkIn, record.checkOut);
+                          
+                          return (
+                            <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <div className={`${statusConfig.bg} p-1 sm:p-1.5 rounded`}>
+                                    <StatusIcon className={`w-3 sm:w-4 h-3 sm:h-4 ${statusConfig.color}`} />
+                                  </div>
+                                  <span className="font-semibold text-gray-900 text-xs sm:text-sm">{record.employeeName}</span>
                                 </div>
-                              )}
-                              {record.jobTitle && (
-                                <div className="bg-cyan-50 rounded-md px-3 py-2 min-w-[120px]">
-                                  <p className="text-xs font-medium text-cyan-700 mb-1">Job Title</p>
-                                  <p className="text-sm font-bold text-cyan-900">{record.jobTitle}</p>
-                                </div>
-                              )}
-                              {record.department && (
-                                <div className="bg-teal-50 rounded-md px-3 py-2 min-w-[120px]">
-                                  <p className="text-xs font-medium text-teal-700 mb-1">Department</p>
-                                  <p className="text-sm font-bold text-teal-900">{record.department}</p>
-                                </div>
-                              )}
-                              {record.accountType && (
-                                <div className="bg-indigo-50 rounded-md px-3 py-2 min-w-[100px]">
-                                  <p className="text-xs font-medium text-indigo-700 mb-1">Account</p>
-                                  <p className="text-sm font-bold text-indigo-900">{record.accountType}</p>
-                                </div>
-                              )}
-                              <div className="bg-gray-50 rounded-md px-3 py-2 min-w-[100px]">
-                                <p className="text-xs font-medium text-gray-600 mb-1">Check-in</p>
-                                <p className="text-sm font-bold text-gray-900">{formatTime(record.checkIn)}</p>
-                              </div>
-                              {record.checkOut && (
-                                <div className="bg-gray-50 rounded-md px-3 py-2 min-w-[100px]">
-                                  <p className="text-xs font-medium text-gray-600 mb-1">Check-out</p>
-                                  <p className="text-sm font-bold text-gray-900">{formatTime(record.checkOut)}</p>
-                                </div>
-                              )}
-                              {duration && (
-                                <div className="bg-gray-50 rounded-md px-3 py-2 min-w-[100px]">
-                                  <p className="text-xs font-medium text-gray-600 mb-1">Duration</p>
-                                  <p className="text-sm font-bold text-gray-900">{duration}</p>
-                                </div>
-                              )}
-                              {record.isLate && record.lateMinutes ? (
-                                <div className="bg-orange-50 rounded-md px-3 py-2 min-w-[100px]">
-                                  <p className="text-xs font-medium text-orange-700 mb-1">Late</p>
-                                  <p className="text-sm font-bold text-orange-900">{Math.round(record.lateMinutes)} min</p>
-                                </div>
-                              ) : null}
-                              {record.wasOnLeave && (
-                                <div className="bg-blue-50 rounded-md px-3 py-2 min-w-[120px]">
-                                  <p className="text-xs font-medium text-blue-700 mb-1">Leave</p>
-                                  <p className="text-xs font-bold text-blue-900">{record.leaveReason || 'N/A'}</p>
-                                </div>
-                              )}
-                              {record.workedHours !== undefined && record.workedHours > 0 && (
-                                <div className="bg-green-50 rounded-md px-3 py-2 min-w-[100px]">
-                                  <p className="text-xs font-medium text-green-700 mb-1">Worked</p>
-                                  <p className="text-sm font-bold text-green-900">{formatHoursForCard(record.workedHours)}</p>
-                                </div>
-                              )}
-                              {record.checkInLocation && (
-                                <div className="bg-blue-50 rounded-md px-3 py-2 min-w-[140px]">
-                                  <p className="text-xs font-medium text-blue-700 mb-1">Location</p>
-                                  <p className="text-sm font-bold text-blue-900">{record.checkInLocation}</p>
-                                </div>
-                              )}
-                              {record.deviceInfo && (
-                                <div className="bg-slate-50 rounded-md px-3 py-2 min-w-[140px]">
-                                  <p className="text-xs font-medium text-slate-700 mb-1">Device</p>
-                                  <p className="text-sm font-bold text-slate-900">{record.deviceInfo}</p>
-                                </div>
-                              )}
-                              {record.ipAddress && (
-                                <div className="bg-zinc-50 rounded-md px-3 py-2 min-w-[120px]">
-                                  <p className="text-xs font-medium text-zinc-700 mb-1">IP Address</p>
-                                  <p className="text-sm font-bold text-zinc-900">{record.ipAddress}</p>
-                                </div>
-                              )}
-                              {record.ipLocation && (
-                                <div className="bg-stone-50 rounded-md px-3 py-2 min-w-[140px]">
-                                  <p className="text-xs font-medium text-stone-700 mb-1">IP Location</p>
-                                  <p className="text-sm font-bold text-stone-900">{record.ipLocation}</p>
-                                </div>
-                              )}
-                              <div className="bg-amber-50 rounded-md px-3 py-2 min-w-[160px]">
-                                <p className="text-xs font-medium text-amber-700 mb-1">Timestamp</p>
-                                <p className="text-xs font-bold text-amber-900">{new Date(record.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                                <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-xs font-semibold ${statusConfig.badge}`}>
+                                  {record.status}
+                                </span>
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.numericId || '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.jobTitle || '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.department || '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-blue-600 whitespace-nowrap">{formatTime(record.checkIn)}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-purple-600 whitespace-nowrap">{record.checkOut ? formatTime(record.checkOut) : '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-green-600 whitespace-nowrap">{duration || '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-emerald-600 whitespace-nowrap">
+                                {record.workedHours !== undefined && record.workedHours > 0 ? formatHoursForCard(record.workedHours) : '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-orange-600 whitespace-nowrap">
+                                {record.isLate && record.lateMinutes ? `${Math.round(record.lateMinutes)} min` : '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.wasOnLeave ? (record.leaveReason || 'N/A') : '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.checkInLocation || '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.deviceInfo || '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.ipAddress || '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.ipLocation || '-'}</td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs text-gray-600 whitespace-nowrap">
+                                {new Date(record.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             );
