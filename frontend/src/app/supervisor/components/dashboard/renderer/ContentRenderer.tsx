@@ -5,7 +5,7 @@ import SupervisorUserManagementView from "@/components/supervisor/employee-manag
 import SupervisorAttendance from "@/components/supervisor/attendance/SupervisorAttendance";
 import SupervisorLeaves from "@/components/supervisor/leaves/SupervisorLeaves";
 import ProfileSettingsForm from "@/components/profile/forms/ProfileSettingsForm";
-import SupervisorReport from "@/components/dashboard/reports/SupervisorReport";
+import EmployeeReport from "@/components/dashboard/reports/EmployeeReport";
 
 interface ContentRendererProps {
   activeTab: string;
@@ -21,7 +21,7 @@ export default function ContentRenderer({ activeTab, user }: ContentRendererProp
     case "Leaves":
       return <SupervisorLeaves user={user} />;
     case "Reports":
-      return <SupervisorReport />;
+      return <EmployeeReport />;
     case "Settings":
       return (
         <div className="p-6">

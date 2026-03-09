@@ -66,7 +66,7 @@ export default function DashboardPageContent() {
     switch (activeTab) {
       case "settings":
         return (
-          <div className="p-3 sm:p-4 md:p-6">
+          <div className="p-2 sm:p-3 lg:p-4">
             <ProfileSettingsForm user={user} />
           </div>
         );
