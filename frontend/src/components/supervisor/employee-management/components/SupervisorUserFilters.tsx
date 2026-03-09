@@ -16,9 +16,9 @@ export default function SupervisorUserFilters({
   setSortBy
 }: Omit<UserFiltersProps, 'departmentFilter' | 'setDepartmentFilter' | 'departments'>) {
   return (
-    <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 mb-6">
+    <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
       <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <StatusFilter filter={filter} setFilter={setFilter} />
         <SortSelector sortBy={sortBy} setSortBy={setSortBy} />
       </div>

@@ -45,10 +45,10 @@ export default function SupervisorUserManagementView({ user }: SupervisorUserMan
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">User Management</h1>
-        <p className="text-gray-600 mt-1 text-sm sm:text-base">
+    <div className="p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">User Management</h1>
+        <p className="text-gray-600 mt-1 text-xs sm:text-sm md:text-base">
           Manage system users and their permissions
         </p>
       </div>
