@@ -293,16 +293,26 @@ def init_face_routes(app, face_model, encoding_cache):
             images = data.get('images', [])
             
             if len(images) != 3:
-                return jsonify({'error': '3 images required'}), 400
+                return jsonify({
+                    'success': False,
+                    'error': 'Exactly 3 images are required for face training'
+                }), 400
             
             encodings = []
-            for img_data in images:
+            failed_images = []
+            
+            for idx, img_data in enumerate(images, 1):
                 encoding = get_face_encoding_from_base64(img_data)
                 if encoding is not None:
                     encodings.append(encoding)
+                else:
+                    failed_images.append(idx)
             
             if len(encodings) < 2:
-                return jsonify({'error': 'At least 2 valid faces required'}), 400
+                return jsonify({
+                    'success': False,
+                    'error': f'At least 2 valid faces required. Failed to detect face in image(s): {", ".join(map(str, failed_images))}'
+                }), 400
             
             # Average the encodings
             import numpy as np
@@ -314,11 +324,15 @@ def init_face_routes(app, face_model, encoding_cache):
             return jsonify({
                 'success': True,
                 'encoding': encoding_b64,
-                'images_processed': len(encodings)
+                'images_processed': len(encodings),
+                'message': f'Successfully processed {len(encodings)} out of 3 images'
             })
             
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            return jsonify({
+                'success': False,
+                'error': f'Face encoding failed: {str(e)}'
+            }), 500
 
     @app.route('/clear-cache', methods=['POST'])
     def clear_cache():

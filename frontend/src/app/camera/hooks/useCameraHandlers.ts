@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { validateFaceInCircle } from "../utils/faceDetection";
 
 interface UseCameraHandlersProps {
   startCamera: () => Promise<void>;
@@ -12,7 +11,6 @@ interface UseCameraHandlersProps {
   resetState: () => void;
   setError: (error: string) => void;
   cameraActive: boolean;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 export function useCameraHandlers({
@@ -23,8 +21,7 @@ export function useCameraHandlers({
   processCheckOut,
   resetState,
   setError,
-  cameraActive,
-  videoRef
+  cameraActive
 }: UseCameraHandlersProps) {
   const handleStartCamera = useCallback(async () => {
     try {
@@ -36,38 +33,22 @@ export function useCameraHandlers({
   }, [startCamera, setError]);
 
   const handleCaptureAndDetect = useCallback(async () => {
-    if (videoRef.current) {
-      const validation = await validateFaceInCircle(videoRef.current);
-      if (!validation.isValid) {
-        setError(validation.message);
-        return;
-      }
-    }
-    
     const imageData = captureImage();
     if (!imageData) {
       setError("Camera not ready. Please start camera first.");
       return;
     }
     await processAttendance(imageData, stopCamera);
-  }, [captureImage, processAttendance, stopCamera, setError, videoRef]);
+  }, [captureImage, processAttendance, stopCamera, setError]);
 
   const handleCheckOut = useCallback(async () => {
-    if (videoRef.current) {
-      const validation = await validateFaceInCircle(videoRef.current);
-      if (!validation.isValid) {
-        setError(validation.message);
-        return;
-      }
-    }
-    
     const imageData = captureImage();
     if (!imageData) {
       setError("Camera not ready. Please start camera first.");
       return;
     }
     await processCheckOut(imageData, stopCamera);
-  }, [captureImage, processCheckOut, stopCamera, setError, videoRef]);
+  }, [captureImage, processCheckOut, stopCamera, setError]);
 
   const handleRetry = useCallback(() => {
     resetState();

@@ -36,12 +36,27 @@ class FirebaseFaceModel:
                 encoding_data = user_data.get('faceEncoding')
                 
                 if encoding_data and name:
-                    encoding = np.array(encoding_data)
-                    self.known_face_encodings.append(encoding)
-                    self.known_face_names.append(name)
-                    self.known_face_ids.append(user_id)
-                    count += 1
-                    print(f"Loaded: {name}")
+                    try:
+                        # Check if encoding is base64 string
+                        if isinstance(encoding_data, str):
+                            encoding_bytes = base64.b64decode(encoding_data)
+                            encoding = np.frombuffer(encoding_bytes, dtype=np.float64)
+                        else:
+                            encoding = np.array(encoding_data, dtype=np.float64)
+                        
+                        # Validate encoding shape (should be 128 dimensions)
+                        if encoding.shape != (128,):
+                            print(f"Skipped {name}: Invalid encoding shape {encoding.shape}")
+                            continue
+                        
+                        self.known_face_encodings.append(encoding)
+                        self.known_face_names.append(name)
+                        self.known_face_ids.append(user_id)
+                        count += 1
+                        print(f"Loaded: {name}")
+                    except Exception as e:
+                        print(f"Skipped {name}: {str(e)}")
+                        continue
             
             print(f"Loaded {count} encodings from Firebase")
             return count > 0
@@ -119,24 +134,39 @@ class FirebaseFaceModel:
     def recognize_face(self, image_path):
         """Recognize face from image file"""
         try:
+            print(f"\n=== Starting face recognition ===")
+            print(f"Known faces in database: {len(self.known_face_encodings)}")
+            if self.known_face_names:
+                print(f"Names: {', '.join(self.known_face_names)}")
+            
             image = face_recognition.load_image_file(image_path)
             face_encodings = face_recognition.face_encodings(image, model='large')
             
             if not face_encodings:
+                print("❌ No face detected in image")
                 return None, "No face detected"
             
             if len(face_encodings) > 1:
+                print(f"❌ Multiple faces detected: {len(face_encodings)}")
                 return None, "Multiple faces detected"
             
             face_encoding = face_encodings[0]
+            print("✓ Face encoding generated")
             
             if len(self.known_face_encodings) == 0:
+                print("❌ No employees in database")
                 return None, "No employees in database"
             
-            face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
-            matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding, tolerance=0.5)
+            # Convert to numpy array for comparison
+            known_encodings_array = np.array(self.known_face_encodings)
+            face_distances = face_recognition.face_distance(known_encodings_array, face_encoding)
+            matches = face_recognition.compare_faces(known_encodings_array, face_encoding, tolerance=0.6)
+            
+            print(f"Face distances: {face_distances}")
+            print(f"Matches: {matches}")
             
             if not any(matches):
+                print("❌ No matches found")
                 return None, "Face not recognized"
             
             best_match_index = np.argmin(face_distances)
@@ -145,14 +175,20 @@ class FirebaseFaceModel:
                 name = self.known_face_names[best_match_index]
                 confidence = max(0, 1 - face_distances[best_match_index])
                 
-                if confidence < 0.40:
+                print(f"Best match: {name} with confidence {confidence:.0%}")
+                
+                if confidence < 0.35:
+                    print(f"❌ Confidence too low: {confidence:.0%}")
                     return None, f"Confidence too low ({confidence:.0%})"
                 
+                print(f"✓ Recognition successful: {name}")
                 return name, f"Recognized: {name} ({confidence:.0%})"
             
+            print("❌ No match found")
             return None, "No match found"
             
         except Exception as e:
+            print(f"❌ Error: {str(e)}")
             return None, f"Error: {str(e)}"
     
     def reload(self):

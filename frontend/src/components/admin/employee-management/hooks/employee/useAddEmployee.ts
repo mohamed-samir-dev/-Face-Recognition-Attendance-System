@@ -122,7 +122,7 @@ export function useAddEmployee() {
     try {
       const parsedData = JSON.parse(formData.image);
       if (parsedData.profileImage && parsedData.trainingImages) {
-        // Camera capture with 3 images
+        // Camera capture with 3 images - REQUIRED
         profileImage = parsedData.profileImage;
         
         // Generate encoding from 3 training images
@@ -131,13 +131,37 @@ export function useAddEmployee() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ images: parsedData.trainingImages }),
         });
+        
+        if (!response.ok) {
+          setLoading(false);
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || 'Failed to process face images';
+          alert(`❌ Face Recognition Error\n\n${errorMessage}\n\nPlease ensure:\n• Your face is clearly visible in all 3 photos\n• Good lighting conditions\n• Face is centered in the frame\n• No obstructions (glasses, masks, etc.)`);
+          return;
+        }
+        
         const data = await response.json();
-        if (data.success) {
+        if (data.success && data.encoding) {
           faceEncoding = data.encoding;
+        } else {
+          setLoading(false);
+          alert(data.error || 'Failed to generate face encoding. Please retake photos with your face clearly visible.');
+          return;
         }
       }
-    } catch {
-      // Not camera data, use as regular image
+    } catch (error) {
+      console.error('Error processing camera data:', error);
+      // Not camera data - reject it
+      setLoading(false);
+      alert('❌ Invalid image format. Please use the camera to capture 3 photos for face recognition.');
+      return;
+    }
+
+    // CRITICAL: Face encoding is REQUIRED
+    if (!faceEncoding) {
+      setLoading(false);
+      alert('❌ Face encoding is required\n\nPlease use the camera option to capture 3 photos of your face for facial recognition.');
+      return;
     }
 
     // Validate email uniqueness

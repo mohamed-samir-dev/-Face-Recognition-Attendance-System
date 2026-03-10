@@ -118,6 +118,7 @@ export interface ControlsSectionProps {
   multipleFaces: boolean;
   mode: string;
   checkedOut?: boolean;
+  faceCount?: number;
   onStartCamera: () => Promise<void>;
   onCaptureAndDetect: () => Promise<void>;
   onCheckOut: () => Promise<void>;

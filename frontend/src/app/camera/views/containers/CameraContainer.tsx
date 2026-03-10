@@ -1,5 +1,3 @@
-"use client";
-
 import { useCamera } from "../../hooks/useCamera";
 import { useAttendance } from "../../hooks/useAttendance";
 import { useCameraHandlers } from "../../hooks/useCameraHandlers";
@@ -42,8 +40,7 @@ export default function CameraContainer({ mode }: { mode: string }) {
     processCheckOut,
     resetState,
     setError,
-    cameraActive,
-    videoRef
+    cameraActive
   });
 
   return (
