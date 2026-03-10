@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Monitor, CheckCircle, Clock, MapPin, Globe, User, AlertCircle, RefreshCw, Wifi } from "lucide-react";
+import { Monitor, CheckCircle, Clock, MapPin, Globe, User, AlertCircle, RefreshCw } from "lucide-react";
 import { getAllMonitoringAlerts, MonitoringAlert } from "@/lib/services/system/monitoringService";
-import { getUsers, User as UserType } from "@/lib/services/user/userService";
+import { getUsers } from "@/lib/services/user/userService";
+import { User as UserType } from "@/lib/types";
+import { COMPANY_LOCATIONS } from "@/lib/constants/locations";
+import { UAParser } from "ua-parser-js";
 
 export default function MonitoringTab() {
   const [alerts, setAlerts] = useState<MonitoringAlert[]>([]);
@@ -170,11 +173,13 @@ export default function MonitoringTab() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Location Address</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Coordinates</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Accuracy</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Geofence Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Main Office</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Branch Office</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">IP Address</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Device</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Browser</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Screen</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Network</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Timezone</th>
                 </tr>
               </thead>
@@ -184,6 +189,11 @@ export default function MonitoringTab() {
                   const responseTime = alert.acknowledgedAt
                     ? Math.floor((new Date(alert.acknowledgedAt).getTime() - new Date(alert.timestamp).getTime()) / 1000)
                     : null;
+                  
+                  const parser = new UAParser(alert.deviceInfo?.userAgent || '');
+                  const device = parser.getDevice();
+                  const browser = parser.getBrowser();
+                  const os = parser.getOS();
 
                   return (
                     <tr key={alert.id} className="hover:bg-gray-50 transition-colors">
@@ -246,6 +256,47 @@ export default function MonitoringTab() {
                       <td className="px-4 py-3 text-sm text-gray-700">
                         {alert.location?.accuracy ? `${Math.round(alert.location.accuracy)}m` : "-"}
                       </td>
+                      <td className="px-4 py-3">
+                        {alert.location?.isWithinGeofence !== undefined ? (
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                            alert.location.isWithinGeofence
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}>
+                            {alert.location.isWithinGeofence ? "✓ Inside" : "✗ Outside"}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {alert.location?.allDistances?.[0] ? (
+                          <div className="text-sm">
+                            <span className={`font-medium ${alert.location.allDistances[0].isWithin ? "text-green-600" : "text-orange-600"}`}>
+                              {alert.location.allDistances[0].distance}m
+                            </span>
+                            <span className={`ml-1 ${alert.location.allDistances[0].isWithin ? "text-green-600" : "text-gray-400"}`}>
+                              {alert.location.allDistances[0].isWithin ? "✓" : ""}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {alert.location?.allDistances?.[1] ? (
+                          <div className="text-sm">
+                            <span className={`font-medium ${alert.location.allDistances[1].isWithin ? "text-green-600" : "text-orange-600"}`}>
+                              {alert.location.allDistances[1].distance}m
+                            </span>
+                            <span className={`ml-1 ${alert.location.allDistances[1].isWithin ? "text-green-600" : "text-gray-400"}`}>
+                              {alert.location.allDistances[1].isWithin ? "✓" : ""}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-700">
                         {alert.ipAddress ? (
                           <div className="flex items-center gap-1">
@@ -257,23 +308,27 @@ export default function MonitoringTab() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">
-                        {alert.deviceInfo?.platform || "-"}
+                        {device.vendor || device.model || os.name ? (
+                          <div>
+                            <div className="font-medium">{device.vendor || device.model || os.name}</div>
+                            {device.type && <div className="text-xs text-gray-500">{device.type}</div>}
+                          </div>
+                        ) : (
+                          alert.deviceInfo?.platform || "-"
+                        )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={alert.deviceInfo?.userAgent}>
-                        {alert.deviceInfo?.userAgent ? alert.deviceInfo.userAgent.split(' ').slice(0, 3).join(' ') : "-"}
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {browser.name ? (
+                          <div>
+                            <div className="font-medium">{browser.name}</div>
+                            {browser.version && <div className="text-xs text-gray-500">v{browser.version}</div>}
+                          </div>
+                        ) : (
+                          "-"
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
                         {alert.deviceInfo?.screenResolution || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        {alert.networkInfo ? (
-                          <div className="flex items-center gap-1">
-                            <Wifi className="w-3 h-3 text-gray-400" />
-                            {alert.networkInfo.connectionType}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">
                         {alert.deviceInfo?.timezone || "-"}

@@ -5,6 +5,8 @@ import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { acknowledgeAlert, MonitoringAlert } from "@/lib/services/system/monitoringService";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { isWithinMultipleGeofences } from "@/lib/utils/geolocation";
+import { COMPANY_LOCATIONS } from "@/lib/constants/locations";
 
 interface MonitoringAlertPopupProps {
   employeeId: string;
@@ -56,7 +58,6 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
 
   const handleAcknowledge = async () => {
     if (alert) {
-      // Get high-accuracy location
       let location = null;
       if (navigator.geolocation) {
         try {
@@ -67,26 +68,40 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
               maximumAge: 0
             });
           });
-          
-          // Get address from coordinates
+
+          // Check all locations and get nearest
+          const { isWithin, allDistances } = isWithinMultipleGeofences(
+            position.coords.latitude,
+            position.coords.longitude,
+            COMPANY_LOCATIONS
+          );
+
+          // Try to get human-readable address (optional, for display only)
           let address = "";
           try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`
+            const osmResponse = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18`,
+              { headers: { 'User-Agent': 'IntelliAttend/1.0' } }
             );
-            const data = await response.json();
-            address = data.display_name || "";
-          } catch (error) {
-            console.log("Could not fetch address");
+            const osmData = await osmResponse.json();
+            address = osmData.display_name || "";
+          } catch {
+            address = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
           }
 
           location = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy,
-            address
+            address,
+            isWithinGeofence: isWithin,
+            allDistances: allDistances.map((dist, idx) => ({
+              name: COMPANY_LOCATIONS[idx].name,
+              distance: dist.distance,
+              isWithin: dist.isWithin
+            }))
           };
-        } catch (error) {
+        } catch {
           console.log("Location access denied");
         }
       }
@@ -97,7 +112,7 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
         const response = await fetch('https://api.ipify.org?format=json');
         const data = await response.json();
         ipAddress = data.ip;
-      } catch (error) {
+      } catch  {
         console.log("Could not fetch IP");
       }
 
@@ -113,14 +128,19 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
       // Get network info
       let networkInfo = null;
       if ('connection' in navigator || 'mozConnection' in navigator || 'webkitConnection' in navigator) {
-        const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+        const nav = navigator as Navigator & {
+          connection?: { effectiveType?: string; downlink?: number };
+          mozConnection?: { effectiveType?: string; downlink?: number };
+          webkitConnection?: { effectiveType?: string; downlink?: number };
+        };
+        const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
         networkInfo = {
           connectionType: conn?.effectiveType || 'unknown',
           downlink: conn?.downlink
         };
       }
 
-      await acknowledgeAlert(alert.id, location, ipAddress, deviceInfo, networkInfo);
+      await acknowledgeAlert(alert.id, location || undefined, ipAddress, deviceInfo, networkInfo || undefined);
       setIsVisible(false);
       setAlert(null);
     }
@@ -132,12 +152,12 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
   const seconds = timeLeft % 60;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl border-2 border-blue-200 p-8 max-w-md w-full mx-4">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-linear-to-br from-blue-50 to-white rounded-2xl shadow-2xl border-2 border-blue-200 p-8 max-w-md w-full mx-4">
         <div className="flex flex-col items-center text-center space-y-6">
           <div className="relative">
             <div className="absolute inset-0 bg-blue-400 rounded-full blur-xl opacity-50 animate-pulse"></div>
-            <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-4">
+            <div className="relative bg-linear-to-br from-blue-500 to-blue-600 rounded-full p-4">
               <AlertTriangle className="w-12 h-12 text-white" />
             </div>
           </div>
@@ -170,10 +190,10 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
 
           <button
             onClick={handleAcknowledge}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-3"
+            className="w-full bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-3"
           >
             <CheckCircle className="w-6 h-6" />
-            <span className="text-lg">I'm Here - Confirm Presence</span>
+            <span className="text-lg">I&rsquo;m Here - Confirm Presence</span>
           </button>
 
           <p className="text-xs text-gray-400 italic">
