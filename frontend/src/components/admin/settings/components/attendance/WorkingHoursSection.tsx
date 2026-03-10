@@ -75,6 +75,8 @@ export default function WorkingHoursSection({ workingHours, onUpdate }: WorkingH
             <option value="21:00">9:00 PM</option>
             <option value="21:30">9:30 PM</option>
             <option value="22:00">10:00 PM</option>
+            <option value="23:50">11:50 PM</option>
+
           </select>
         </div>
       </div>

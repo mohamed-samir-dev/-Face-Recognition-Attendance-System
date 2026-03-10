@@ -12,7 +12,7 @@ export default function ActionsCell({ user, deleting, onEdit, onDelete, onChange
     try {
       await sendMonitoringAlert(user.numericId.toString());
       toast.success(`Monitoring alert sent to ${user.name}`);
-    } catch (error) {
+    } catch  {
       toast.error('Failed to send alert');
     }
   };

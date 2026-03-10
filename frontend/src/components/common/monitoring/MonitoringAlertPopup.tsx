@@ -95,11 +95,14 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
             accuracy: position.coords.accuracy,
             address,
             isWithinGeofence: isWithin,
-            allDistances: allDistances.map((dist, idx) => ({
-              name: COMPANY_LOCATIONS[idx].name,
-              distance: dist.distance,
-              isWithin: dist.isWithin
-            }))
+            allDistances: allDistances.map((dist, idx) => {
+              const allLocs = [COMPANY_LOCATIONS.mainOffice, ...COMPANY_LOCATIONS.branches];
+              return {
+                name: allLocs[idx].name,
+                distance: dist.distance,
+                isWithin: dist.isWithin
+              };
+            })
           };
         } catch {
           console.log("Location access denied");

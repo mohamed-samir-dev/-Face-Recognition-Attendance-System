@@ -25,7 +25,7 @@ export default function MonitoringTab() {
         getAllMonitoringAlerts(),
         getUsers()
       ]);
-      setAlerts(alertsData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+      setAlerts(alertsData.sort((a: MonitoringAlert, b: MonitoringAlert) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
       setUsers(usersData);
     } catch (error) {
       console.error("Error loading monitoring data:", error);
@@ -240,7 +240,7 @@ export default function MonitoringTab() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        {alert.location ? (
+                        {alert.location?.latitude !== undefined && alert.location?.longitude !== undefined ? (
                           <a
                             href={`https://www.google.com/maps?q=${alert.location.latitude},${alert.location.longitude}`}
                             target="_blank"
@@ -273,7 +273,7 @@ export default function MonitoringTab() {
                         {alert.location?.allDistances?.[0] ? (
                           <div className="text-sm">
                             <span className={`font-medium ${alert.location.allDistances[0].isWithin ? "text-green-600" : "text-orange-600"}`}>
-                              {alert.location.allDistances[0].distance}m
+                              {Math.round(alert.location.allDistances[0].distance)}m
                             </span>
                             <span className={`ml-1 ${alert.location.allDistances[0].isWithin ? "text-green-600" : "text-gray-400"}`}>
                               {alert.location.allDistances[0].isWithin ? "✓" : ""}
@@ -287,7 +287,7 @@ export default function MonitoringTab() {
                         {alert.location?.allDistances?.[1] ? (
                           <div className="text-sm">
                             <span className={`font-medium ${alert.location.allDistances[1].isWithin ? "text-green-600" : "text-orange-600"}`}>
-                              {alert.location.allDistances[1].distance}m
+                              {Math.round(alert.location.allDistances[1].distance)}m
                             </span>
                             <span className={`ml-1 ${alert.location.allDistances[1].isWithin ? "text-green-600" : "text-gray-400"}`}>
                               {alert.location.allDistances[1].isWithin ? "✓" : ""}
