@@ -5,14 +5,13 @@ import { Monitor, CheckCircle, Clock, MapPin, Globe, User, AlertCircle, RefreshC
 import { getAllMonitoringAlerts, MonitoringAlert } from "@/lib/services/system/monitoringService";
 import { getUsers } from "@/lib/services/user/userService";
 import { User as UserType } from "@/lib/types";
-import { COMPANY_LOCATIONS } from "@/lib/constants/locations";
 import { UAParser } from "ua-parser-js";
 
 export default function MonitoringTab() {
   const [alerts, setAlerts] = useState<MonitoringAlert[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "acknowledged" | "pending">("all");
+  const [filter, setFilter] = useState<"all" | "acknowledged" | "pending" | "expired">("all");
 
   useEffect(() => {
     loadData();
@@ -40,14 +39,32 @@ export default function MonitoringTab() {
 
   const filteredAlerts = alerts.filter(alert => {
     if (filter === "acknowledged") return alert.acknowledged;
-    if (filter === "pending") return !alert.acknowledged;
+    if (filter === "pending") {
+      if (alert.acknowledged) return false;
+      const elapsed = Math.floor((Date.now() - new Date(alert.timestamp).getTime()) / 1000);
+      return elapsed <= 120;
+    }
+    if (filter === "expired") {
+      if (alert.acknowledged) return false;
+      const elapsed = Math.floor((Date.now() - new Date(alert.timestamp).getTime()) / 1000);
+      return elapsed > 120;
+    }
     return true;
   });
 
   const stats = {
     total: alerts.length,
     acknowledged: alerts.filter(a => a.acknowledged).length,
-    pending: alerts.filter(a => !a.acknowledged).length,
+    pending: alerts.filter(a => {
+      if (a.acknowledged) return false;
+      const elapsed = Math.floor((Date.now() - new Date(a.timestamp).getTime()) / 1000);
+      return elapsed <= 120;
+    }).length,
+    expired: alerts.filter(a => {
+      if (a.acknowledged) return false;
+      const elapsed = Math.floor((Date.now() - new Date(a.timestamp).getTime()) / 1000);
+      return elapsed > 120;
+    }).length,
     responseRate: alerts.length > 0 ? ((alerts.filter(a => a.acknowledged).length / alerts.length) * 100).toFixed(1) : "0"
   };
 
@@ -78,7 +95,7 @@ export default function MonitoringTab() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
@@ -106,6 +123,16 @@ export default function MonitoringTab() {
               <p className="text-2xl font-bold text-orange-600 mt-1">{stats.pending}</p>
             </div>
             <AlertCircle className="w-8 h-8 text-orange-600" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-xs font-medium">Expired</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">{stats.expired}</p>
+            </div>
+            <AlertCircle className="w-8 h-8 text-red-600" />
           </div>
         </div>
 
@@ -151,6 +178,16 @@ export default function MonitoringTab() {
             }`}
           >
             Pending ({stats.pending})
+          </button>
+          <button
+            onClick={() => setFilter("expired")}
+            className={`px-6 py-3 font-medium text-sm transition-colors ${
+              filter === "expired"
+                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+            }`}
+          >
+            Expired ({stats.expired})
           </button>
         </div>
 
@@ -198,17 +235,28 @@ export default function MonitoringTab() {
                   return (
                     <tr key={alert.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                          alert.acknowledged
-                            ? "bg-green-100 text-green-700"
-                            : "bg-orange-100 text-orange-700"
-                        }`}>
-                          {alert.acknowledged ? (
-                            <><CheckCircle className="w-3 h-3" /> Ack</>
-                          ) : (
-                            <><Clock className="w-3 h-3" /> Pending</>
-                          )}
-                        </span>
+                        {(() => {
+                          const elapsed = Math.floor((Date.now() - new Date(alert.timestamp).getTime()) / 1000);
+                          const isExpired = !alert.acknowledged && elapsed > 120;
+                          
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                              alert.acknowledged
+                                ? "bg-green-100 text-green-700"
+                                : isExpired
+                                ? "bg-red-100 text-red-700"
+                                : "bg-orange-100 text-orange-700"
+                            }`}>
+                              {alert.acknowledged ? (
+                                <><CheckCircle className="w-3 h-3" /> Ack</>
+                              ) : isExpired ? (
+                                <><AlertCircle className="w-3 h-3" /> Expired</>
+                              ) : (
+                                <><Clock className="w-3 h-3" /> Pending</>
+                              )}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

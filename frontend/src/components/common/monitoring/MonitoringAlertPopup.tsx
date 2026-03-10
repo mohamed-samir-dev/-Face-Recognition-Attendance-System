@@ -30,9 +30,14 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (!snapshot.empty) {
         const alertData = snapshot.docs[0].data() as MonitoringAlert;
-        setAlert(alertData);
-        setIsVisible(true);
-        setTimeLeft(120);
+        const elapsed = Math.floor((Date.now() - new Date(alertData.timestamp).getTime()) / 1000);
+        const remaining = Math.max(0, 120 - elapsed);
+        
+        if (remaining > 0) {
+          setAlert(alertData);
+          setIsVisible(true);
+          setTimeLeft(remaining);
+        }
       }
     });
 
@@ -155,18 +160,15 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
   const seconds = timeLeft % 60;
 
   return (
-    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-linear-to-br from-blue-50 to-white rounded-2xl shadow-2xl border-2 border-blue-200 p-8 max-w-md w-full mx-4">
-        <div className="flex flex-col items-center text-center space-y-6">
-          <div className="relative">
-            <div className="absolute inset-0 bg-blue-400 rounded-full blur-xl opacity-50 animate-pulse"></div>
-            <div className="relative bg-linear-to-br from-blue-500 to-blue-600 rounded-full p-4">
-              <AlertTriangle className="w-12 h-12 text-white" />
-            </div>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl border border-gray-200 p-8 max-w-lg w-full mx-4">
+        <div className="flex flex-col items-center text-center space-y-5">
+          <div className="bg-blue-600 rounded-full p-4">
+            <AlertTriangle className="w-12 h-12 text-white" />
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">
               Monitoring Check
             </h2>
             <p className="text-gray-600 text-sm">
@@ -193,10 +195,10 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
 
           <button
             onClick={handleAcknowledge}
-            className="w-full bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-3"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center space-x-2"
           >
-            <CheckCircle className="w-6 h-6" />
-            <span className="text-lg">I&rsquo;m Here - Confirm Presence</span>
+            <CheckCircle className="w-5 h-5" />
+            <span>I&rsquo;m Here - Confirm Presence</span>
           </button>
 
           <p className="text-xs text-gray-400 italic">
