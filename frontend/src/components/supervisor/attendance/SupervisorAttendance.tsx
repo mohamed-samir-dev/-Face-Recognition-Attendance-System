@@ -205,16 +205,22 @@ export default function AttendanceTableView({ fetchData, title, subtitle }: Atte
                           <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Duration</th>
                           <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Worked Hours</th>
                           <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Late</th>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Leave Reason</th>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Location</th>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Device</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Location Address</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Coordinates</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Accuracy</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Geofence Status</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Main Office</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Branch Office</th>
                           <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">IP Address</th>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">IP Location</th>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Timestamp</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Device</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Browser</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Screen</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap">Timezone</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {records.map((record) => {
+                          console.log('Rendering record:', record);
                           const statusConfig = getStatusConfig(record.status);
                           const StatusIcon = statusConfig.icon;
                           const duration = calculateDuration(record.checkIn, record.checkOut);
@@ -246,13 +252,71 @@ export default function AttendanceTableView({ fetchData, title, subtitle }: Atte
                               <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-orange-600 whitespace-nowrap">
                                 {record.isLate && record.lateMinutes ? `${Math.round(record.lateMinutes)} min` : '-'}
                               </td>
-                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.wasOnLeave ? (record.leaveReason || 'N/A') : '-'}</td>
-                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.checkInLocation || '-'}</td>
-                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.deviceInfo || '-'}</td>
-                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.ipAddress || '-'}</td>
-                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{record.ipLocation || '-'}</td>
-                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs text-gray-600 whitespace-nowrap">
-                                {new Date(record.timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 max-w-xs truncate" title={record.locationAddress}>
+                                {record.locationAddress || '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm whitespace-nowrap">
+                                {record.coordinates ? (
+                                  <a
+                                    href={`https://www.google.com/maps?q=${record.coordinates}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline"
+                                  >
+                                    {record.coordinates}
+                                  </a>
+                                ) : '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                                {record.accuracy ? `${Math.round(record.accuracy)}m` : '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                                {record.geofenceStatus ? (
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    record.geofenceStatus === 'Inside' 
+                                      ? 'bg-green-100 text-green-700' 
+                                      : 'bg-red-100 text-red-700'
+                                  }`}>
+                                    {record.geofenceStatus}
+                                  </span>
+                                ) : '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm whitespace-nowrap">
+                                {record.mainOffice ? (
+                                  <span className={`font-medium ${
+                                    record.mainOffice.includes('✓') 
+                                      ? 'text-green-600' 
+                                      : 'text-red-600'
+                                  }`}>
+                                    {record.mainOffice}
+                                  </span>
+                                ) : '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm whitespace-nowrap">
+                                {record.branchOffice ? (
+                                  <span className={`font-medium ${
+                                    record.branchOffice.includes('✓') 
+                                      ? 'text-green-600' 
+                                      : 'text-red-600'
+                                  }`}>
+                                    {record.branchOffice}
+                                  </span>
+                                ) : '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                                {record.ipAddress || '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                                {record.deviceInfo || '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 max-w-xs truncate" title={record.browser}>
+                                {record.browser || '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                                {record.screen || '-'}
+                              </td>
+                              <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                                {record.timezone || '-'}
                               </td>
                             </tr>
                           );

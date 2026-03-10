@@ -38,6 +38,7 @@ export default function WorkingHoursSection({ workingHours, onUpdate }: WorkingH
             onChange={(e) => setLocalHours(prev => ({ ...prev, startTime: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
           >
+            <option value="00:00">12:00 AM</option>
             <option value="06:00">6:00 AM</option>
             <option value="06:30">6:30 AM</option>
             <option value="07:00">7:00 AM</option>

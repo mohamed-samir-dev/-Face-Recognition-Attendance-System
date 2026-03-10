@@ -2,6 +2,7 @@ import { collection, query, where, getDocs, orderBy, addDoc } from "firebase/fir
 import { db } from "@/lib/firebase/config";
 import { AttendanceHistoryRecord } from "@/lib/types/attendanceHistory";
 import { getLeaveRequests } from "../leave/leaveService";
+import { LocationData, DeviceData } from "@/lib/utils/locationDeviceUtils";
 
 export async function recordAttendanceHistory(
   userId: string,
@@ -9,7 +10,10 @@ export async function recordAttendanceHistory(
   status: 'Present' | 'Late',
   checkInTime: string,
   isLate: boolean,
-  lateMinutes: number = 0
+  lateMinutes: number = 0,
+  locationData?: LocationData | null,
+  deviceData?: DeviceData | null,
+  ipAddress?: string | null
 ): Promise<void> {
   try {
     const today = new Date().toISOString().split('T')[0];
@@ -70,8 +74,35 @@ export async function recordAttendanceHistory(
     if (user.salary) historyData.salary = user.salary;
     if (user.status) historyData.employeeStatus = user.status;
     
-    // Get real geolocation with reverse geocoding
-    if (navigator.geolocation) {
+    // Add location and device data from parameters
+    if (locationData) {
+      historyData.locationAddress = locationData.address || null;
+      historyData.coordinates = locationData.latitude && locationData.longitude 
+        ? `${locationData.latitude},${locationData.longitude}` 
+        : null;
+      historyData.accuracy = locationData.accuracy || null;
+      historyData.geofenceStatus = locationData.isWithinGeofence ? 'Inside' : 'Outside';
+      historyData.mainOffice = locationData.allDistances?.[0] 
+        ? `${Math.round(locationData.allDistances[0].distance)}m ${locationData.allDistances[0].isWithin ? '✓' : ''}` 
+        : null;
+      historyData.branchOffice = locationData.allDistances?.[1] 
+        ? `${Math.round(locationData.allDistances[1].distance)}m ${locationData.allDistances[1].isWithin ? '✓' : ''}` 
+        : null;
+    }
+    
+    if (deviceData) {
+      historyData.deviceInfo = deviceData.platform || null;
+      historyData.browser = deviceData.userAgent || null;
+      historyData.screen = deviceData.screenResolution || null;
+      historyData.timezone = deviceData.timezone || null;
+    }
+    
+    if (ipAddress) {
+      historyData.ipAddress = ipAddress;
+    }
+    
+    // Legacy location detection (fallback)
+    if (!locationData && navigator.geolocation) {
       try {
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, { 
@@ -115,58 +146,63 @@ export async function recordAttendanceHistory(
       historyData.checkInLocation = 'Geolocation not supported';
     }
     
-    // Get detailed device information
-    const ua = navigator.userAgent;
-    let deviceInfo = 'Unknown Device';
-    
-    if (ua.includes('Windows NT 10.0')) deviceInfo = 'Windows 10/11 PC';
-    else if (ua.includes('Windows NT 6.3')) deviceInfo = 'Windows 8.1 PC';
-    else if (ua.includes('Windows NT 6.2')) deviceInfo = 'Windows 8 PC';
-    else if (ua.includes('Windows NT 6.1')) deviceInfo = 'Windows 7 PC';
-    else if (ua.includes('Windows')) deviceInfo = 'Windows PC';
-    else if (ua.includes('Mac OS X')) {
-      const version = ua.match(/Mac OS X ([\d_]+)/);
-      deviceInfo = version ? `macOS ${version[1].replace(/_/g, '.')}` : 'macOS';
-    }
-    else if (ua.includes('iPhone')) {
-      const version = ua.match(/iPhone OS ([\d_]+)/);
-      deviceInfo = version ? `iPhone (iOS ${version[1].replace(/_/g, '.')})` : 'iPhone';
-    }
-    else if (ua.includes('iPad')) {
-      const version = ua.match(/CPU OS ([\d_]+)/);
-      deviceInfo = version ? `iPad (iOS ${version[1].replace(/_/g, '.')})` : 'iPad';
-    }
-    else if (ua.includes('Android')) {
-      const version = ua.match(/Android ([\d.]+)/);
-      deviceInfo = version ? `Android ${version[1]} Device` : 'Android Device';
-    }
-    else if (ua.includes('Linux')) deviceInfo = 'Linux PC';
-    
-    // Add browser info
-    let browser = 'Unknown Browser';
-    if (ua.includes('Edg/')) browser = 'Microsoft Edge';
-    else if (ua.includes('Chrome/')) browser = 'Google Chrome';
-    else if (ua.includes('Safari/') && !ua.includes('Chrome')) browser = 'Safari';
-    else if (ua.includes('Firefox/')) browser = 'Mozilla Firefox';
-    
-    historyData.deviceInfo = `${deviceInfo} - ${browser}`;
-    
-    // Get real public IP address with geolocation data
-    try {
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
-      const ipData = await ipResponse.json();
-      historyData.ipAddress = ipData.ip;
+    // Legacy device info (fallback)
+    if (!deviceData) {
+      const ua = navigator.userAgent;
+      let deviceInfo = 'Unknown Device';
       
-      // Optional: Get IP geolocation for verification
+      if (ua.includes('Windows NT 10.0')) deviceInfo = 'Windows 10/11 PC';
+      else if (ua.includes('Windows NT 6.3')) deviceInfo = 'Windows 8.1 PC';
+      else if (ua.includes('Windows NT 6.2')) deviceInfo = 'Windows 8 PC';
+      else if (ua.includes('Windows NT 6.1')) deviceInfo = 'Windows 7 PC';
+      else if (ua.includes('Windows')) deviceInfo = 'Windows PC';
+      else if (ua.includes('Mac OS X')) {
+        const version = ua.match(/Mac OS X ([\d_]+)/);
+        deviceInfo = version ? `macOS ${version[1].replace(/_/g, '.')}` : 'macOS';
+      }
+      else if (ua.includes('iPhone')) {
+        const version = ua.match(/iPhone OS ([\d_]+)/);
+        deviceInfo = version ? `iPhone (iOS ${version[1].replace(/_/g, '.')})` : 'iPhone';
+      }
+      else if (ua.includes('iPad')) {
+        const version = ua.match(/CPU OS ([\d_]+)/);
+        deviceInfo = version ? `iPad (iOS ${version[1].replace(/_/g, '.')})` : 'iPad';
+      }
+      else if (ua.includes('Android')) {
+        const version = ua.match(/Android ([\d.]+)/);
+        deviceInfo = version ? `Android ${version[1]} Device` : 'Android Device';
+      }
+      else if (ua.includes('Linux')) deviceInfo = 'Linux PC';
+      
+      // Add browser info
+      let browser = 'Unknown Browser';
+      if (ua.includes('Edg/')) browser = 'Microsoft Edge';
+      else if (ua.includes('Chrome/')) browser = 'Google Chrome';
+      else if (ua.includes('Safari/') && !ua.includes('Chrome')) browser = 'Safari';
+      else if (ua.includes('Firefox/')) browser = 'Mozilla Firefox';
+      
+      historyData.deviceInfo = `${deviceInfo} - ${browser}`;
+    }
+    
+    
+    // Legacy IP detection (fallback)
+    if (!ipAddress) {
       try {
-        const ipGeoResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
-        const ipGeoData = await ipGeoResponse.json();
-        if (ipGeoData.city && ipGeoData.country_name) {
-          historyData.ipLocation = `${ipGeoData.city}, ${ipGeoData.country_name}`;
-        }
-      } catch {}
-    } catch {
-      historyData.ipAddress = 'Unable to detect';
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        historyData.ipAddress = ipData.ip;
+        
+        // Optional: Get IP geolocation for verification
+        try {
+          const ipGeoResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
+          const ipGeoData = await ipGeoResponse.json();
+          if (ipGeoData.city && ipGeoData.country_name) {
+            historyData.ipLocation = `${ipGeoData.city}, ${ipGeoData.country_name}`;
+          }
+        } catch {}
+      } catch {
+        historyData.ipAddress = 'Unable to detect';
+      }
     }
 
     if (onLeave?.reason) {

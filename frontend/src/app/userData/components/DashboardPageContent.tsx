@@ -9,6 +9,7 @@ import AttendanceWarningModal from "./AttendanceWarningModal";
 import { ProfileSettingsForm } from "@/components/profile/forms";
 import EmployeeReport from "@/components/dashboard/reports/EmployeeReport";
 import { MonitoringAlertPopup } from "@/components/common/monitoring";
+import { useRandomMonitoring } from "@/lib/hooks/useRandomMonitoring";
 
 export default function DashboardPageContent() {
   const searchParams = useSearchParams();
@@ -24,6 +25,8 @@ export default function DashboardPageContent() {
     handleCheckOut,
     handleRequestLeave,
   } = useDashboard();
+
+  useRandomMonitoring(user?.numericId?.toString());
 
   useEffect(() => {
     const tab = searchParams.get("tab");

@@ -48,6 +48,14 @@ export async function recordDailyAttendance(userId: string, userName: string): P
     const today = now.toISOString().split('T')[0];
     const currentTime = now.toTimeString().split(' ')[0];
     
+    // Collect location and device data
+    const { getLocationData, getDeviceData, getIPAddress } = await import('@/lib/utils/locationDeviceUtils');
+    const [locationData, deviceData, ipAddress] = await Promise.all([
+      getLocationData(),
+      Promise.resolve(getDeviceData()),
+      getIPAddress()
+    ]);
+    
     // Check if user is on leave
     const { checkIfOnLeaveToday } = await import('./attendanceHistoryService');
     const leaveStatus = await checkIfOnLeaveToday(userId);
@@ -90,7 +98,18 @@ export async function recordDailyAttendance(userId: string, userName: string): P
       checkIn: currentTime,
       status,
       timestamp: now,
-      workedHours: 0
+      workedHours: 0,
+      locationAddress: locationData?.address || null,
+      coordinates: locationData ? `${locationData.latitude},${locationData.longitude}` : null,
+      accuracy: locationData?.accuracy || null,
+      geofenceStatus: locationData?.isWithinGeofence ? 'Inside' : 'Outside',
+      mainOffice: locationData?.allDistances?.[0] ? `${Math.round(locationData.allDistances[0].distance)}m ${locationData.allDistances[0].isWithin ? '✓' : ''}` : null,
+      branchOffice: locationData?.allDistances?.[1] ? `${Math.round(locationData.allDistances[1].distance)}m ${locationData.allDistances[1].isWithin ? '✓' : ''}` : null,
+      ipAddress: ipAddress || null,
+      deviceInfo: deviceData?.platform || null,
+      browser: deviceData?.userAgent || null,
+      screen: deviceData?.screenResolution || null,
+      timezone: deviceData?.timezone || null
     };
     
     await addDoc(collection(db, "attendance"), attendanceData);
@@ -103,7 +122,10 @@ export async function recordDailyAttendance(userId: string, userName: string): P
       status as 'Present' | 'Late',
       currentTime,
       status === 'Late',
-      lateMinutes
+      lateMinutes,
+      locationData,
+      deviceData,
+      ipAddress
     );
     
     // Update user status to Active

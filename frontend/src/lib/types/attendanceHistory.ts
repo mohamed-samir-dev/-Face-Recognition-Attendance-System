@@ -27,4 +27,13 @@ export interface AttendanceHistoryRecord {
   deviceInfo?: string;
   ipAddress?: string;
   ipLocation?: string;
+  locationAddress?: string;
+  coordinates?: string;
+  accuracy?: number;
+  geofenceStatus?: string;
+  mainOffice?: string;
+  branchOffice?: string;
+  browser?: string;
+  screen?: string;
+  timezone?: string;
 }
