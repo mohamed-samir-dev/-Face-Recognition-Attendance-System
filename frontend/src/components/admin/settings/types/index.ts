@@ -58,6 +58,9 @@ export interface EditHolidayModalProps {
 export interface AttendanceRules {
   gracePeriod: number;
   vacationDays?: number;
+  monitoringEnabled?: boolean;
+  monitoringMinInterval?: number;
+  monitoringMaxInterval?: number;
 }
 
 export interface CompanySettings {

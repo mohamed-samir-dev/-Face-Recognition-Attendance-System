@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { User as UserIcon } from "lucide-react";
+import { User as UserIcon, Bell } from "lucide-react";
 import { User } from "@/lib/types";
 import { getUsers } from "@/lib/services/user/userService";
 import { SupervisorDashboard } from "../dashboard";
+import { sendMonitoringAlert } from '@/lib/services/system/monitoringService';
+import toast from 'react-hot-toast';
 
 interface SupervisorUserManagementProps {
   user: User;
@@ -83,6 +85,7 @@ export default function SupervisorUserManagement({ user }: SupervisorUserManagem
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Phone</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -109,6 +112,23 @@ export default function SupervisorUserManagement({ user }: SupervisorUserManagem
                     }`}>
                       {employee.status || "Active"}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={async () => {
+                        if (!employee.numericId) return;
+                        try {
+                          await sendMonitoringAlert(employee.numericId.toString());
+                          toast.success(`Alert sent to ${employee.name}`);
+                        } catch {
+                          toast.error('Failed to send alert');
+                        }
+                      }}
+                      className="text-orange-600 hover:text-orange-900 hover:bg-orange-50 px-2 py-1 rounded-lg transition-all duration-200"
+                      title="Send monitoring alert"
+                    >
+                      <Bell className="w-4 h-4" />
+                    </button>
                   </td>
                 </tr>
               ))}

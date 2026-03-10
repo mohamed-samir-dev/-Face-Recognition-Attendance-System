@@ -8,6 +8,7 @@ import DashboardContent from "@/components/dashboard/layout/DashboardContent";
 import SupervisorNavbar from "@/components/supervisor/layout/SupervisorNavbar";
 import ContentRenderer from "../renderer";
 import AttendanceWarningModal from "@/app/userData/components/AttendanceWarningModal";
+import { MonitoringAlertPopup } from "@/components/common/monitoring";
 
 export default function SupervisorDashboardContent() {
   const { user, mounted, logout } = useAuth();
@@ -72,6 +73,10 @@ export default function SupervisorDashboardContent() {
 
   return (
     <>
+      {user.numericId && (
+        <MonitoringAlertPopup employeeId={user.numericId.toString()} />
+      )}
+      
       <div className="min-h-screen bg-[#F8FAFC] font-['Inter',sans-serif]">
         <NavigationBlocker />
         <SupervisorNavbar

@@ -5,6 +5,7 @@ import ReportsContent from "@/components/admin/reports/ReportsContent";
 import UserManagementView from "@/components/admin/employee-management/views/UserManagementView";
 import SettingsContent from "@/components/admin/settings/views/SettingsView";
 import DepartmentsContent from "@/components/admin/departments/views/content/DepartmentsContent";
+import MonitoringTab from "../../monitoring/MonitoringTab";
 
 interface ContentRendererProps {
   activeTab: string;
@@ -21,6 +22,8 @@ export default function ContentRenderer({ activeTab, searchQuery }: ContentRende
       return <LeavesContent searchQuery={searchQuery} />;
     case "Reports":
       return <ReportsContent />;
+    case "Monitoring":
+      return <MonitoringTab />;
     case "UserManagement":
       return <UserManagementView />;
     case "Departments":

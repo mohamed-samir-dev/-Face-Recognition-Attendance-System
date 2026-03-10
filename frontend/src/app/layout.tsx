@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavigationBlocker from "../components/NavigationBlocker";
 import StatusScheduler from "../components/StatusScheduler";
+import { MonitoringScheduler } from "../components/common/monitoring";
 import { Toaster } from 'react-hot-toast';
 
 const geistSans = Geist({
@@ -33,6 +34,7 @@ export default function RootLayout({
       >
         <NavigationBlocker />
         <StatusScheduler />
+        <MonitoringScheduler />
         <Toaster />
         {children}
       </body>

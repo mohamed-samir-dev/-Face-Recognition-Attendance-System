@@ -1,0 +1,186 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { acknowledgeAlert, MonitoringAlert } from "@/lib/services/system/monitoringService";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+
+interface MonitoringAlertPopupProps {
+  employeeId: string;
+}
+
+export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopupProps) {
+  const [alert, setAlert] = useState<MonitoringAlert | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120);
+
+  useEffect(() => {
+    if (!employeeId) return;
+
+    const alertsRef = collection(db, "monitoringAlerts");
+    const q = query(
+      alertsRef,
+      where("employeeId", "==", employeeId),
+      where("acknowledged", "==", false)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const alertData = snapshot.docs[0].data() as MonitoringAlert;
+        setAlert(alertData);
+        setIsVisible(true);
+        setTimeLeft(120);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [employeeId]);
+
+  useEffect(() => {
+    if (!isVisible || timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setIsVisible(false);
+          setAlert(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isVisible, timeLeft]);
+
+  const handleAcknowledge = async () => {
+    if (alert) {
+      // Get high-accuracy location
+      let location = null;
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          
+          // Get address from coordinates
+          let address = "";
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`
+            );
+            const data = await response.json();
+            address = data.display_name || "";
+          } catch (error) {
+            console.log("Could not fetch address");
+          }
+
+          location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            address
+          };
+        } catch (error) {
+          console.log("Location access denied");
+        }
+      }
+
+      // Get IP address
+      let ipAddress = null;
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        ipAddress = data.ip;
+      } catch (error) {
+        console.log("Could not fetch IP");
+      }
+
+      // Get device info
+      const deviceInfo = {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+
+      // Get network info
+      let networkInfo = null;
+      if ('connection' in navigator || 'mozConnection' in navigator || 'webkitConnection' in navigator) {
+        const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+        networkInfo = {
+          connectionType: conn?.effectiveType || 'unknown',
+          downlink: conn?.downlink
+        };
+      }
+
+      await acknowledgeAlert(alert.id, location, ipAddress, deviceInfo, networkInfo);
+      setIsVisible(false);
+      setAlert(null);
+    }
+  };
+
+  if (!isVisible || !alert) return null;
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl border-2 border-blue-200 p-8 max-w-md w-full mx-4">
+        <div className="flex flex-col items-center text-center space-y-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-blue-400 rounded-full blur-xl opacity-50 animate-pulse"></div>
+            <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-4">
+              <AlertTriangle className="w-12 h-12 text-white" />
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Monitoring Check
+            </h2>
+            <p className="text-gray-600 text-sm">
+              Please confirm your presence
+            </p>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 w-full">
+            <p className="text-gray-700 leading-relaxed">
+              {alert.message}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-center space-x-2 bg-orange-50 border border-orange-200 rounded-lg px-4 py-2">
+            <Clock className="w-5 h-5 text-orange-600" />
+            <span className="text-2xl font-bold text-orange-600">
+              {minutes}:{seconds.toString().padStart(2, '0')}
+            </span>
+          </div>
+
+          <p className="text-xs text-gray-500">
+            Sent at: {new Date(alert.timestamp).toLocaleTimeString()}
+          </p>
+
+          <button
+            onClick={handleAcknowledge}
+            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-3"
+          >
+            <CheckCircle className="w-6 h-6" />
+            <span className="text-lg">I'm Here - Confirm Presence</span>
+          </button>
+
+          <p className="text-xs text-gray-400 italic">
+            This alert will automatically disappear when timer reaches 0:00
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

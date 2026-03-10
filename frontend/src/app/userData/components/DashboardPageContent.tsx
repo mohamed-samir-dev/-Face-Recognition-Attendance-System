@@ -8,6 +8,7 @@ import DashboardContent from "@/components/dashboard/layout/DashboardContent";
 import AttendanceWarningModal from "./AttendanceWarningModal";
 import { ProfileSettingsForm } from "@/components/profile/forms";
 import EmployeeReport from "@/components/dashboard/reports/EmployeeReport";
+import { MonitoringAlertPopup } from "@/components/common/monitoring";
 
 export default function DashboardPageContent() {
   const searchParams = useSearchParams();
@@ -86,6 +87,10 @@ export default function DashboardPageContent() {
 
   return (
     <>
+      {user.numericId && (
+        <MonitoringAlertPopup employeeId={user.numericId.toString()} />
+      )}
+      
       <DashboardLayout
         user={user}
         onLogout={logout}
