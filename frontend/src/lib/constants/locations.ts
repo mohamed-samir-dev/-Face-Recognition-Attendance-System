@@ -20,3 +20,28 @@ export const COMPANY_LOCATIONS = {
     }
   ]
 };
+
+
+
+// export const COMPANY_LOCATIONS = { 
+//   mainOffice: {
+//     name: "Main Office",
+//     address: "Company Main Office",
+//     coordinates: { 
+//       lat: 30.0444, 
+//       lng: 31.2357 
+//     },
+//     radius: 100
+//   },
+//   branches: [
+//     {
+//       name: "Branch 1",
+//       address: "Company Branch",
+//       coordinates: { 
+//         lat: 30.0330, 
+//         lng: 31.2100 
+//       },
+//       radius: 100
+//     }
+//   ]
+// };

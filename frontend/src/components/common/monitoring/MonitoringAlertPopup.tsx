@@ -18,27 +18,43 @@ export default function MonitoringAlertPopup({ employeeId }: MonitoringAlertPopu
   const [timeLeft, setTimeLeft] = useState(120);
 
   useEffect(() => {
-    if (!employeeId) return;
+    if (!employeeId) {
+      console.log('[MonitoringPopup] No employeeId provided');
+      return;
+    }
+
+    console.log('[MonitoringPopup] Listening for alerts for employee:', employeeId);
 
     const alertsRef = collection(db, "monitoringAlerts");
     const q = query(
       alertsRef,
-      where("employeeId", "==", employeeId),
-      where("acknowledged", "==", false)
+      where("employeeId", "==", employeeId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const alertData = snapshot.docs[0].data() as MonitoringAlert;
-        const elapsed = Math.floor((Date.now() - new Date(alertData.timestamp).getTime()) / 1000);
+      console.log('[MonitoringPopup] Snapshot received, docs count:', snapshot.docs.length);
+      
+      const unacknowledged = snapshot.docs
+        .map(doc => doc.data() as MonitoringAlert)
+        .filter(a => !a.acknowledged);
+      
+      console.log('[MonitoringPopup] Unacknowledged alerts:', unacknowledged.length);
+      
+      if (unacknowledged.length > 0) {
+        const latestAlert = unacknowledged.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+        const elapsed = Math.floor((Date.now() - new Date(latestAlert.timestamp).getTime()) / 1000);
         const remaining = Math.max(0, 120 - elapsed);
         
+        console.log('[MonitoringPopup] Latest alert:', latestAlert.id, 'elapsed:', elapsed, 'remaining:', remaining);
+        
         if (remaining > 0) {
-          setAlert(alertData);
+          setAlert(latestAlert);
           setIsVisible(true);
           setTimeLeft(remaining);
         }
       }
+    }, (error) => {
+      console.error("[MonitoringPopup] Listener error:", error);
     });
 
     return () => unsubscribe();

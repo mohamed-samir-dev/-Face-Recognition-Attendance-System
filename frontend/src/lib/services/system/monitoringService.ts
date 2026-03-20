@@ -62,18 +62,30 @@ export async function acknowledgeAlert(
 }
 
 export async function sendMonitoringAlert(employeeId: string): Promise<void> {
+  console.log('[MonitoringAlert] Sending alert to employee:', employeeId);
+  
   const { doc, setDoc } = await import('firebase/firestore');
   const { db } = await import('@/lib/firebase/config');
   
   const timestamp = new Date().toISOString();
   const alertId = `alert_${employeeId}_${Date.now()}`;
+  const message = 'Admin is requesting your attention. Please confirm your presence.';
   
   const alertRef = doc(db, 'monitoringAlerts', alertId);
   await setDoc(alertRef, {
     id: alertId,
     employeeId,
-    message: 'Admin is requesting your attention. Please confirm your presence.',
+    message,
     timestamp,
     acknowledged: false
   });
+  console.log('[MonitoringAlert] Alert saved to monitoringAlerts collection:', alertId);
+
+  try {
+    const { createNotification } = await import('./notificationService');
+    await createNotification(employeeId, message, 'attendance_reminder');
+    console.log('[MonitoringAlert] Notification also created in notifications collection');
+  } catch (err) {
+    console.error('[MonitoringAlert] Failed to create notification:', err);
+  }
 }

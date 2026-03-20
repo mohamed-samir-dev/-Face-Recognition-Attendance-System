@@ -8,11 +8,17 @@ import toast from 'react-hot-toast';
 
 export default function ActionsCell({ user, deleting, onEdit, onDelete, onChangePassword, hideDelete }: ActionsCellProps) {
   const handleSendAlert = async () => {
-    if (!user.numericId) return;
+    if (!user.numericId) {
+      console.error('[ActionsCell] No numericId for user:', user.name);
+      toast.error('User has no numeric ID');
+      return;
+    }
     try {
+      console.log('[ActionsCell] Sending alert to:', user.name, 'numericId:', user.numericId);
       await sendMonitoringAlert(user.numericId.toString());
       toast.success(`Monitoring alert sent to ${user.name}`);
-    } catch  {
+    } catch (error) {
+      console.error('[ActionsCell] Failed to send alert:', error);
       toast.error('Failed to send alert');
     }
   };
