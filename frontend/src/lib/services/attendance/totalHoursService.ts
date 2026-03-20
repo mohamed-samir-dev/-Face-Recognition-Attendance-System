@@ -15,8 +15,6 @@ export const getTotalHours = async (userId: string): Promise<number> => {
 
 export const addWorkedHours = async (userId: string, hoursToAdd: number): Promise<void> => {
   try {
-    console.log(`🔄 Adding ${hoursToAdd.toFixed(2)}h for user:`, userId);
-    
     const docRef = doc(db, "totalHours", userId);
     const docSnap = await getDoc(docRef);
     const currentTotal = docSnap.exists() ? (docSnap.data().totalHours || 0) : 0;
@@ -28,7 +26,6 @@ export const addWorkedHours = async (userId: string, hoursToAdd: number): Promis
       lastUpdated: new Date().toISOString()
     }, { merge: true });
     
-    console.log(`✅ Successfully added hours. Previous: ${currentTotal.toFixed(2)}h, Added: ${hoursToAdd.toFixed(2)}h, New Total: ${newTotal.toFixed(2)}h`);
   } catch (error) {
     console.error('❌ Error adding worked hours:', error);
     throw error;

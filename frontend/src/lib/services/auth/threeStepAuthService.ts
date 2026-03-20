@@ -7,8 +7,6 @@ export async function performThreeStepAuthentication(
   user: User
 ): Promise<ThreeStepVerificationResult> {
   try {
-    console.log(`Starting three-step authentication for ${user.name} (ID: ${user.numericId})`);
-    
     const urls = [
       process.env.NEXT_PUBLIC_FACE_RECOGNITION_URL,
       'http://localhost:5001'
@@ -30,16 +28,9 @@ export async function performThreeStepAuthentication(
         if (response.ok) {
           const result: ThreeStepVerificationResult = await response.json();
           
-          console.log("Two-step authentication results:", {
-            step1: result.step1_face_recognition.success ? "✓ PASSED" : "✗ FAILED",
-            step2: result.step2_numeric_id_verification.success ? "✓ PASSED" : "✗ FAILED",
-            overall: result.overall_success ? "✓ SUCCESS" : "✗ FAILED"
-          });
-
           return result;
         }
       } catch (err) {
-        console.log(`Failed to connect to ${url}, trying next...`);
         continue;
       }
     }

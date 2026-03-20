@@ -157,7 +157,7 @@ const updateEmployeeStatusForLeave = async (employeeId: string, startDate: strin
     
     if (leaveStart <= today && today <= leaveEnd) {
       await updateDoc(employeeRef, { status: "OnLeave" });
-      console.log(`Updated status to OnLeave for employee: ${employeeId}`);
+
     }
   } catch (error) {
     console.error("Error updating employee status for leave:", error);
@@ -186,7 +186,7 @@ export const checkAndUpdateEmployeeStatuses = async (): Promise<void> => {
       return end < today;
     });
     
-    console.log(`Checking leave statuses: ${activeLeaves.length} active, ${expiredLeaves.length} expired`);
+
     
     const { getUsers } = await import('../user/userService');
     const users = await getUsers();
@@ -196,7 +196,7 @@ export const checkAndUpdateEmployeeStatuses = async (): Promise<void> => {
       if (user && user.status !== 'OnLeave') {
         const employeeRef = doc(db, "users", user.id);
         await updateDoc(employeeRef, { status: "OnLeave" });
-        console.log(`Set OnLeave: ${user.id}`);
+
       }
     }
     
@@ -209,7 +209,7 @@ export const checkAndUpdateEmployeeStatuses = async (): Promise<void> => {
         if (!hasOtherActiveLeave) {
           const employeeRef = doc(db, "users", user.id);
           await updateDoc(employeeRef, { status: "Active" });
-          console.log(`Set Active: ${user.id}`);
+
         }
       }
     }

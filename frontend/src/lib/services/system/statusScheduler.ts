@@ -14,7 +14,7 @@ class StatusScheduler {
       this.checkStatuses();
     }, 5 * 60 * 1000);
     
-    console.log('Employee status scheduler started');
+
   }
 
   stop() {
