@@ -35,4 +35,22 @@ export interface LoginContainerProps {
   loading: boolean;
   faceLoading: boolean;
   error: string;
+  showFaceLogin: boolean;
+  onCancelFaceLogin: () => void;
+}
+
+export interface FaceLoginResponse {
+  success: boolean;
+  user?: {
+    id: string;
+    name: string;
+    numericId: number;
+    accountType: string;
+    department: string;
+    email: string;
+    username: string;
+    position: string;
+    status: string;
+  };
+  message: string;
 }

@@ -3,6 +3,7 @@
 import LoginForm from "../forms/LoginForm";
 import AuthDivider from "../common/AuthDivider";
 import FacialRecognitionButton from "../facial-recognition/FacialRecognitionButton";
+import FaceLoginCamera from "../facial-recognition/FaceLoginCamera";
 import Card from "@/components/common/cards/Card";
 import { LoginContainerProps } from "../types";
 
@@ -12,8 +13,14 @@ export default function LoginContainer({
   onClearSession,
   loading,
   faceLoading,
-  error
+  error,
+  showFaceLogin,
+  onCancelFaceLogin,
 }: LoginContainerProps) {
+  if (showFaceLogin) {
+    return <FaceLoginCamera onCancel={onCancelFaceLogin} />;
+  }
+
   return (
     <Card>
       <LoginForm 

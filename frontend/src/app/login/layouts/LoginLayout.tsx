@@ -5,16 +5,17 @@ import PageHeader from "@/components/layout/common/PageHeader";
 
 interface LoginLayoutProps {
   children: React.ReactNode;
+  wide?: boolean;
 }
 
-export default function LoginLayout({ children }: LoginLayoutProps) {
+export default function LoginLayout({ children, wide = false }: LoginLayoutProps) {
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center px-3 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12 font-['Inter',sans-serif]">
       <div className="absolute top-3 left-3 sm:top-6 sm:left-6 z-10">
         <AppLogo size="sm" />
       </div>
 
-      <div className="w-full max-w-[95%] sm:max-w-md md:max-w-lg">
+      <div className={`w-full max-w-[95%] transition-all duration-300 ${wide ? 'sm:max-w-xl md:max-w-2xl' : 'sm:max-w-md md:max-w-lg'}`}>
         <PageHeader 
           title="Welcome Back" 
           subtitle="Log in to mark your attendance." 

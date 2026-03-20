@@ -9,6 +9,7 @@ export function useLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [faceLoading, setFaceLoading] = useState(false);
+  const [showFaceLogin, setShowFaceLogin] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (formData: LoginFormData) => {
@@ -86,8 +87,7 @@ export function useLogin() {
   };
 
   const handleFacialRecognition = () => {
-    setFaceLoading(true);
-    router.push("/camera");
+    setShowFaceLogin(true);
   };
 
   const handleClearSession = () => {
@@ -104,6 +104,8 @@ export function useLogin() {
     error,
     loading,
     faceLoading,
+    showFaceLogin,
+    setShowFaceLogin,
     handleLogin,
     handleFacialRecognition,
     handleClearSession,

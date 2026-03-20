@@ -7,7 +7,7 @@ import LoginContainer from "./LoginContainer";
 
 export default function LoginPageContent() {
   const [mounted, setMounted] = useState(false);
-  const { error, loading, faceLoading, handleLogin, handleFacialRecognition, handleClearSession } = useLogin();
+  const { error, loading, faceLoading, showFaceLogin, setShowFaceLogin, handleLogin, handleFacialRecognition, handleClearSession } = useLogin();
 
   useEffect(() => {
     setMounted(true);
@@ -18,7 +18,7 @@ export default function LoginPageContent() {
   }
 
   return (
-    <LoginLayout>
+    <LoginLayout wide={showFaceLogin}>
       <LoginContainer
         onLogin={handleLogin}
         onFacialRecognition={handleFacialRecognition}
@@ -26,6 +26,8 @@ export default function LoginPageContent() {
         loading={loading}
         faceLoading={faceLoading}
         error={error}
+        showFaceLogin={showFaceLogin}
+        onCancelFaceLogin={() => setShowFaceLogin(false)}
       />
     </LoginLayout>
   );

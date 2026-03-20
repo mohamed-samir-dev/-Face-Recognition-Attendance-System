@@ -11,6 +11,7 @@ import ProcessingOverlay from "./preview/overlays/ProcessingOverlay";
 import SuccessOverlay from "./preview/overlays/SuccessOverlay";
 import CheckOutSuccessOverlay from "./preview/overlays/CheckOutSuccessOverlay";
 import VerificationStepsOverlay from "./preview/overlays/VerificationStepsOverlay";
+import FaceOvalGuide from "./preview/overlays/FaceOvalGuide";
 
 const CameraPreview = forwardRef<HTMLVideoElement, CameraPreviewProps & { 
   verificationStep?: 'face' | 'id' | 'complete' | '';
@@ -49,6 +50,10 @@ const CameraPreview = forwardRef<HTMLVideoElement, CameraPreviewProps & {
     return (
       <div className="bg-gray-100 rounded-lg sm:rounded-xl h-[350px] sm:h-[420px] md:h-[480px] lg:h-[450px] relative overflow-hidden">
         <VideoElement ref={ref} cameraActive={cameraActive} />
+
+        {cameraActive && !attendanceMarked && !checkedOut && !error && !exhaustedAttempts && !multipleFaces && (
+          <FaceOvalGuide isProcessing={isProcessing} />
+        )}
 
         {!cameraActive && !attendanceMarked && !isProcessing && !error && (
           <StatusOverlay />
