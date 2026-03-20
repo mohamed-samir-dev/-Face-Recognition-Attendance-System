@@ -141,13 +141,13 @@ export function useFaceLogin(onCancel: () => void) {
       // Delay redirect so user sees success screen
       setTimeout(() => {
         const accountType = fullUserData.accountType;
+        let path = "/userData";
         if (fullUserData.numericId === 1 || accountType === "Admin") {
-          router.push("/admin");
+          path = "/admin";
         } else if (accountType === "Manager" || accountType === "Supervisor") {
-          router.push("/supervisor");
-        } else {
-          router.push("/userData");
+          path = "/supervisor";
         }
+        router.push(path);
       }, REDIRECT_DELAY);
     } catch {
       setAttempts((prev) => prev + 1);

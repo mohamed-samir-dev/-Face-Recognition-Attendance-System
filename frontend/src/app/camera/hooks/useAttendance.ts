@@ -72,8 +72,6 @@ export function useAttendance() {
 
       setVerificationStep('face');
       setFaceStatus('pending');
-      console.log(`Starting three-step authentication for: ${currentUser.name} (ID: ${currentUser.numericId})`);
-
       const authResult = await performThreeStepAuthentication(imageData, currentUser);
 
       if (authResult.overall_success) {
@@ -124,7 +122,6 @@ export function useAttendance() {
         try {
           const { startWorkTimer } = await import('@/lib/services/attendance/timerService');
           await startWorkTimer(currentUser.id);
-          console.log('✓ Work timer started successfully');
           window.dispatchEvent(new CustomEvent('timerStarted'));
         } catch (timerError) {
           console.error('Error starting timer:', timerError);
@@ -138,7 +135,7 @@ export function useAttendance() {
           localStorage.setItem("recognizedEmployee", JSON.stringify(currentUser));
         }
 
-        console.log("✓ Three-step authentication successful - attendance marked");
+
       } else {
         if (!authResult.step1_face_recognition.success) {
           setFaceStatus('failed');
@@ -184,7 +181,7 @@ export function useAttendance() {
         const newAttempts = attemptsRemaining - 1;
         setAttemptsRemaining(newAttempts);
 
-        console.log(`Three-step authentication failed:`, authResult);
+
 
         if (newAttempts === 0) {
           setExhaustedAttempts(true);
@@ -238,8 +235,6 @@ export function useAttendance() {
 
       setVerificationStep('face');
       setFaceStatus('pending');
-      console.log(`Starting checkout authentication for: ${currentUser.name} (ID: ${currentUser.numericId})`);
-
       const authResult = await performThreeStepAuthentication(imageData, currentUser);
 
       if (authResult.overall_success) {
@@ -295,7 +290,7 @@ export function useAttendance() {
           
           window.dispatchEvent(new CustomEvent('timerCompleted'));
           
-          console.log('✓ Check-out successful:', checkOutResult);
+
         } else {
           setError(checkOutResult.message);
         }

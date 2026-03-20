@@ -11,10 +11,11 @@ export default function LoginForm({
   loading,
   error,
 }: LoginFormProps) {
-  const { formData, fieldErrors, handleInputChange } = useLoginForm();
+  const { formData, fieldErrors, handleInputChange, validate } = useLoginForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     await onSubmit(formData);
   };
 

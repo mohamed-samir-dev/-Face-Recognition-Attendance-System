@@ -1,9 +1,15 @@
 import { FormInputProps } from "../../types";
 
 export default function FormInput({ type, value, onChange, placeholder, error, disabled }: FormInputProps) {
+  const inputId = `input-${placeholder?.toLowerCase().replace(/\s+/g, "-")}`;
+
   return (
     <div>
+      <label htmlFor={inputId} className="sr-only">
+        {placeholder}
+      </label>
       <input
+        id={inputId}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -11,9 +17,13 @@ export default function FormInput({ type, value, onChange, placeholder, error, d
         placeholder={placeholder}
         required
         disabled={disabled}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${inputId}-error` : undefined}
       />
       {error && (
-        <p className="text-red-600 text-xs sm:text-sm mt-1 px-1">{error}</p>
+        <p id={`${inputId}-error`} className="text-red-600 text-xs sm:text-sm mt-1 px-1" role="alert">
+          {error}
+        </p>
       )}
     </div>
   );

@@ -55,7 +55,7 @@ export async function compareAndRetrieveEmployee(capturedImageData: string): Pro
 
 async function getEmployeeByName(name: string): Promise<Employee | null> {
   try {
-    const employeesRef = collection(db, "employees");
+    const employeesRef = collection(db, "users");
     const snapshot = await getDocs(employeesRef);
     
     for (const doc of snapshot.docs) {

@@ -18,9 +18,31 @@ export function useLoginForm() {
     }
   };
 
+  const validate = (): boolean => {
+    const errors = { email: "", password: "" };
+    let valid = true;
+
+    if (!formData.email.trim()) {
+      errors.email = "Username or email is required";
+      valid = false;
+    }
+
+    if (!formData.password) {
+      errors.password = "Password is required";
+      valid = false;
+    } else if (formData.password.length < 3) {
+      errors.password = "Password is too short";
+      valid = false;
+    }
+
+    setFieldErrors(errors);
+    return valid;
+  };
+
   return {
     formData,
     fieldErrors,
     handleInputChange,
+    validate,
   };
 }
