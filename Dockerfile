@@ -26,4 +26,6 @@ COPY . .
 
 EXPOSE 5001
 
-CMD ["sh", "-c", "gunicorn --chdir backend --bind 0.0.0.0:${PORT:-5001} --timeout 120 --workers 1 enhanced_face_api_server:app"]
+RUN chmod +x start.sh
+
+CMD ["sh", "start.sh"]
