@@ -17,8 +17,9 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir cmake dlib==19.24.2 && \
+RUN pip install --no-cache-dir "pip==24.0" && \
+    pip install --no-cache-dir "cmake==3.27.9" && \
+    CMAKE_POLICY_VERSION_MINIMUM=3.5 pip install --no-cache-dir "dlib==19.24.6" && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY . .
