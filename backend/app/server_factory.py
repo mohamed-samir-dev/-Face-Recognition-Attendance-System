@@ -27,9 +27,12 @@ def create_app(enhanced=False):
     # Initialize Firebase-first face recognition model
     face_model = FirebaseFaceModel()
     
-    # Load encodings from Firebase
-    if not face_model.load_from_firebase():
-        print("Warning: No encodings loaded from Firebase")
+    # Load encodings from Firebase in background (non-blocking)
+    import threading
+    def load_model():
+        if not face_model.load_from_firebase():
+            print("Warning: No encodings loaded from Firebase")
+    threading.Thread(target=load_model, daemon=True).start()
     
     # Cache for storing face encodings
     encoding_cache = {}
