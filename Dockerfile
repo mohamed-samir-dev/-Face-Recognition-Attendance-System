@@ -26,4 +26,4 @@ COPY . .
 
 EXPOSE 5001
 
-CMD ["gunicorn", "--chdir", "backend", "--bind", "0.0.0.0:5001", "--timeout", "120", "--workers", "1", "enhanced_face_api_server:app"]
+CMD gunicorn --chdir backend --bind 0.0.0.0:${PORT:-5001} --timeout 120 --workers 1 enhanced_face_api_server:app
