@@ -7,7 +7,7 @@ class Config:
     PORT = int(os.getenv('PORT', 5001))
     
     # CORS settings - Support Railway/Vercel
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,https://face-recognition-attendance-system-nine-chi.vercel.app').split(',')
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*').split(',')
     CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     CORS_HEADERS = ['Content-Type', 'Authorization', 'Accept']
     

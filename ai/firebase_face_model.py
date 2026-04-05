@@ -160,7 +160,7 @@ class FirebaseFaceModel:
             # Convert to numpy array for comparison
             known_encodings_array = np.array(self.known_face_encodings)
             face_distances = face_recognition.face_distance(known_encodings_array, face_encoding)
-            matches = face_recognition.compare_faces(known_encodings_array, face_encoding, tolerance=0.6)
+            matches = face_recognition.compare_faces(known_encodings_array, face_encoding, tolerance=0.45)
             
             print(f"Face distances: {face_distances}")
             print(f"Matches: {matches}")
@@ -177,7 +177,7 @@ class FirebaseFaceModel:
                 
                 print(f"Best match: {name} with confidence {confidence:.0%}")
                 
-                if confidence < 0.35:
+                if confidence < 0.55:
                     print(f"❌ Confidence too low: {confidence:.0%}")
                     return None, f"Confidence too low ({confidence:.0%})"
                 

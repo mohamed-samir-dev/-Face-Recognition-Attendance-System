@@ -89,7 +89,7 @@ def init_face_routes(app, face_model, encoding_cache):
                             return jsonify({
                                 'success': False,
                                 'step_failed': 'firebase_lookup',
-                                'message': f'User "{recognized_name}" not found in Firebase'
+                                'message': 'User not found in database'
                             })
                         
                         firebase_numeric_id = firebase_user.get('numericId')
@@ -209,6 +209,83 @@ def init_face_routes(app, face_model, encoding_cache):
         except (IOError, OSError):
             return jsonify({'error': 'Image processing failed'}), 500
     
+    @app.route('/face-login', methods=['POST'])
+    def face_login():
+        """Login using face recognition only — no password or numeric ID needed."""
+        try:
+            data = request.get_json()
+
+            if 'image' not in data:
+                return jsonify({'error': 'No image provided'}), 400
+
+            image_data = data['image'].split(',')[1]
+            image_bytes = base64.b64decode(image_data)
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+                temp_file.write(image_bytes)
+                temp_path = temp_file.name
+
+            try:
+                recognized_name, message = face_model.recognize_face(temp_path)
+
+                if not recognized_name:
+                    return jsonify({
+                        'success': False,
+                        'message': message or 'Face not recognized'
+                    })
+
+                if not firebase_service.firebase_enabled:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Firebase is disabled'
+                    })
+
+                users_ref = firebase_service.db.collection('users')
+                query = users_ref.where('name', '==', recognized_name)
+                docs = query.get()
+
+                firebase_user = None
+                doc_id = None
+                for doc in docs:
+                    firebase_user = doc.to_dict()
+                    doc_id = doc.id
+                    break
+
+                if not firebase_user:
+                    return jsonify({
+                        'success': False,
+                        'message': 'User not found in database'
+                    })
+
+                return jsonify({
+                    'success': True,
+                    'message': f'Login successful for {recognized_name}',
+                    'user': {
+                        'id': doc_id,
+                        'name': firebase_user.get('name', ''),
+                        'numericId': firebase_user.get('numericId'),
+                        'accountType': firebase_user.get('accountType', 'Employee'),
+                        'department': firebase_user.get('department', ''),
+                        'email': firebase_user.get('email', ''),
+                        'username': firebase_user.get('username', ''),
+                        'position': firebase_user.get('position', ''),
+                        'status': firebase_user.get('status', 'active')
+                    }
+                })
+
+            except (ValueError, AttributeError, KeyError) as e:
+                return jsonify({
+                    'success': False,
+                    'message': f'Login failed: {str(e)}'
+                })
+            finally:
+                os.unlink(temp_path)
+
+        except (ValueError, KeyError):
+            return jsonify({'error': 'Invalid request data'}), 400
+        except (IOError, OSError):
+            return jsonify({'error': 'Image processing failed'}), 500
+
     @app.route('/compare', methods=['POST', 'OPTIONS'])
     def compare_faces():
         """Legacy compare endpoint - kept for backward compatibility"""
