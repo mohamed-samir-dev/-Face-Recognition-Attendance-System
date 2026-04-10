@@ -4,7 +4,7 @@ import {MetricsGridProps}from "../../types"
 
 export default function MetricsGrid({ stats }: MetricsGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
       {METRIC_CONFIGS.map((config) => (
         <MetricCard
           key={config.key}

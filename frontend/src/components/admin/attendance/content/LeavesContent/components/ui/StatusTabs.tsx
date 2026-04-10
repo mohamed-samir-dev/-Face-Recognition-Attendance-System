@@ -11,8 +11,8 @@ export default function StatusTabs({
   const { getTabCount, getBadgeColor } = useTabCounts(leaveRequests);
 
   return (
-    <div className="flex items-center justify-end mb-6">
-      <div className="flex overflow-x-auto rounded-lg p-1">
+    <div className="flex items-center justify-start sm:justify-end mb-4 sm:mb-6 -mx-3 sm:mx-0 px-3 sm:px-0">
+      <div className="flex overflow-x-auto rounded-lg p-1 gap-1 w-full sm:w-auto scrollbar-hide">
         {statusTabs.map((tab) => (
           <StatusTab
             key={tab}

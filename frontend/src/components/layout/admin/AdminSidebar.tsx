@@ -8,7 +8,7 @@ export default function AdminSidebar({ activeTab, onTabChange, pendingCount, isO
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" onClick={onClose} />
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />
       )}
       
       {/* Sidebar */}

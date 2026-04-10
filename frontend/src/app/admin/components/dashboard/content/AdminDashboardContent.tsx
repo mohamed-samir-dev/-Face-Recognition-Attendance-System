@@ -82,7 +82,7 @@ export default function AdminDashboardContent() {
           onMenuClick={() => setSidebarOpen(true)}
         />
 
-        <div className="p-4 lg:p-0">
+        <div className="p-3 sm:p-4 lg:p-6">
           <ContentRenderer activeTab={activeTab} searchQuery={searchQuery} />
         </div>
       </div>

@@ -91,15 +91,15 @@ export default function AttendanceTrendChart() {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Weekly Attendance Trend</h3>
-        <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg">
+    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-3 sm:mb-4">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Weekly Attendance Trend</h3>
+        <div className="flex items-center gap-2 bg-green-50 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-          <span className="text-sm font-medium text-green-700">Today: {todayPresent} Present</span>
+          <span className="text-xs sm:text-sm font-medium text-green-700">Today: {todayPresent} Present</span>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={trendData}>
           <defs>
             <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
@@ -131,7 +131,7 @@ export default function AttendanceTrendChart() {
           <Area type="monotone" dataKey="absent" stroke="#ef4444" fillOpacity={1} fill="url(#colorAbsent)" />
         </AreaChart>
       </ResponsiveContainer>
-      <div className="flex justify-center gap-6 mt-4">
+      <div className="flex justify-center gap-4 sm:gap-6 mt-3 sm:mt-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-green-500"></div>
           <span className="text-sm text-gray-600">Present</span>

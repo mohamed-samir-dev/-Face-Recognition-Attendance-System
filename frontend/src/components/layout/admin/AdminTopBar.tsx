@@ -18,15 +18,17 @@ export default function AdminTopBar({
   const pendingCount = pendingRequests.length;
 
   return (
-    <div className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-6">
+    <div className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-3 lg:px-6">
       {/* Left side */}
-      <div className="flex items-center space-x-4 flex-1">
+      <div className="flex items-center gap-2 flex-1 min-w-0">
         <MobileMenuButton onMenuClick={onMenuClick} />
-        <SearchBar searchQuery={searchQuery} onSearchChange={onSearchChange} />
+        <div className="hidden sm:block flex-1 max-w-md">
+          <SearchBar searchQuery={searchQuery} onSearchChange={onSearchChange} />
+        </div>
       </div>
 
       {/* Right side */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center gap-1 sm:gap-3">
         <NotificationBell
           pendingCount={pendingCount}
           showNotifications={showNotifications}

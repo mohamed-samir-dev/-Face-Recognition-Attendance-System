@@ -1,7 +1,7 @@
 import {DashboardLayoutProps} from "../../types"
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {children}
       </div>
