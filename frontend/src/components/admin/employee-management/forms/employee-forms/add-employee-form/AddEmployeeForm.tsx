@@ -24,8 +24,8 @@ export default function AddEmployeeForm() {
   } = useAddEmployee();
 
   return (
-    <div className="p-4 lg:p-6">
-      <div className="max-w-4xl ml-18">
+    <div className="p-3 sm:p-4 lg:p-6">
+      <div className="w-full max-w-4xl mx-auto">
         <FormHeader />
         <FormContainer
           formData={formData}
