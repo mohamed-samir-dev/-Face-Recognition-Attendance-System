@@ -17,37 +17,37 @@ export default function UserActions({ user, deleting, onEdit, onDelete, onChange
   };
 
   return (
-    <div className="flex space-x-2">
+    <div className={`grid gap-2 ${hideDelete ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'}`}>
       <button 
         onClick={() => onEdit(user.id)}
-        className="flex-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-1 transition-all duration-200 cursor-pointer"
+        className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-2 py-2 rounded-lg flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-xs sm:text-sm"
       >
-        <Edit className="w-4 h-4" />
+        <Edit className="w-3.5 h-3.5 flex-shrink-0" />
         <span>Edit</span>
       </button>
       <button 
         onClick={() => onChangePassword?.(user)}
-        className="flex-1 text-green-600 hover:text-green-900 hover:bg-green-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-1 transition-all duration-200 cursor-pointer"
+        className="text-green-600 hover:text-green-900 hover:bg-green-50 px-2 py-2 rounded-lg flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-xs sm:text-sm"
       >
-        <Key className="w-4 h-4" />
+        <Key className="w-3.5 h-3.5 flex-shrink-0" />
         <span>Password</span>
       </button>
       <button 
         onClick={handleSendAlert}
-        className="flex-1 text-orange-600 hover:text-orange-900 hover:bg-orange-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-1 transition-all duration-200 cursor-pointer"
+        className="text-orange-600 hover:text-orange-900 hover:bg-orange-50 px-2 py-2 rounded-lg flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-xs sm:text-sm"
         title="Send monitoring alert"
       >
-        <Bell className="w-4 h-4" />
+        <Bell className="w-3.5 h-3.5 flex-shrink-0" />
         <span>Alert</span>
       </button>
       {!hideDelete && (
         <button 
           onClick={() => onDelete(user)}
           disabled={deleting === user.id}
-          className="flex-1 text-red-600 hover:text-red-900 hover:bg-red-50 px-3 py-2 rounded-lg flex items-center justify-center space-x-1 disabled:opacity-50 transition-all duration-200 cursor-pointer"
+          className="text-red-600 hover:text-red-900 hover:bg-red-50 px-2 py-2 rounded-lg flex items-center justify-center gap-1 disabled:opacity-50 transition-all duration-200 cursor-pointer text-xs sm:text-sm"
         >
-          <Trash2 className="w-4 h-4" />
-          <span>{deleting === user.id ? "Deleting..." : "Delete"}</span>
+          <Trash2 className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>{deleting === user.id ? 'Deleting...' : 'Delete'}</span>
         </button>
       )}
     </div>

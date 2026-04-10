@@ -21,16 +21,18 @@ export default function UserFilters({
   departments
 }: UserFiltersProps) {
   return (
-    <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 mb-6">
+    <div className="flex flex-col gap-3 mb-4 sm:mb-6">
       <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         <StatusFilter filter={filter} setFilter={setFilter} />
         <DepartmentFilter 
           departmentFilter={departmentFilter}
           setDepartmentFilter={setDepartmentFilter}
           departments={departments}
         />
-        <SortSelector sortBy={sortBy} setSortBy={setSortBy} />
+        <div className="col-span-2 sm:col-span-1">
+          <SortSelector sortBy={sortBy} setSortBy={setSortBy} />
+        </div>
       </div>
     </div>
   );

@@ -98,106 +98,104 @@ export default function UserManagementView() {
   const onLeaveUsers = displayUsers.filter(u => u.status === 'OnLeave').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">User Management</h1>
             <p className="text-sm text-gray-500 mt-1">Manage system users and their permissions</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={exportToExcel}
-              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center gap-2 bg-green-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-green-700 transition-colors text-sm"
             >
               <Download className="w-4 h-4" />
-              Export Excel
+              <span className="hidden xs:inline">Export Excel</span>
+              <span className="xs:hidden">Export</span>
             </button>
             <button 
               onClick={() => window.location.href = '/admin/add-employee'}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
               <Plus className="w-4 h-4" />
-              Add Employee
+              <span>Add Employee</span>
             </button>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2">
             <button
               onClick={() => setActiveTab('all')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
-                activeTab === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
+                activeTab === 'all' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <UsersRound className="w-4 h-4" />
-              All Staff ({users.length})
+              <UsersRound className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">All Staff ({users.length})</span>
+              <span className="sm:hidden">All ({users.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('employees')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
-                activeTab === 'employees'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
+                activeTab === 'employees' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Users className="w-4 h-4" />
-              Employees ({employees.length})
+              <Users className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Employees ({employees.length})</span>
+              <span className="sm:hidden">Emp ({employees.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('supervisors')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
-                activeTab === 'supervisors'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
+                activeTab === 'supervisors' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <UserCog className="w-4 h-4" />
-              Supervisors ({supervisors.length})
+              <UserCog className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Supervisors ({supervisors.length})</span>
+              <span className="sm:hidden">Sup ({supervisors.length})</span>
             </button>
           </div>
         </div>
 
         {/* Summary Stats */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
             {activeTab === 'all' ? 'All Staff' : activeTab === 'employees' ? 'Employee' : 'Supervisor'} Statistics
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{displayUsers.length}</p>
-              <p className="text-xs text-gray-600 mt-1">Total {activeTab === 'all' ? 'Staff' : activeTab === 'employees' ? 'Employees' : 'Supervisors'}</p>
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4">
+            <div className="text-center p-2 sm:p-4 bg-blue-50 rounded-lg">
+              <p className="text-lg sm:text-2xl font-bold text-blue-600">{displayUsers.length}</p>
+              <p className="text-xs text-gray-600 mt-1">Total</p>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{activeUsers}</p>
+            <div className="text-center p-2 sm:p-4 bg-green-50 rounded-lg">
+              <p className="text-lg sm:text-2xl font-bold text-green-600">{activeUsers}</p>
               <p className="text-xs text-gray-600 mt-1">Active</p>
             </div>
-            <div className="text-center p-4 bg-red-50 rounded-lg">
-              <p className="text-2xl font-bold text-red-600">{inactiveUsers}</p>
+            <div className="text-center p-2 sm:p-4 bg-red-50 rounded-lg">
+              <p className="text-lg sm:text-2xl font-bold text-red-600">{inactiveUsers}</p>
               <p className="text-xs text-gray-600 mt-1">Inactive</p>
             </div>
-            <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <p className="text-2xl font-bold text-yellow-600">{onLeaveUsers}</p>
+            <div className="text-center p-2 sm:p-4 bg-yellow-50 rounded-lg">
+              <p className="text-lg sm:text-2xl font-bold text-yellow-600">{onLeaveUsers}</p>
               <p className="text-xs text-gray-600 mt-1">On Leave</p>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <p className="text-2xl font-bold text-purple-600">{departments.length}</p>
-              <p className="text-xs text-gray-600 mt-1">Departments</p>
+            <div className="text-center p-2 sm:p-4 bg-purple-50 rounded-lg">
+              <p className="text-lg sm:text-2xl font-bold text-purple-600">{departments.length}</p>
+              <p className="text-xs text-gray-600 mt-1">Depts</p>
             </div>
-            <div className="text-center p-4 bg-indigo-50 rounded-lg">
-              <p className="text-2xl font-bold text-indigo-600">{displayUsers.length > 0 ? ((activeUsers / displayUsers.length) * 100).toFixed(0) : 0}%</p>
+            <div className="text-center p-2 sm:p-4 bg-indigo-50 rounded-lg">
+              <p className="text-lg sm:text-2xl font-bold text-indigo-600">{displayUsers.length > 0 ? ((activeUsers / displayUsers.length) * 100).toFixed(0) : 0}%</p>
               <p className="text-xs text-gray-600 mt-1">Active Rate</p>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-6">
           <UserFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -213,8 +211,8 @@ export default function UserManagementView() {
 
         {/* User Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
               {activeTab === 'all' ? 'All Staff' : activeTab === 'employees' ? 'Employee' : 'Supervisor'} List
             </h2>
             <p className="text-xs text-gray-500 mt-1">{displayUsers.length} {activeTab === 'all' ? 'staff members' : activeTab === 'employees' ? 'employees' : 'supervisors'} found</p>
