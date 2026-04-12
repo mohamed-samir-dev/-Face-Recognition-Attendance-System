@@ -63,8 +63,8 @@ export const checkAndRecordAbsences = async (targetDate?: string): Promise<void>
     workEndDateTime.setHours(endHour, endMinute, 0, 0);
     
     if (!targetDate && today < workEndDateTime) {
-      console.log('Working hours not ended yet. Skipping absence check.');
-      return;
+      console.log('Working hours not ended yet, recording absences for previous days only.');
+      // Still continue to check - will only record for today if past end time
     }
     
     const attendanceCollection = collection(db, "attendance");

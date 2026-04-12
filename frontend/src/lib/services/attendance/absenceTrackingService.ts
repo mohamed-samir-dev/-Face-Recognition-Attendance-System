@@ -25,10 +25,8 @@ class AbsenceTrackingService {
 
   private async checkAbsences() {
     const today = new Date().toISOString().split('T')[0];
-    const currentHour = new Date().getHours();
     
-    // Only check after 6 PM (18:00) and if we haven't checked today
-    if (currentHour >= 18 && this.lastCheckedDate !== today) {
+    if (this.lastCheckedDate !== today) {
       try {
         await checkAndRecordAbsences();
         this.lastCheckedDate = today;

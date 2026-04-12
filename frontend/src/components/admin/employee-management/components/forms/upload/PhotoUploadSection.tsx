@@ -19,7 +19,7 @@ export default function PhotoUploadSection({
   photoError,
   onFileUpload,
 }: PhotoUploadSectionProps) {
-  const handleCameraCapture = (imageData: string) => {
+  const handleCapture = (imageData: string) => {
     setFormData({ ...formData, image: imageData });
   };
 
@@ -30,8 +30,8 @@ export default function PhotoUploadSection({
         imageOption={imageOption}
         setImageOption={setImageOption}
       />
-      {imageOption === "upload" && <FileUploadArea onFileUpload={onFileUpload} />}
-      {imageOption === "camera" && <CameraCapture onCapture={handleCameraCapture} />}
+      {imageOption === "upload" && <FileUploadArea onCapture={handleCapture} />}
+      {imageOption === "camera" && <CameraCapture onCapture={handleCapture} />}
       {imageOption === "url" && (
         <URLInput formData={formData} setFormData={setFormData} />
       )}

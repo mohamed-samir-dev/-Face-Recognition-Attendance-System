@@ -78,8 +78,12 @@ export const getMonthlyTotalHours = async (userId: string): Promise<number> => {
           const now = new Date();
           const todayStr = now.toDateString();
           const checkInTime = new Date(`${todayStr} ${timerData.checkInTime}`);
-          const currentSessionHours = (now.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
-          totalHours += currentSessionHours;
+          const { getCompanySettings } = await import('../system/settingsService');
+          const settings = await getCompanySettings();
+          const workEnd = new Date(`${todayStr} ${settings.workingHours.endTime}:00`);
+          const cappedNow = now > workEnd ? workEnd : now;
+          const currentSessionHours = (cappedNow.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
+          totalHours += Math.max(0, currentSessionHours);
         }
       }
     }

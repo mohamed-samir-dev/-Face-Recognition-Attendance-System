@@ -91,6 +91,7 @@ export const useWorkTimer = (userId?: string) => {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+    let lastOvertimeSave = 0;
     
     if (userId) {
       interval = setInterval(async () => {
@@ -101,27 +102,28 @@ export const useWorkTimer = (userId?: string) => {
           const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
           
           if (now.getTime() <= workEnd.getTime()) {
-            // During regular hours: update total hours continuously
             const newRemaining = await calculateRemainingTime(timerData);
             setTimeRemaining(newRemaining);
             setIsOvertime(false);
             setOvertimeHours(0);
           } else {
-            // During overtime: cap regular hours and track overtime separately
-            
             const overtimeMs = now.getTime() - workEnd.getTime();
             const overtime = overtimeMs / (1000 * 60 * 60);
             setIsOvertime(true);
             setOvertimeHours(overtime);
             setTimeRemaining(0);
             
-            // Update overtime in Firebase every minute
-            const { saveOvertimeRecord } = await import('@/lib/services/attendance/overtimeService');
-            const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
-            const { db } = await import('@/lib/firebase/config');
-            const userDoc = await getDoc(firestoreDoc(db, 'users', userId!));
-            const userName = userDoc.exists() ? userDoc.data().name : 'Unknown';
-            await saveOvertimeRecord(userId!, userName, overtime);
+            // Save overtime to Firebase every 60 seconds only
+            const nowMs = Date.now();
+            if (nowMs - lastOvertimeSave >= 60000) {
+              lastOvertimeSave = nowMs;
+              const { saveOvertimeRecord } = await import('@/lib/services/attendance/overtimeService');
+              const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
+              const { db } = await import('@/lib/firebase/config');
+              const userDoc = await getDoc(firestoreDoc(db, 'users', userId!));
+              const userName = userDoc.exists() ? userDoc.data().name : 'Unknown';
+              await saveOvertimeRecord(userId!, userName, overtime);
+            }
           }
         } else {
           setIsActive(false);
@@ -140,31 +142,21 @@ export const useWorkTimer = (userId?: string) => {
 
   useEffect(() => {
     let totalHoursInterval: NodeJS.Timeout;
-    let isUpdating = false;
     
     if (userId && isActive) {
       totalHoursInterval = setInterval(async () => {
-        if (isUpdating || isOvertimeRef.current) {
-          return;
-        }
-        
-        isUpdating = true;
+        if (isOvertimeRef.current) return;
         try {
           const { addWorkedHours } = await import('@/lib/services/attendance/totalHoursService');
-          const secondInHours = 1 / 3600; // 1 second = 1/3600 hours
-          await addWorkedHours(userId!, secondInHours);
+          await addWorkedHours(userId!, 1 / 60); // Update every minute = 1/60 hour
         } catch (error) {
           console.error('Error adding worked hours:', error);
-        } finally {
-          isUpdating = false;
         }
-      }, 1000); // Update every second
+      }, 60000); // Every 60 seconds instead of every second
     }
 
     return () => {
-      if (totalHoursInterval) {
-        clearInterval(totalHoursInterval);
-      }
+      if (totalHoursInterval) clearInterval(totalHoursInterval);
     };
   }, [userId, isActive]);
 
