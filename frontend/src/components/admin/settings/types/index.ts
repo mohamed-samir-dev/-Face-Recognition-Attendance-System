@@ -68,4 +68,5 @@ export interface CompanySettings {
   holidays: Holiday[];
   departments: Department[];
   attendanceRules: AttendanceRules;
+  weekendDays: string[];
 }

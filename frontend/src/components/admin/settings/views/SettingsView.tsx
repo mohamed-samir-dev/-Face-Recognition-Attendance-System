@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CompanySettings, Holiday } from '../types';
 import { getCompanySettings } from '@/lib/services/system/settingsService';
-import { WorkingHoursSection, AttendanceRulesSection, VacationDaysSection, HolidayList, LoadingState } from '../components';
+import { WorkingHoursSection, AttendanceRulesSection, VacationDaysSection, WeekendDaysSection, HolidayList, LoadingState } from '../components';
 import { HolidayForm } from '../forms';
 import { EditHolidayModal } from '../modals';
 
@@ -98,6 +98,11 @@ export default function SettingsContent() {
 
         <VacationDaysSection 
           vacationDays={settings?.attendanceRules?.vacationDays || 30}
+          onUpdate={refreshSettings}
+        />
+
+        <WeekendDaysSection 
+          weekendDays={settings?.weekendDays || ['Friday', 'Saturday']}
           onUpdate={refreshSettings}
         />
       </div>

@@ -23,14 +23,16 @@ export const getCompanySettings = async (): Promise<CompanySettings> => {
       workingHours: settingsData.workingHours || { startTime: "09:00", endTime: "17:00" },
       holidays,
       departments,
-      attendanceRules: settingsData.attendanceRules || { gracePeriod: 15, vacationDays: 30 }
+      attendanceRules: settingsData.attendanceRules || { gracePeriod: 15, vacationDays: 30 },
+      weekendDays: settingsData.weekendDays || ["Friday", "Saturday"]
     };
   } catch {
     return {
       workingHours: { startTime: "09:00", endTime: "17:00" },
       holidays: [],
       departments: [],
-      attendanceRules: { gracePeriod: 15, vacationDays: 30 }
+      attendanceRules: { gracePeriod: 15, vacationDays: 30 },
+      weekendDays: ["Friday", "Saturday"]
     };
   }
 };

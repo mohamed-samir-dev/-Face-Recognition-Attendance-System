@@ -3,6 +3,7 @@
 import ProfileSection from "../profile/ProfileSection";
 import AttendanceSummary from "../widgets/AttendanceSummary";
 import AttendanceChart from "../charts/AttendanceChart";
+import WorkScheduleWidget from "../widgets/WorkScheduleWidget";
 import { DashboardContentProps } from "../types";
 import { useAbsenceTracking } from "../hooks/useAbsenceTracking";
 import { useMonthlyAttendanceStats } from "../hooks/useMonthlyAttendanceStats";
@@ -41,6 +42,8 @@ export default function DashboardContent({
       />
 
       <AttendanceSummary />
+
+      <WorkScheduleWidget />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
         <AttendanceChart 
