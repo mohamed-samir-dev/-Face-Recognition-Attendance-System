@@ -102,9 +102,9 @@ export const removeUserFromDepartment = async (userId: string): Promise<void> =>
   await updateDoc(userRef, { department: '', Department: '' });
 };
 
-export const updateUser = async (userId: string, userData: Partial<User>): Promise<void> => {
+export const updateUser = async (userId: string, userData: Partial<User>, skipFaceEncoding = false): Promise<void> => {
   // If image is being updated, regenerate face encoding
-  if (userData.image) {
+  if (userData.image && !skipFaceEncoding) {
     const users = await getUsers();
     const user = users.find(u => u.id === userId);
     if (user) {

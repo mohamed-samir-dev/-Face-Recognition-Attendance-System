@@ -41,12 +41,14 @@ export default function ProfileSection({
     window.addEventListener('leaveRequestUpdated', handleStatusUpdate);
     window.addEventListener('timerStarted', handleStatusUpdate);
     window.addEventListener('timerCompleted', handleStatusUpdate);
+    window.addEventListener('profileImageUpdated', handleStatusUpdate);
     const interval = setInterval(fetchUserData, 30000);
     
     return () => {
       window.removeEventListener('leaveRequestUpdated', handleStatusUpdate);
       window.removeEventListener('timerStarted', handleStatusUpdate);
       window.removeEventListener('timerCompleted', handleStatusUpdate);
+      window.removeEventListener('profileImageUpdated', handleStatusUpdate);
       clearInterval(interval);
     };
   }, [user.id]);

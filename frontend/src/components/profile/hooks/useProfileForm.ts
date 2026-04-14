@@ -42,7 +42,13 @@ export const useProfileForm = (user: DocumentData) => {
         setSelectedImage(imageUrl);
         
         try {
-          await updateUser(user.id, { image: imageUrl });
+          await updateUser(user.id, { image: imageUrl }, true);
+          const saved = sessionStorage.getItem("attendanceUser");
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            sessionStorage.setItem("attendanceUser", JSON.stringify({ ...parsed, image: imageUrl }));
+          }
+          window.dispatchEvent(new Event("profileImageUpdated"));
           setShowSuccess(true);
           setTimeout(() => setShowSuccess(false), 3000);
         } catch (error) {
