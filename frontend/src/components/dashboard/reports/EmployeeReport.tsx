@@ -347,7 +347,7 @@ export default function EmployeeReport() {
                 <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, fontSize: 12 }}
-                  formatter={(v: number) => [`${v}h`, "Overtime"]}
+                  formatter={(v: number | undefined) => [`${v ?? 0}h`, "Overtime"]}
                 />
                 <Area type="monotone" dataKey="overtime" stroke="#6366f1" strokeWidth={2} fill="url(#ot)" dot={false} />
               </AreaChart>
@@ -367,7 +367,7 @@ export default function EmployeeReport() {
                 <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, fontSize: 12 }}
-                  formatter={(v: number) => [`${v}h`, "Hours"]}
+                  formatter={(v: number | undefined) => [`${v ?? 0}h`, "Hours"]}
                 />
                 <Bar dataKey="hours" fill="#6366f1" radius={[6, 6, 0, 0]} />
               </BarChart>
