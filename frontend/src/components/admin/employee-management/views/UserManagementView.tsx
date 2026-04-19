@@ -84,6 +84,11 @@ export default function UserManagementView() {
     }),
     columnHelper.accessor("department", {
       header: "Department",
+      sortingFn: (rowA, rowB) => {
+        const a = (rowA.getValue<string | undefined>("department") || rowA.original.Department || "");
+        const b = (rowB.getValue<string | undefined>("department") || rowB.original.Department || "");
+        return a.localeCompare(b);
+      },
       cell: (i) => {
         const dept = i.getValue() || i.row.original.Department;
         return (
@@ -95,6 +100,11 @@ export default function UserManagementView() {
     }),
     columnHelper.accessor("jobTitle", {
       header: "Job Title",
+      sortingFn: (rowA, rowB) => {
+        const a = rowA.getValue<string | undefined>("jobTitle") ?? "";
+        const b = rowB.getValue<string | undefined>("jobTitle") ?? "";
+        return a.localeCompare(b);
+      },
       cell: (i) => <span className="text-sm text-slate-600">{i.getValue() || "—"}</span>,
     }),
     columnHelper.accessor("accountType", {
@@ -112,6 +122,11 @@ export default function UserManagementView() {
     }),
     columnHelper.accessor("salary", {
       header: "Salary",
+      sortingFn: (rowA, rowB) => {
+        const a = rowA.getValue<number | undefined>("salary") ?? 0;
+        const b = rowB.getValue<number | undefined>("salary") ?? 0;
+        return a - b;
+      },
       cell: (i) => {
         const v = i.getValue();
         return <span className="text-sm font-semibold text-slate-700">{v ? `$${v.toLocaleString()}` : "—"}</span>;
