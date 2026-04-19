@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { LoginFormData } from "../types";
-import { updateUserSession, checkExistingSession, BlockedByUser } from "@/lib/services/auth/sessionService";
+import { updateUserSession, checkExistingSession, logAccessDenied, BlockedByUser } from "@/lib/services/auth/sessionService";
 import toast from "react-hot-toast";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -82,6 +82,18 @@ export function useLogin() {
           setBlockedBy(sessionCheck.blockedBy ?? null);
           setSessionBlocked(true);
           setLoading(false);
+          // ── Log to Firestore ──
+          await logAccessDenied({
+            attemptedBy: {
+              userId,
+              name: userData.name || "Unknown",
+              username: userData.username,
+              image: userData.image,
+              department: userData.department,
+            },
+            registeredTo: sessionCheck.blockedBy ?? { name: "Unknown" },
+            loginMethod: "password",
+          });
           return;
         }
 

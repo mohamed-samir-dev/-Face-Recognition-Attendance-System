@@ -1,4 +1,4 @@
-import { doc, updateDoc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, updateDoc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { UserSession } from "../../types/services";
 
@@ -103,6 +103,30 @@ export const resetDeviceBinding = async (userId: string): Promise<void> => {
     isActive: false,
     sessionToken: null,
   });
+};
+
+// Log an access denied attempt to Firestore
+export const logAccessDenied = async ({
+  attemptedBy,
+  registeredTo,
+  loginMethod,
+}: {
+  attemptedBy: { userId: string; name: string; username?: string; image?: string; department?: string };
+  registeredTo: BlockedByUser;
+  loginMethod: "password" | "face";
+}): Promise<void> => {
+  try {
+    await addDoc(collection(db, "accessDeniedLogs"), {
+      attemptedBy,
+      registeredTo,
+      loginMethod,
+      deviceFingerprint: getDeviceFingerprint(),
+      timestamp: serverTimestamp(),
+      reviewed: false,
+    });
+  } catch (e) {
+    console.error("Failed to log access denied:", e);
+  }
 };
 
 export const getUserSession = async (userId: string): Promise<UserSession | null> => {

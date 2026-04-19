@@ -5,6 +5,8 @@ import ReportsContent from "@/components/admin/reports/ReportsContent";
 import UserManagementView from "@/components/admin/employee-management/views/UserManagementView";
 import SettingsContent from "@/components/admin/settings/views/SettingsView";
 import DepartmentsContent from "@/components/admin/departments/views/content/DepartmentsContent";
+import DeviceManagementView from "@/components/admin/device-management/DeviceManagementView";
+import AccessDeniedLogsView from "@/components/admin/access-denied-logs/AccessDeniedLogsView";
 import MonitoringTab from "../../monitoring/MonitoringTab";
 
 interface ContentRendererProps {
@@ -28,6 +30,10 @@ export default function ContentRenderer({ activeTab, searchQuery }: ContentRende
       return <UserManagementView />;
     case "Departments":
       return <DepartmentsContent />;
+    case "DeviceManagement":
+      return <DeviceManagementView />;
+    case "AccessDeniedLogs":
+      return <AccessDeniedLogsView />;
     case "Settings":
       return <SettingsContent />;
     default:

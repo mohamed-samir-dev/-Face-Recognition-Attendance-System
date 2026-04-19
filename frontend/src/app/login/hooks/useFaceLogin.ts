@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
-import { updateUserSession, checkExistingSession, BlockedByUser } from "@/lib/services/auth/sessionService";
+import { updateUserSession, checkExistingSession, logAccessDenied, BlockedByUser } from "@/lib/services/auth/sessionService";
 import { FaceLoginResponse } from "../types";
 
 export type FaceLoginStep = "camera" | "processing" | "success" | "failed";
@@ -125,6 +125,18 @@ export function useFaceLogin(onCancel: () => void) {
         setSessionBlocked(true);
         setStep("failed");
         stopCamera();
+        // ── Log to Firestore ──
+        await logAccessDenied({
+          attemptedBy: {
+            userId,
+            name: fullUserData.name || "Unknown",
+            username: (fullUserData as Record<string, unknown>).username as string,
+            image: (fullUserData as Record<string, unknown>).image as string,
+            department: fullUserData.department,
+          },
+          registeredTo: sessionCheck.blockedBy ?? { name: "Unknown" },
+          loginMethod: "face",
+        });
         return;
       }
 
