@@ -79,17 +79,17 @@ export default function AccessDeniedLogsView() {
             Unauthorized login attempts from foreign devices
           </p>
         </div>
-        <div className="flex gap-3">
-          <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-2 text-center">
-            <p className="text-lg font-bold text-red-600">{logs.length}</p>
+        <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex-1 sm:flex-none bg-red-50 border border-red-100 rounded-xl px-3 sm:px-4 py-2 text-center">
+            <p className="text-base sm:text-lg font-bold text-red-600">{logs.length}</p>
             <p className="text-xs text-gray-500">Total</p>
           </div>
-          <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-2 text-center">
-            <p className="text-lg font-bold text-amber-600">{unreviewedCount}</p>
+          <div className="flex-1 sm:flex-none bg-amber-50 border border-amber-100 rounded-xl px-3 sm:px-4 py-2 text-center">
+            <p className="text-base sm:text-lg font-bold text-amber-600">{unreviewedCount}</p>
             <p className="text-xs text-gray-500">Unreviewed</p>
           </div>
-          <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-2 text-center">
-            <p className="text-lg font-bold text-green-600">{logs.length - unreviewedCount}</p>
+          <div className="flex-1 sm:flex-none bg-green-50 border border-green-100 rounded-xl px-3 sm:px-4 py-2 text-center">
+            <p className="text-base sm:text-lg font-bold text-green-600">{logs.length - unreviewedCount}</p>
             <p className="text-xs text-gray-500">Reviewed</p>
           </div>
         </div>
@@ -137,9 +137,9 @@ function LogCard({ log, onToggleReview, formatTime }: {
       log.reviewed ? "border-gray-100 opacity-70" : "border-red-100"
     }`}>
       {/* Top bar */}
-      <div className={`px-4 py-2 flex items-center justify-between flex-wrap gap-2 ${log.reviewed ? "bg-gray-50" : "bg-red-50"}`}>
+      <div className={`px-3 sm:px-4 py-2 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 ${log.reviewed ? "bg-gray-50" : "bg-red-50"}`}>
         <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${log.reviewed ? "bg-gray-300" : "bg-red-500 animate-pulse"}`} />
+          <span className={`w-2 h-2 rounded-full shrink-0 ${log.reviewed ? "bg-gray-300" : "bg-red-500 animate-pulse"}`} />
           <span className={`text-xs font-semibold ${log.reviewed ? "text-gray-400" : "text-red-600"}`}>
             {log.reviewed ? "Reviewed" : "⚠️ Unauthorized Attempt"}
           </span>

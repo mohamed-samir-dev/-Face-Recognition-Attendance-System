@@ -1,458 +1,421 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Calendar, AlertCircle, CheckCircle, XCircle, Coffee, Filter, Clock, MapPin } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  useReactTable, getCoreRowModel, getSortedRowModel,
+  getFilteredRowModel, getPaginationRowModel,
+  flexRender, createColumnHelper, SortingState,
+} from "@tanstack/react-table";
+import {
+  Calendar, CheckCircle, XCircle, Coffee, AlertCircle,
+  Clock, MapPin, ChevronUp, ChevronDown, ChevronsUpDown,
+  ChevronLeft, ChevronRight, Search, Filter, ExternalLink,
+} from "lucide-react";
 import { AttendanceHistoryRecord } from "@/lib/types/attendanceHistory";
 import { formatHoursForCard } from "@/lib/utils/timeFormatters";
 
-interface AttendanceTableViewProps {
+interface Props {
   fetchData: () => Promise<AttendanceHistoryRecord[]>;
   title: string;
   subtitle: string;
 }
 
-const STATUS_CONFIG = {
-  Present: { icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50", badge: "bg-emerald-100 text-emerald-700 border border-emerald-200" },
-  Late:    { icon: AlertCircle, color: "text-amber-600",   bg: "bg-amber-50",   badge: "bg-amber-100 text-amber-700 border border-amber-200" },
-  OnLeave: { icon: Coffee,       color: "text-blue-600",    bg: "bg-blue-50",    badge: "bg-blue-100 text-blue-700 border border-blue-200" },
-  Absent:  { icon: XCircle,      color: "text-red-600",     bg: "bg-red-50",     badge: "bg-red-100 text-red-700 border border-red-200" },
-};
+const STATUS_CFG = {
+  Present: { dot: "bg-emerald-500", bg: "bg-emerald-50", text: "text-emerald-700", icon: CheckCircle },
+  Late:    { dot: "bg-amber-500",   bg: "bg-amber-50",   text: "text-amber-700",   icon: AlertCircle },
+  OnLeave: { dot: "bg-sky-500",     bg: "bg-sky-50",     text: "text-sky-700",     icon: Coffee      },
+  Absent:  { dot: "bg-rose-500",    bg: "bg-rose-50",    text: "text-rose-700",    icon: XCircle     },
+} as const;
 
-function formatTime(t: string) {
-  const [h, m] = t.split(":");
-  const hour = parseInt(h);
-  return `${hour % 12 || 12}:${m} ${hour >= 12 ? "PM" : "AM"}`;
+function fmt12(t?: string) {
+  if (!t) return "—";
+  const [h, m] = t.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 }
 
-function calcDuration(checkIn: string, checkOut?: string) {
-  if (!checkOut) return "—";
-  const [ih, im] = checkIn.split(":").map(Number);
-  const [oh, om] = checkOut.split(":").map(Number);
-  const mins = oh * 60 + om - (ih * 60 + im);
-  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-}
-
-function getDayLabel(dateStr: string) {
-  const date = new Date(dateStr);
+function dayLabel(dateStr: string) {
+  const d = new Date(dateStr); d.setHours(0, 0, 0, 0);
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-  date.setHours(0, 0, 0, 0);
-  if (date.getTime() === today.getTime()) return "Today";
-  if (date.getTime() === yesterday.getTime()) return "Yesterday";
-  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+  const yest = new Date(today); yest.setDate(today.getDate() - 1);
+  if (d.getTime() === today.getTime()) return "Today";
+  if (d.getTime() === yest.getTime()) return "Yesterday";
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
 }
 
-const COLUMNS = [
-  "Employee", "Status", "ID", "Job Title", "Department",
-  "Check In", "Check Out", "Duration", "Worked Hours", "Late",
-  "Location", "Coordinates", "Accuracy", "Geofence",
-  "Main Office", "Branch Office", "IP Address", "Device", "Browser", "Screen", "Timezone",
-];
+const col = createColumnHelper<AttendanceHistoryRecord>();
 
-function MobileCard({ record }: { record: AttendanceHistoryRecord }) {
-  const cfg = STATUS_CONFIG[record.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.Absent;
-  const StatusIcon = cfg.icon;
-  const duration = calcDuration(record.checkIn, record.checkOut);
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
-      {/* Top row: name + status */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className={`${cfg.bg} p-2 rounded-lg`}>
-            <StatusIcon className={`w-5 h-5 ${cfg.color}`} />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900 text-base">{record.employeeName}</p>
-            <p className="text-xs text-gray-400">#{record.numericId || "—"} · {record.department || "—"}</p>
-          </div>
-        </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${cfg.badge}`}>
-          {record.status}
-        </span>
-      </div>
-
-      {/* Job title */}
-      {record.jobTitle && (
-        <p className="text-sm text-gray-500">{record.jobTitle}</p>
-      )}
-
-      {/* Times row */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-blue-400" />
-          <span className="text-sm font-semibold text-blue-600">{formatTime(record.checkIn)}</span>
-        </div>
-        {record.checkOut && (
-          <>
-            <span className="text-gray-300 text-sm">→</span>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-sm font-semibold text-purple-600">{formatTime(record.checkOut)}</span>
-            </div>
-          </>
-        )}
-        {duration !== "—" && (
-          <span className="text-sm font-semibold text-emerald-600">{duration}</span>
-        )}
-        {record.isLate && record.lateMinutes && (
-          <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
-            +{Math.round(record.lateMinutes)}m late
-          </span>
-        )}
-      </div>
-
-      {/* Extra info */}
-      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-50">
-        {record.workedHours && record.workedHours > 0 && (
-          <div>
-            <p className="text-xs text-gray-400">Worked</p>
-            <p className="text-sm font-semibold text-teal-600">{formatHoursForCard(record.workedHours)}</p>
-          </div>
-        )}
-        {record.geofenceStatus && (
-          <div>
-            <p className="text-xs text-gray-400">Geofence</p>
-            <span className={`text-sm font-semibold ${record.geofenceStatus === "Inside" ? "text-emerald-600" : "text-red-500"}`}>
-              {record.geofenceStatus}
-            </span>
-          </div>
-        )}
-        {record.locationAddress && (
-          <div className="col-span-2">
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-gray-400" />
-              <p className="text-xs text-gray-400">Location</p>
-            </div>
-            <p className="text-sm text-gray-600 truncate">{record.locationAddress}</p>
-          </div>
-        )}
-        {record.coordinates && (
-          <div className="col-span-2">
-            <p className="text-xs text-gray-400">Coordinates</p>
-            <a href={`https://www.google.com/maps?q=${record.coordinates}`} target="_blank" rel="noopener noreferrer"
-              className="text-sm text-blue-500 hover:underline font-medium">
-              {record.coordinates}
-            </a>
-          </div>
-        )}
-        {record.ipAddress && (
-          <div>
-            <p className="text-xs text-gray-400">IP</p>
-            <p className="text-sm text-gray-600 font-mono">{record.ipAddress}</p>
-          </div>
-        )}
-        {record.deviceInfo && (
-          <div>
-            <p className="text-xs text-gray-400">Device</p>
-            <p className="text-sm text-gray-600">{record.deviceInfo}</p>
-          </div>
-        )}
-        {record.accuracy && (
-          <div>
-            <p className="text-xs text-gray-400">Accuracy</p>
-            <p className="text-sm text-gray-600">{Math.round(record.accuracy)}m</p>
-          </div>
-        )}
-        {record.timezone && (
-          <div>
-            <p className="text-xs text-gray-400">Timezone</p>
-            <p className="text-sm text-gray-600">{record.timezone}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function AttendanceTableView({ fetchData, title, subtitle }: AttendanceTableViewProps) {
+export default function AttendanceTableView({ fetchData, title, subtitle }: Props) {
   const [history, setHistory] = useState<AttendanceHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterDate, setFilterDate] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [activeStatus, setActiveStatus] = useState<string>("All");
 
-  const loadHistory = useCallback(async () => {
-    try {
-      const data = await fetchData();
-      setHistory(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+  const load = useCallback(async () => {
+    try { setHistory(await fetchData()); }
+    catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }, [fetchData]);
 
-  useEffect(() => { loadHistory(); }, [loadHistory]);
+  useEffect(() => { load(); }, [load]);
 
-  const filtered = filterDate ? history.filter(r => r.date === filterDate) : history;
-  const grouped: Record<string, AttendanceHistoryRecord[]> = {};
-  filtered.forEach(r => { if (!grouped[r.date]) grouped[r.date] = []; grouped[r.date].push(r); });
-  const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const filtered = useMemo(() => {
+    let d = filterDate ? history.filter((r) => r.date === filterDate) : history;
+    if (activeStatus !== "All") d = d.filter((r) => r.status === activeStatus);
+    return d;
+  }, [history, filterDate, activeStatus]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#667eea] border-t-transparent" />
+  const columns = useMemo(() => [
+    col.accessor("employeeName", {
+      header: "Employee",
+      cell: (i) => {
+        const r = i.row.original;
+        const cfg = STATUS_CFG[r.status as keyof typeof STATUS_CFG] ?? STATUS_CFG.Absent;
+        return (
+          <div className="flex items-center gap-3 min-w-[160px]">
+            <div className={`w-8 h-8 rounded-xl ${cfg.bg} flex items-center justify-center shrink-0`}>
+              <cfg.icon className={`w-4 h-4 ${cfg.text}`} />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-800 text-sm">{r.employeeName}</p>
+              <p className="text-xs text-slate-400">#{r.numericId || "—"}</p>
+            </div>
+          </div>
+        );
+      },
+    }),
+    col.accessor("status", {
+      header: "Status",
+      cell: (i) => {
+        const v = i.getValue() as keyof typeof STATUS_CFG;
+        const cfg = STATUS_CFG[v] ?? STATUS_CFG.Absent;
+        const label = v === "OnLeave" ? "On Leave" : v;
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+            {label}
+          </span>
+        );
+      },
+    }),
+    col.accessor("department", {
+      header: "Department",
+      cell: (i) => <span className="text-sm text-slate-600">{i.getValue() || "—"}</span>,
+    }),
+    col.accessor("jobTitle", {
+      header: "Job Title",
+      cell: (i) => <span className="text-sm text-slate-600">{i.getValue() || "—"}</span>,
+    }),
+    col.accessor("checkIn", {
+      header: "Check In",
+      cell: (i) => (
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="font-mono text-sm font-semibold text-emerald-600">{fmt12(i.getValue())}</span>
+        </div>
+      ),
+    }),
+    col.accessor("checkOut", {
+      header: "Check Out",
+      cell: (i) => i.getValue() ? (
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-rose-400" />
+          <span className="font-mono text-sm font-semibold text-rose-500">{fmt12(i.getValue())}</span>
+        </div>
+      ) : <span className="text-slate-300 text-sm">—</span>,
+    }),
+    col.accessor("workedHours", {
+      header: "Hours",
+      cell: (i) => {
+        const h = i.getValue() || 0;
+        const pct = Math.min(100, (h / 8) * 100);
+        return (
+          <div className="flex items-center gap-2 min-w-[80px]">
+            <span className="text-sm font-bold text-slate-700 w-10">{h > 0 ? `${h.toFixed(1)}h` : "—"}</span>
+            {h > 0 && (
+              <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full ${h >= 8 ? "bg-emerald-500" : h >= 6 ? "bg-amber-400" : "bg-rose-400"}`}
+                  style={{ width: `${pct}%` }} />
+              </div>
+            )}
+          </div>
+        );
+      },
+    }),
+    col.accessor("lateMinutes", {
+      header: "Late",
+      cell: (i) => {
+        const v = i.getValue();
+        return v && v > 0
+          ? <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">+{Math.round(v)}m</span>
+          : <span className="text-slate-300 text-sm">—</span>;
+      },
+    }),
+    col.accessor("geofenceStatus", {
+      header: "Geofence",
+      cell: (i) => {
+        const v = i.getValue();
+        if (!v) return <span className="text-slate-300 text-sm">—</span>;
+        return (
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${v === "Inside" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600"}`}>
+            {v}
+          </span>
+        );
+      },
+    }),
+    col.accessor("locationAddress", {
+      header: "Location",
+      cell: (i) => {
+        const v = i.getValue();
+        const coords = i.row.original.coordinates;
+        return v ? (
+          <div className="flex items-center gap-1 max-w-[180px]">
+            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+            {coords ? (
+              <a href={`https://www.google.com/maps?q=${coords}`} target="_blank" rel="noopener noreferrer"
+                className="text-xs text-indigo-500 hover:underline truncate flex items-center gap-0.5">
+                {v} <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+              </a>
+            ) : (
+              <span className="text-xs text-slate-500 truncate">{v}</span>
+            )}
+          </div>
+        ) : <span className="text-slate-300 text-sm">—</span>;
+      },
+    }),
+    col.accessor("ipAddress", {
+      header: "IP",
+      cell: (i) => <span className="font-mono text-xs text-slate-400">{i.getValue() || "—"}</span>,
+    }),
+    col.accessor("deviceInfo", {
+      header: "Device",
+      cell: (i) => <span className="text-xs text-slate-500 max-w-[120px] truncate block">{i.getValue() || "—"}</span>,
+    }),
+  ], []);
+
+  const table = useReactTable({
+    data: filtered,
+    columns,
+    state: { sorting, globalFilter },
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: 15 } },
+  });
+
+  // Summary counts
+  const counts = useMemo(() => ({
+    present: filtered.filter((r) => r.status === "Present").length,
+    late:    filtered.filter((r) => r.status === "Late").length,
+    onLeave: filtered.filter((r) => r.status === "OnLeave").length,
+    absent:  filtered.filter((r) => r.status === "Absent").length,
+  }), [filtered]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+        <p className="text-sm text-slate-500">Loading attendance…</p>
       </div>
-    );
-  }
+    </div>
+  );
+
+  const statusTabs = [
+    { key: "All",     label: "All",      count: filtered.length,  color: "indigo" },
+    { key: "Present", label: "Present",  count: counts.present,   color: "emerald" },
+    { key: "Late",    label: "Late",     count: counts.late,      color: "amber" },
+    { key: "OnLeave", label: "On Leave", count: counts.onLeave,   color: "sky" },
+    { key: "Absent",  label: "Absent",   count: counts.absent,    color: "rose" },
+  ];
+
+  const tabActive: Record<string, string> = {
+    indigo: "bg-indigo-600 text-white",
+    emerald: "bg-emerald-600 text-white",
+    amber: "bg-amber-500 text-white",
+    sky: "bg-sky-500 text-white",
+    rose: "bg-rose-500 text-white",
+  };
+  const tabInactive: Record<string, string> = {
+    indigo: "text-indigo-600 hover:bg-indigo-50",
+    emerald: "text-emerald-600 hover:bg-emerald-50",
+    amber: "text-amber-600 hover:bg-amber-50",
+    sky: "text-sky-600 hover:bg-sky-50",
+    rose: "text-rose-600 hover:bg-rose-50",
+  };
 
   return (
-    <div className="p-4 lg:p-6 space-y-8">
+    <div className="min-h-screen bg-slate-50/60 p-4 md:p-6 space-y-5">
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold bg-linear-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
-            {title}
-          </h1>
-          <p className="text-gray-400 text-sm lg:text-base mt-1">{subtitle}</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>
+          <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
         </div>
-        <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-sm w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-gray-400" />
-          <input
-            type="date"
-            value={filterDate}
-            onChange={e => setFilterDate(e.target.value)}
-            className="text-gray-700 text-sm lg:text-base border-0 focus:ring-0 focus:outline-none flex-1 sm:flex-initial"
-          />
+        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
+          <Filter className="w-4 h-4 text-slate-400" />
+          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)}
+            className="text-sm text-slate-700 border-0 focus:ring-0 focus:outline-none bg-transparent" />
           {filterDate && (
-            <button onClick={() => setFilterDate("")} className="text-sm text-[#667eea] font-semibold">
-              Clear
-            </button>
+            <button onClick={() => setFilterDate("")}
+              className="text-xs text-indigo-600 font-semibold hover:text-indigo-800">Clear</button>
           )}
         </div>
       </div>
 
-      {/* Empty State */}
-      {filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-20 text-center shadow-sm">
-          <Calendar className="w-20 h-20 text-gray-200 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">No Records Found</h3>
-          <p className="text-gray-400">No attendance records available for the selected date.</p>
+      {/* Stats cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Present",  value: counts.present, cfg: STATUS_CFG.Present },
+          { label: "Late",     value: counts.late,    cfg: STATUS_CFG.Late    },
+          { label: "On Leave", value: counts.onLeave, cfg: STATUS_CFG.OnLeave },
+          { label: "Absent",   value: counts.absent,  cfg: STATUS_CFG.Absent  },
+        ].map(({ label, value, cfg }) => (
+          <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center shrink-0`}>
+              <cfg.icon className={`w-5 h-5 ${cfg.text}`} />
+            </div>
+            <div>
+              <p className="text-2xl font-black text-slate-800">{value}</p>
+              <p className="text-xs text-slate-500">{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table card */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+        {/* Toolbar */}
+        <div className="px-5 py-4 border-b border-slate-100 space-y-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800">Attendance Records</h2>
+              <p className="text-xs text-slate-400 mt-0.5">{table.getFilteredRowModel().rows.length} records</p>
+            </div>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input value={globalFilter} onChange={(e) => setGlobalFilter(e.target.value)}
+                placeholder="Search employee, dept…"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-slate-50" />
+            </div>
+          </div>
+
+          {/* Status filter tabs */}
+          <div className="flex gap-1.5 flex-wrap">
+            {statusTabs.map(({ key, label, count, color }) => (
+              <button key={key} onClick={() => setActiveStatus(key)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeStatus === key ? tabActive[color] : `bg-slate-50 ${tabInactive[color]}`
+                }`}>
+                {label}
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  activeStatus === key ? "bg-white/20" : "bg-slate-200 text-slate-600"
+                }`}>{count}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      ) : (
-        sortedDates.map(date => {
-          const records = grouped[date];
-          const stats = {
-            present: records.filter(r => r.status === "Present").length,
-            late:    records.filter(r => r.status === "Late").length,
-            onLeave: records.filter(r => r.status === "OnLeave").length,
-            absent:  records.filter(r => r.status === "Absent").length,
-          };
 
-          return (
-            <div key={date} className="space-y-3">
-
-              {/* Date Header */}
-              <div className="bg-linear-to-r from-[#667eea] to-[#764ba2] rounded-2xl p-4 lg:p-5 shadow-md">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-white/20 p-2.5 rounded-xl">
-                      <Calendar className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full" style={{ minWidth: "1100px" }}>
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100">
+                {table.getHeaderGroups()[0].headers.map((h) => (
+                  <th key={h.id} onClick={h.column.getToggleSortingHandler()}
+                    className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none hover:text-slate-700 transition-colors whitespace-nowrap">
+                    <div className="flex items-center gap-1">
+                      {flexRender(h.column.columnDef.header, h.getContext())}
+                      {h.column.getCanSort() && (
+                        h.column.getIsSorted() === "asc" ? <ChevronUp className="w-3 h-3 text-indigo-500" /> :
+                        h.column.getIsSorted() === "desc" ? <ChevronDown className="w-3 h-3 text-indigo-500" /> :
+                        <ChevronsUpDown className="w-3 h-3 text-slate-300" />
+                      )}
                     </div>
-                    <div>
-                      <h2 className="text-lg lg:text-xl font-bold text-white">{getDayLabel(date)}</h2>
-                      <p className="text-white/70 text-sm">{records.length} records</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3 flex-wrap">
-                    {[
-                      { label: "Present", count: stats.present, icon: CheckCircle },
-                      { label: "Late",    count: stats.late,    icon: AlertCircle },
-                      { label: "Leave",   count: stats.onLeave, icon: Coffee },
-                      { label: "Absent",  count: stats.absent,  icon: XCircle },
-                    ].map(({ label, count, icon: Icon }) => (
-                      <div key={label} className="flex items-center gap-2 bg-white/15 px-3 py-1.5 rounded-lg">
-                        <Icon className="w-4 h-4 text-white" />
-                        <span className="text-sm font-semibold text-white">{count} {label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="lg:hidden space-y-3">
-                {records.map(record => <MobileCard key={record.id} record={record} />)}
-              </div>
-
-              {/* Desktop Table */}
-              <div className="hidden lg:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full" style={{ minWidth: "1800px" }}>
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-100">
-                        {COLUMNS.map(col => (
-                          <th key={col} className="px-4 py-3 text-left text-xs lg:text-sm font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
-                            {col}
-                          </th>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="text-center py-20">
+                    <Calendar className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                    <p className="text-slate-400 text-sm font-medium">No records found</p>
+                  </td>
+                </tr>
+              ) : (
+                (() => {
+                  // Group rows by date for visual separation
+                  const rows = table.getRowModel().rows;
+                  const result: React.ReactNode[] = [];
+                  let lastDate = "";
+                  rows.forEach((row, i) => {
+                    const date = row.original.date;
+                    if (date !== lastDate) {
+                      lastDate = date;
+                      result.push(
+                        <tr key={`date-${date}`}>
+                          <td colSpan={columns.length} className="px-4 py-2 bg-slate-50/80 border-y border-slate-100">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                              <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                                {dayLabel(date)}
+                              </span>
+                              <span className="text-xs text-slate-400">· {date}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    result.push(
+                      <tr key={row.id}
+                        className={`border-b border-slate-50 hover:bg-indigo-50/40 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-slate-50/20"}`}>
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-4 py-3">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
                         ))}
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {records.map(record => {
-                        const cfg = STATUS_CONFIG[record.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.Absent;
-                        const StatusIcon = cfg.icon;
-                        return (
-                          <tr key={record.id} className="hover:bg-gray-50/70 transition-colors">
+                    );
+                  });
+                  return result;
+                })()
+              )}
+            </tbody>
+          </table>
+        </div>
 
-                            {/* Employee */}
-                            <td className="px-4 py-3.5 whitespace-nowrap">
-                              <div className="flex items-center gap-2.5">
-                                <div className={`${cfg.bg} p-1.5 rounded-lg`}>
-                                  <StatusIcon className={`w-4 h-4 lg:w-5 lg:h-5 ${cfg.color}`} />
-                                </div>
-                                <span className="font-semibold text-gray-900 text-sm lg:text-base">{record.employeeName}</span>
-                              </div>
-                            </td>
-
-                            {/* Status */}
-                            <td className="px-4 py-3.5 whitespace-nowrap">
-                              <span className={`px-3 py-1 rounded-full text-xs lg:text-sm font-semibold ${cfg.badge}`}>
-                                {record.status}
-                              </span>
-                            </td>
-
-                            {/* ID */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-600 whitespace-nowrap font-mono">
-                              {record.numericId || "—"}
-                            </td>
-
-                            {/* Job Title */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-700 whitespace-nowrap">
-                              {record.jobTitle || "—"}
-                            </td>
-
-                            {/* Department */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-700 whitespace-nowrap">
-                              {record.department || "—"}
-                            </td>
-
-                            {/* Check In */}
-                            <td className="px-4 py-3.5 whitespace-nowrap">
-                              <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5 text-blue-400" />
-                                <span className="text-sm lg:text-base font-semibold text-blue-600">{formatTime(record.checkIn)}</span>
-                              </div>
-                            </td>
-
-                            {/* Check Out */}
-                            <td className="px-4 py-3.5 whitespace-nowrap">
-                              {record.checkOut ? (
-                                <div className="flex items-center gap-1.5">
-                                  <Clock className="w-3.5 h-3.5 text-purple-400" />
-                                  <span className="text-sm lg:text-base font-semibold text-purple-600">{formatTime(record.checkOut)}</span>
-                                </div>
-                              ) : <span className="text-gray-300">—</span>}
-                            </td>
-
-                            {/* Duration */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base font-semibold text-emerald-600 whitespace-nowrap">
-                              {calcDuration(record.checkIn, record.checkOut)}
-                            </td>
-
-                            {/* Worked Hours */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base font-semibold text-teal-600 whitespace-nowrap">
-                              {record.workedHours && record.workedHours > 0 ? formatHoursForCard(record.workedHours) : "—"}
-                            </td>
-
-                            {/* Late */}
-                            <td className="px-4 py-3.5 whitespace-nowrap">
-                              {record.isLate && record.lateMinutes ? (
-                                <span className="text-sm lg:text-base font-semibold text-amber-500">
-                                  +{Math.round(record.lateMinutes)}m
-                                </span>
-                              ) : <span className="text-gray-300">—</span>}
-                            </td>
-
-                            {/* Location */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-600 max-w-[200px] truncate" title={record.locationAddress}>
-                              {record.locationAddress || "—"}
-                            </td>
-
-                            {/* Coordinates */}
-                            <td className="px-4 py-3.5 whitespace-nowrap">
-                              {record.coordinates ? (
-                                <a href={`https://www.google.com/maps?q=${record.coordinates}`} target="_blank" rel="noopener noreferrer"
-                                  className="text-sm lg:text-base text-blue-500 hover:underline font-medium">
-                                  {record.coordinates}
-                                </a>
-                              ) : <span className="text-gray-300">—</span>}
-                            </td>
-
-                            {/* Accuracy */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-600 whitespace-nowrap">
-                              {record.accuracy ? `${Math.round(record.accuracy)}m` : "—"}
-                            </td>
-
-                            {/* Geofence */}
-                            <td className="px-4 py-3.5 whitespace-nowrap">
-                              {record.geofenceStatus ? (
-                                <span className={`px-2.5 py-1 rounded-full text-xs lg:text-sm font-semibold ${
-                                  record.geofenceStatus === "Inside"
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-red-100 text-red-600"
-                                }`}>
-                                  {record.geofenceStatus}
-                                </span>
-                              ) : <span className="text-gray-300">—</span>}
-                            </td>
-
-                            {/* Main Office */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base font-medium whitespace-nowrap">
-                              {record.mainOffice ? (
-                                <span className={record.mainOffice.includes("✓") ? "text-emerald-600" : "text-red-500"}>
-                                  {record.mainOffice}
-                                </span>
-                              ) : <span className="text-gray-300">—</span>}
-                            </td>
-
-                            {/* Branch Office */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base font-medium whitespace-nowrap">
-                              {record.branchOffice ? (
-                                <span className={record.branchOffice.includes("✓") ? "text-emerald-600" : "text-red-500"}>
-                                  {record.branchOffice}
-                                </span>
-                              ) : <span className="text-gray-300">—</span>}
-                            </td>
-
-                            {/* IP */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-600 whitespace-nowrap font-mono">
-                              {record.ipAddress || "—"}
-                            </td>
-
-                            {/* Device */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-600 whitespace-nowrap">
-                              {record.deviceInfo || "—"}
-                            </td>
-
-                            {/* Browser */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-600 max-w-[180px] truncate" title={record.browser}>
-                              {record.browser || "—"}
-                            </td>
-
-                            {/* Screen */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-600 whitespace-nowrap">
-                              {record.screen || "—"}
-                            </td>
-
-                            {/* Timezone */}
-                            <td className="px-4 py-3.5 text-sm lg:text-base text-gray-600 whitespace-nowrap">
-                              {record.timezone || "—"}
-                            </td>
-
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-            </div>
-          );
-        })
-      )}
+        {/* Pagination */}
+        <div className="px-5 py-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">Rows per page:</span>
+            <select value={table.getState().pagination.pageSize}
+              onChange={(e) => table.setPageSize(Number(e.target.value))}
+              className="text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+              {[15, 30, 50, 100].map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">
+              Page {table.getState().pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}
+            </span>
+            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}
+              className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-40 hover:bg-slate-50 transition-colors">
+              <ChevronLeft className="w-4 h-4 text-slate-600" />
+            </button>
+            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}
+              className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-40 hover:bg-slate-50 transition-colors">
+              <ChevronRight className="w-4 h-4 text-slate-600" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
