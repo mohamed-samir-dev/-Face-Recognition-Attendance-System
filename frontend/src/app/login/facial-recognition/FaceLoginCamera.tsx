@@ -11,59 +11,67 @@ interface FaceLoginCameraProps {
 
 function SuccessScreen({ user }: { user: RecognizedUserData }) {
   return (
-    <div className="flex flex-col items-center gap-3 animate-in fade-in duration-500">
-      {/* Success icon */}
-      <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-200 rounded-full flex items-center justify-center shadow-lg shadow-green-200/50">
-        <CheckCircle2 className="w-9 h-9 text-green-600" />
-      </div>
-
-      <h3 className="text-lg font-bold text-gray-800">
-        Welcome back, {user.name}!
-      </h3>
-      <p className="text-xs text-green-600 font-medium flex items-center gap-1">
-        <ShieldCheck className="w-3.5 h-3.5" />
-        Identity verified successfully
-      </p>
-
-      {/* User info card */}
-      <div className="w-full bg-gradient-to-br from-gray-50 to-blue-50/50 rounded-xl p-4 border border-gray-100 space-y-2.5">
-        {user.image && (
-          <div className="flex justify-center mb-3">
+    <div className="flex flex-col items-center gap-4 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Top banner */}
+      <div className="w-full bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl p-5 flex flex-col items-center gap-3 shadow-lg shadow-emerald-200/60">
+        {/* Avatar */}
+        <div className="relative">
+          {user.image ? (
             <img
               src={user.image}
               alt={user.name}
-              className="w-16 h-16 rounded-full object-cover ring-3 ring-blue-200 shadow-md"
+              className="w-20 h-20 rounded-full object-cover ring-4 ring-white/80 shadow-xl"
             />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center ring-4 ring-white/80">
+              <User className="w-10 h-10 text-white" />
+            </div>
+          )}
+          <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           </div>
-        )}
+        </div>
 
-        <InfoRow icon={<User className="w-3.5 h-3.5" />} label="Name" value={user.name} color="text-gray-800" />
-        <InfoRow icon={<Hash className="w-3.5 h-3.5" />} label="ID" value={String(user.numericId)} color="text-green-700" />
-        <InfoRow icon={<Building2 className="w-3.5 h-3.5" />} label="Department" value={user.department || "N/A"} color="text-purple-700" />
-        <InfoRow icon={<Briefcase className="w-3.5 h-3.5" />} label="Role" value={user.accountType} color="text-blue-700" />
-        {user.position && (
-          <InfoRow icon={<Briefcase className="w-3.5 h-3.5" />} label="Position" value={user.position} color="text-orange-700" />
-        )}
+        <div className="text-center">
+          <h3 className="text-xl font-bold text-white">Welcome back!</h3>
+          <p className="text-emerald-100 font-semibold text-base">{user.name}</p>
+        </div>
+
+        <div className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1">
+          <ShieldCheck className="w-3.5 h-3.5 text-white" />
+          <span className="text-white text-xs font-medium">Identity verified</span>
+        </div>
+      </div>
+
+      {/* User info card */}
+      <div className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="divide-y divide-gray-50">
+          <InfoRow icon={<Hash className="w-3.5 h-3.5" />} label="Employee ID" value={`#${user.numericId}`} color="text-emerald-600" bg="bg-emerald-50" />
+          <InfoRow icon={<Building2 className="w-3.5 h-3.5" />} label="Department" value={user.department || "N/A"} color="text-purple-600" bg="bg-purple-50" />
+          <InfoRow icon={<Briefcase className="w-3.5 h-3.5" />} label="Role" value={user.accountType} color="text-blue-600" bg="bg-blue-50" />
+          {user.position && (
+            <InfoRow icon={<Briefcase className="w-3.5 h-3.5" />} label="Position" value={user.position} color="text-orange-600" bg="bg-orange-50" />
+          )}
+        </div>
       </div>
 
       {/* Redirecting indicator */}
-      <div className="flex items-center gap-2 mt-1">
-        <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
-        <span className="text-sm text-blue-600 font-medium">
-          Redirecting to dashboard...
-        </span>
+      <div className="flex items-center gap-2 bg-blue-50 rounded-xl px-4 py-2.5 w-full justify-center">
+        <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+        <span className="text-sm text-blue-600 font-medium">Redirecting to your dashboard...</span>
       </div>
     </div>
   );
 }
 
-function InfoRow({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
+function InfoRow({ icon, label, value, color, bg }: { icon: React.ReactNode; label: string; value: string; color: string; bg: string }) {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-        {icon} {label}
+    <div className="flex items-center justify-between gap-2 px-4 py-2.5">
+      <span className="text-xs font-medium text-gray-400 flex items-center gap-1.5">
+        <span className={`${bg} ${color} p-1 rounded-md`}>{icon}</span>
+        {label}
       </span>
-      <span className={`text-xs font-semibold ${color} truncate max-w-[160px]`}>
+      <span className={`text-xs font-bold ${color} truncate max-w-[160px]`}>
         {value}
       </span>
     </div>
