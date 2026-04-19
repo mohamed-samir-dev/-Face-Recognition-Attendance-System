@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { useLogin } from "../hooks/useLogin";
 import LoginLayout from "../layouts/LoginLayout";
 import LoginContainer from "./LoginContainer";
+import SessionBlockedModal from "./SessionBlockedModal";
 
 export default function LoginPageContent() {
   const [mounted, setMounted] = useState(false);
-  const { error, loading, faceLoading, showFaceLogin, setShowFaceLogin, handleLogin, handleFacialRecognition, handleClearSession } = useLogin();
+  const { error, loading, faceLoading, showFaceLogin, setShowFaceLogin, sessionBlocked, setSessionBlocked, blockedBy, handleLogin, handleFacialRecognition, handleClearSession } = useLogin();
 
   useEffect(() => {
     setMounted(true);
@@ -19,6 +20,9 @@ export default function LoginPageContent() {
 
   return (
     <LoginLayout wide={showFaceLogin}>
+      {sessionBlocked && (
+        <SessionBlockedModal onClose={() => setSessionBlocked(false)} blockedBy={blockedBy} />
+      )}
       <LoginContainer
         onLogin={handleLogin}
         onFacialRecognition={handleFacialRecognition}

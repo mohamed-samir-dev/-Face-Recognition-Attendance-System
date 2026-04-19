@@ -148,6 +148,7 @@ export interface UserActionsProps {
   onEdit: (userId: string) => void;
   onDelete: (user: User) => void;
   onChangePassword?: (user: User) => void;
+  onResetDevice?: (user: User) => void;
   hideDelete?: boolean;
 }
 export interface UserCardProps {
@@ -156,6 +157,7 @@ export interface UserCardProps {
   onEdit: (userId: string) => void;
   onDelete: (user: User) => void;
   onChangePassword?: (user: User) => void;
+  onResetDevice?: (user: User) => void;
   getStatusColor: (status?: string) => string;
   getStatusText: (status?: string) => string;
   hideDelete?: boolean;
@@ -171,6 +173,7 @@ export interface UserCardsProps {
   onEdit: (userId: string) => void;
   onDelete: (user: User) => void;
   onChangePassword?: (user: User) => void;
+  onResetDevice?: (user: User) => void;
   getStatusColor: (status?: string) => string;
   getStatusText: (status?: string) => string;
   hideDelete?: boolean;
@@ -199,6 +202,7 @@ export interface ActionsCellProps {
   onEdit: (userId: string) => void;
   onDelete: (user: User) => void;
   onChangePassword?: (user: User) => void;
+  onResetDevice?: (user: User) => void;
   hideDelete?: boolean;
 }
 export interface StatusCellProps {
@@ -212,6 +216,7 @@ export interface TableRowProps {
   onEdit: (userId: string) => void;
   onDelete: (user: User) => void;
   onChangePassword?: (user: User) => void;
+  onResetDevice?: (user: User) => void;
   getStatusColor: (status?: string) => string;
   getStatusText: (status?: string) => string;
   hideDelete?: boolean;
@@ -221,6 +226,7 @@ export interface TableRowProps {
   onEdit: (userId: string) => void;
   onDelete: (user: User) => void;
   onChangePassword?: (user: User) => void;
+  onResetDevice?: (user: User) => void;
   getStatusColor: (status?: string) => string;
   getStatusText: (status?: string) => string;
   hideDelete?: boolean;

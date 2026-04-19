@@ -1,25 +1,34 @@
 'use client';
 
-import { Edit, Trash2, Key, Bell } from 'lucide-react';
+import { Edit, Trash2, Key, Bell, Smartphone } from 'lucide-react';
 import {ActionsCellProps}from "../../../../../types"
 import { sendMonitoringAlert } from '@/lib/services/system/monitoringService';
+import { resetDeviceBinding } from '@/lib/services/auth/sessionService';
 import toast from 'react-hot-toast';
 
 
-export default function ActionsCell({ user, deleting, onEdit, onDelete, onChangePassword, hideDelete }: ActionsCellProps) {
+export default function ActionsCell({ user, deleting, onEdit, onDelete, onChangePassword, onResetDevice, hideDelete }: ActionsCellProps) {
   const handleSendAlert = async () => {
     if (!user.numericId) {
-      console.error('[ActionsCell] No numericId for user:', user.name);
       toast.error('User has no numeric ID');
       return;
     }
     try {
-      console.log('[ActionsCell] Sending alert to:', user.name, 'numericId:', user.numericId);
       await sendMonitoringAlert(user.numericId.toString());
       toast.success(`Monitoring alert sent to ${user.name}`);
     } catch (error) {
       console.error('[ActionsCell] Failed to send alert:', error);
       toast.error('Failed to send alert');
+    }
+  };
+
+  const handleResetDevice = async () => {
+    try {
+      await resetDeviceBinding(user.id);
+      toast.success(`Device binding reset for ${user.name}`);
+      onResetDevice?.(user);
+    } catch {
+      toast.error('Failed to reset device binding');
     }
   };
 
@@ -44,6 +53,13 @@ export default function ActionsCell({ user, deleting, onEdit, onDelete, onChange
           title="Send monitoring alert"
         >
           <Bell className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleResetDevice}
+          className="text-purple-600 hover:text-purple-900 hover:bg-purple-50 px-2 py-1 rounded-lg flex items-center space-x-1 transition-all duration-200 cursor-pointer"
+          title="Reset device binding"
+        >
+          <Smartphone className="w-4 h-4" />
         </button>
         {!hideDelete && (
           <button 

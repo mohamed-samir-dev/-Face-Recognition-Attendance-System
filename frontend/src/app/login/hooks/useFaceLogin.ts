@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
-import { updateUserSession } from "@/lib/services/auth/sessionService";
+import { updateUserSession, checkExistingSession, BlockedByUser } from "@/lib/services/auth/sessionService";
 import { FaceLoginResponse } from "../types";
 
 export type FaceLoginStep = "camera" | "processing" | "success" | "failed";
@@ -27,6 +27,8 @@ export function useFaceLogin(onCancel: () => void) {
   const [error, setError] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [recognizedUser, setRecognizedUser] = useState<RecognizedUserData | null>(null);
+  const [sessionBlocked, setSessionBlocked] = useState(false);
+  const [blockedBy, setBlockedBy] = useState<BlockedByUser | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const router = useRouter();
@@ -116,6 +118,16 @@ export function useFaceLogin(onCancel: () => void) {
         fullUserData = { ...data.user, ...doc.data() } as typeof data.user;
       }
 
+      // ── Single Session Check ──
+      const sessionCheck = await checkExistingSession(userId);
+      if (sessionCheck.blocked) {
+        setBlockedBy(sessionCheck.blockedBy ?? null);
+        setSessionBlocked(true);
+        setStep("failed");
+        stopCamera();
+        return;
+      }
+
       await updateUserSession(userId);
 
       if (typeof window !== "undefined") {
@@ -167,6 +179,8 @@ export function useFaceLogin(onCancel: () => void) {
     attempts,
     videoRef,
     recognizedUser,
+    sessionBlocked,
+    blockedBy,
     captureAndLogin,
     cancel,
     maxAttempts: MAX_ATTEMPTS,

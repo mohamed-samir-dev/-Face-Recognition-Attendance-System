@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { LoginFormData } from "../types";
-import { updateUserSession } from "@/lib/services/auth/sessionService";
+import { updateUserSession, checkExistingSession, BlockedByUser } from "@/lib/services/auth/sessionService";
 import toast from "react-hot-toast";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -22,6 +22,8 @@ export function useLogin() {
   const [showFaceLogin, setShowFaceLogin] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState(0);
+  const [sessionBlocked, setSessionBlocked] = useState(false);
+  const [blockedBy, setBlockedBy] = useState<BlockedByUser | null>(null);
   const router = useRouter();
 
   // Auto-redirect if session exists
@@ -74,6 +76,15 @@ export function useLogin() {
         const userData = snapshot.docs[0].data();
         const userId = snapshot.docs[0].id;
 
+        // ── Single Session Check ──
+        const sessionCheck = await checkExistingSession(userId);
+        if (sessionCheck.blocked) {
+          setBlockedBy(sessionCheck.blockedBy ?? null);
+          setSessionBlocked(true);
+          setLoading(false);
+          return;
+        }
+
         await updateUserSession(userId);
 
         if (typeof window !== "undefined") {
@@ -124,6 +135,9 @@ export function useLogin() {
     faceLoading,
     showFaceLogin,
     setShowFaceLogin,
+    sessionBlocked,
+    setSessionBlocked,
+    blockedBy,
     handleLogin,
     handleFacialRecognition,
     handleClearSession,
