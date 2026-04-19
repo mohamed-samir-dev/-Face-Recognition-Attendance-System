@@ -1,16 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  flexRender,
-  createColumnHelper,
-  SortingState,
-} from "@tanstack/react-table";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Download, FileText, TrendingUp, Clock, AlertTriangle,
   Calendar, ChevronUp, ChevronDown, ChevronsUpDown,
@@ -40,14 +30,15 @@ interface TeamMember {
   jobTitle?: string;
 }
 
-const columnHelper = createColumnHelper<AttendanceHistoryRecord>();
-
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
   Present:  { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   Late:     { bg: "bg-amber-50",   text: "text-amber-700",   dot: "bg-amber-500"   },
   OnLeave:  { bg: "bg-sky-50",     text: "text-sky-700",     dot: "bg-sky-500"     },
   Absent:   { bg: "bg-rose-50",    text: "text-rose-700",    dot: "bg-rose-500"    },
 };
+
+type SortKey = "date" | "checkIn" | "checkOut" | "status" | "lateMinutes" | "workedHours" | "checkInLocation" | "ipAddress";
+type SortDir = "asc" | "desc" | null;
 
 export default function EmployeeReport() {
   const { user } = useAuth();
@@ -60,8 +51,11 @@ export default function EmployeeReport() {
   const [loading, setLoading] = useState(true);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<TeamMember | null>(null);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const isSupervisor = user?.accountType === "Supervisor";
 
@@ -104,106 +98,36 @@ export default function EmployeeReport() {
     }, [] as { week: string; hours: number }[]);
   }, [records]);
 
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor("date", {
-        header: "Date",
-        cell: (i) => (
-          <div>
-            <div className="font-semibold text-slate-800 text-sm">{i.getValue()}</div>
-            <div className="text-xs text-slate-400">
-              {new Date(i.getValue()).toLocaleDateString("en-US", { weekday: "short" })}
-            </div>
-          </div>
-        ),
-      }),
-      columnHelper.accessor("checkIn", {
-        header: "Check In",
-        cell: (i) => (
-          <span className="font-mono text-sm font-semibold text-emerald-600">
-            {i.getValue() || "—"}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("checkOut", {
-        header: "Check Out",
-        cell: (i) => (
-          <span className="font-mono text-sm font-semibold text-rose-500">
-            {i.getValue() || "—"}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("status", {
-        header: "Status",
-        cell: (i) => {
-          const cfg = statusConfig[i.getValue()] ?? statusConfig.Absent;
-          return (
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-              {i.getValue()}
-            </span>
-          );
-        },
-      }),
-      columnHelper.accessor("lateMinutes", {
-        header: "Late",
-        cell: (i) => {
-          const v = i.getValue() || 0;
-          return (
-            <span className={`text-sm font-semibold ${v > 0 ? "text-amber-600" : "text-slate-400"}`}>
-              {v > 0 ? `${v}m` : "—"}
-            </span>
-          );
-        },
-      }),
-      columnHelper.accessor("workedHours", {
-        header: "Hours",
-        cell: (i) => {
-          const h = i.getValue() || 0;
-          const pct = Math.min(100, (h / 8) * 100);
-          return (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-700 w-12">{h.toFixed(1)}h</span>
-              <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden min-w-[40px]">
-                <div
-                  className={`h-full rounded-full ${h >= 8 ? "bg-emerald-500" : h >= 6 ? "bg-amber-400" : "bg-rose-400"}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          );
-        },
-      }),
-      columnHelper.accessor("checkInLocation", {
-        header: "Location",
-        cell: (i) => (
-          <span className="text-xs text-slate-500 max-w-[160px] truncate block" title={i.getValue() ?? ""}>
-            {i.getValue() || "—"}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("ipAddress", {
-        header: "IP",
-        cell: (i) => (
-          <span className="font-mono text-xs text-slate-400">{i.getValue() || "—"}</span>
-        ),
-      }),
-    ],
-    []
-  );
+  const filtered = useMemo(() => {
+    if (!globalFilter) return records;
+    const q = globalFilter.toLowerCase();
+    return records.filter((r) =>
+      (r.date?.toLowerCase().includes(q)) ||
+      (r.status?.toLowerCase().includes(q)) ||
+      (r.checkInLocation?.toLowerCase().includes(q)) ||
+      (r.ipAddress?.toLowerCase().includes(q))
+    );
+  }, [records, globalFilter]);
 
-  const table = useReactTable({
-    data: records,
-    columns,
-    state: { sorting, globalFilter },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 10 } },
-  });
+  const sorted = useMemo(() => {
+    if (!sortKey || !sortDir) return filtered;
+    return [...filtered].sort((a, b) => {
+      const av = a[sortKey] ?? "";
+      const bv = b[sortKey] ?? "";
+      const cmp = typeof av === "number" && typeof bv === "number" ? av - bv : String(av).localeCompare(String(bv));
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filtered, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const paged = useMemo(() => sorted.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize), [sorted, pageIndex, pageSize]);
+
+  const toggleSort = useCallback((key: SortKey) => {
+    if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
+    else if (sortDir === "asc") setSortDir("desc");
+    else { setSortKey(null); setSortDir(null); }
+    setPageIndex(0);
+  }, [sortKey, sortDir]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -266,6 +190,17 @@ export default function EmployeeReport() {
     { label: "Late Arrivals", value: lateArrivals,                                     icon: AlertTriangle, color: "bg-amber-500"  },
     { label: "Absences",      value: absences,                                         icon: AlertTriangle, color: "bg-rose-500"   },
     { label: "Leave Taken",   value: `${leaveDays}/${vacationDays}`,                   icon: Calendar,      color: "bg-teal-500"   },
+  ];
+
+  const headers: { key: SortKey | null; label: string }[] = [
+    { key: "date", label: "Date" },
+    { key: "checkIn", label: "Check In" },
+    { key: "checkOut", label: "Check Out" },
+    { key: "status", label: "Status" },
+    { key: "lateMinutes", label: "Late" },
+    { key: "workedHours", label: "Hours" },
+    { key: "checkInLocation", label: "Location" },
+    { key: "ipAddress", label: "IP" },
   ];
 
   return (
@@ -383,13 +318,13 @@ export default function EmployeeReport() {
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h2 className="text-sm font-bold text-slate-800">Attendance History</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{table.getFilteredRowModel().rows.length} records</p>
+            <p className="text-xs text-slate-400 mt-0.5">{sorted.length} records</p>
           </div>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
+              onChange={(e) => { setGlobalFilter(e.target.value); setPageIndex(0); }}
               placeholder="Search records…"
               className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-slate-50"
             />
@@ -400,19 +335,19 @@ export default function EmployeeReport() {
           <table className="w-full min-w-[700px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                {table.getHeaderGroups()[0].headers.map((h) => (
+                {headers.map((h) => (
                   <th
-                    key={h.id}
-                    onClick={h.column.getToggleSortingHandler()}
+                    key={h.label}
+                    onClick={() => h.key && toggleSort(h.key)}
                     className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none hover:text-slate-700 transition-colors"
                   >
                     <div className="flex items-center gap-1">
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                      {h.column.getCanSort() && (
+                      {h.label}
+                      {h.key && (
                         <span className="text-slate-300">
-                          {h.column.getIsSorted() === "asc" ? (
+                          {sortKey === h.key && sortDir === "asc" ? (
                             <ChevronUp className="w-3 h-3 text-indigo-500" />
-                          ) : h.column.getIsSorted() === "desc" ? (
+                          ) : sortKey === h.key && sortDir === "desc" ? (
                             <ChevronDown className="w-3 h-3 text-indigo-500" />
                           ) : (
                             <ChevronsUpDown className="w-3 h-3" />
@@ -425,25 +360,70 @@ export default function EmployeeReport() {
               </tr>
             </thead>
             <tbody>
-              {table.getRowModel().rows.length === 0 ? (
+              {paged.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="text-center py-12 text-slate-400 text-sm">
+                  <td colSpan={headers.length} className="text-center py-12 text-slate-400 text-sm">
                     No records found
                   </td>
                 </tr>
               ) : (
-                table.getRowModel().rows.map((row, i) => (
-                  <tr
-                    key={row.id}
-                    className={`border-b border-slate-50 hover:bg-indigo-50/40 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                paged.map((r, i) => {
+                  const cfg = statusConfig[r.status] ?? statusConfig.Absent;
+                  const late = r.lateMinutes || 0;
+                  const h = r.workedHours || 0;
+                  const pct = Math.min(100, (h / 8) * 100);
+                  return (
+                    <tr
+                      key={r.date + "-" + i}
+                      className={`border-b border-slate-50 hover:bg-indigo-50/40 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}
+                    >
+                      <td className="px-4 py-3">
+                        <div>
+                          <div className="font-semibold text-slate-800 text-sm">{r.date}</div>
+                          <div className="text-xs text-slate-400">
+                            {new Date(r.date).toLocaleDateString("en-US", { weekday: "short" })}
+                          </div>
+                        </div>
                       </td>
-                    ))}
-                  </tr>
-                ))
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-sm font-semibold text-emerald-600">{r.checkIn || "—"}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-sm font-semibold text-rose-500">{r.checkOut || "—"}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-sm font-semibold ${late > 0 ? "text-amber-600" : "text-slate-400"}`}>
+                          {late > 0 ? `${late}m` : "—"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-slate-700 w-12">{h.toFixed(1)}h</span>
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden min-w-[40px]">
+                            <div
+                              className={`h-full rounded-full ${h >= 8 ? "bg-emerald-500" : h >= 6 ? "bg-amber-400" : "bg-rose-400"}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs text-slate-500 max-w-[160px] truncate block" title={r.checkInLocation ?? ""}>
+                          {r.checkInLocation || "—"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-xs text-slate-400">{r.ipAddress || "—"}</span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -454,8 +434,8 @@ export default function EmployeeReport() {
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500">Rows per page:</span>
             <select
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => table.setPageSize(Number(e.target.value))}
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPageIndex(0); }}
               className="text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-300"
             >
               {[10, 20, 50].map((s) => <option key={s} value={s}>{s}</option>)}
@@ -463,18 +443,18 @@ export default function EmployeeReport() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              Page {pageIndex + 1} of {pageCount}
             </span>
             <button
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+              disabled={pageIndex === 0}
               className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-40 hover:bg-slate-50 transition-colors"
             >
               <ChevronLeft className="w-4 h-4 text-slate-600" />
             </button>
             <button
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
+              disabled={pageIndex >= pageCount - 1}
               className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-40 hover:bg-slate-50 transition-colors"
             >
               <ChevronRight className="w-4 h-4 text-slate-600" />

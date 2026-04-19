@@ -1,11 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import {
-  useReactTable, getCoreRowModel, getSortedRowModel,
-  getFilteredRowModel, getPaginationRowModel,
-  flexRender, createColumnHelper, SortingState,
-} from "@tanstack/react-table";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   X, Download, Clock, TrendingUp, AlertTriangle, Calendar,
   ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Award,
@@ -28,14 +23,15 @@ interface TeamMember {
 
 interface Props { employee: TeamMember; onClose: () => void; }
 
-const columnHelper = createColumnHelper<AttendanceHistoryRecord>();
-
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
   Present: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   Late:    { bg: "bg-amber-50",   text: "text-amber-700",   dot: "bg-amber-500"   },
   OnLeave: { bg: "bg-sky-50",     text: "text-sky-700",     dot: "bg-sky-500"     },
   Absent:  { bg: "bg-rose-50",    text: "text-rose-700",    dot: "bg-rose-500"    },
 };
+
+type SortKey = "date" | "checkIn" | "checkOut" | "status" | "workedHours";
+type SortDir = "asc" | "desc" | null;
 
 export default function EmployeeReportModal({ employee, onClose }: Props) {
   const { leaveDays, vacationDays } = useLeaveDays(employee?.numericId?.toString());
@@ -45,7 +41,10 @@ export default function EmployeeReportModal({ employee, onClose }: Props) {
   const [absences, setAbsences] = useState(0);
   const [records, setRecords] = useState<AttendanceHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
+  const [pageIndex, setPageIndex] = useState(0);
+  const pageSize = 10;
 
   const score = useMemo(() => {
     const total = records.length + absences;
@@ -57,68 +56,25 @@ export default function EmployeeReportModal({ employee, onClose }: Props) {
     return Math.round((0.4 * A + 0.3 * H + 0.2 * P) * 100 + O * 50);
   }, [records.length, absences, totalHours, lateArrivals, monthlyOvertime]);
 
-  const columns = useMemo(() => [
-    columnHelper.accessor("date", {
-      header: "Date",
-      cell: (i) => (
-        <div>
-          <div className="font-semibold text-slate-800 text-sm">{i.getValue()}</div>
-          <div className="text-xs text-slate-400">
-            {new Date(i.getValue()).toLocaleDateString("en-US", { weekday: "short" })}
-          </div>
-        </div>
-      ),
-    }),
-    columnHelper.accessor("checkIn", {
-      header: "Check In",
-      cell: (i) => <span className="font-mono text-sm font-semibold text-emerald-600">{i.getValue() || "—"}</span>,
-    }),
-    columnHelper.accessor("checkOut", {
-      header: "Check Out",
-      cell: (i) => <span className="font-mono text-sm font-semibold text-rose-500">{i.getValue() || "—"}</span>,
-    }),
-    columnHelper.accessor("status", {
-      header: "Status",
-      cell: (i) => {
-        const cfg = statusConfig[i.getValue()] ?? statusConfig.Absent;
-        return (
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-            {i.getValue()}
-          </span>
-        );
-      },
-    }),
-    columnHelper.accessor("workedHours", {
-      header: "Hours",
-      cell: (i) => {
-        const h = i.getValue() || 0;
-        const pct = Math.min(100, (h / 8) * 100);
-        return (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-700 w-12">{h.toFixed(1)}h</span>
-            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden min-w-[40px]">
-              <div
-                className={`h-full rounded-full ${h >= 8 ? "bg-emerald-500" : h >= 6 ? "bg-amber-400" : "bg-rose-400"}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-          </div>
-        );
-      },
-    }),
-  ], []);
+  const sorted = useMemo(() => {
+    if (!sortKey || !sortDir) return records;
+    return [...records].sort((a, b) => {
+      const av = a[sortKey] ?? "";
+      const bv = b[sortKey] ?? "";
+      const cmp = typeof av === "number" && typeof bv === "number" ? av - bv : String(av).localeCompare(String(bv));
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [records, sortKey, sortDir]);
 
-  const table = useReactTable({
-    data: records, columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 10 } },
-  });
+  const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const paged = useMemo(() => sorted.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize), [sorted, pageIndex, pageSize]);
+
+  const toggleSort = useCallback((key: SortKey) => {
+    if (sortKey !== key) { setSortKey(key); setSortDir("asc"); }
+    else if (sortDir === "asc") setSortDir("desc");
+    else { setSortKey(null); setSortDir(null); }
+    setPageIndex(0);
+  }, [sortKey, sortDir]);
 
   useEffect(() => {
     if (!employee?.id) return;
@@ -147,13 +103,21 @@ export default function EmployeeReportModal({ employee, onClose }: Props) {
   const scoreRing  = score >= 90 ? "stroke-emerald-500" : score >= 75 ? "stroke-amber-400" : "stroke-rose-500";
   const circumference = 2 * Math.PI * 36;
 
-  const stats = [
+  const statCards = [
     { label: "Total Hours",   value: formatHoursForCard(totalHours),       icon: Clock,         color: "bg-indigo-500" },
     { label: "Overtime",      value: formatHoursForCard(monthlyOvertime),   icon: TrendingUp,    color: "bg-violet-500" },
     { label: "Days Worked",   value: records.length,                        icon: Calendar,      color: "bg-sky-500"    },
     { label: "Late Arrivals", value: lateArrivals,                          icon: AlertTriangle, color: "bg-amber-500"  },
     { label: "Absences",      value: absences,                              icon: AlertTriangle, color: "bg-rose-500"   },
     { label: "Leave Taken",   value: `${leaveDays}/${vacationDays}`,        icon: Calendar,      color: "bg-teal-500"   },
+  ];
+
+  const headers: { key: SortKey; label: string }[] = [
+    { key: "date", label: "Date" },
+    { key: "checkIn", label: "Check In" },
+    { key: "checkOut", label: "Check Out" },
+    { key: "status", label: "Status" },
+    { key: "workedHours", label: "Hours" },
   ];
 
   return (
@@ -209,7 +173,7 @@ export default function EmployeeReportModal({ employee, onClose }: Props) {
                 </div>
 
                 <div className="sm:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {stats.map(({ label, value, icon: Icon, color }) => (
+                  {statCards.map(({ label, value, icon: Icon, color }) => (
                     <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 flex items-center gap-3">
                       <div className={`${color} w-9 h-9 rounded-xl flex items-center justify-center shrink-0`}>
                         <Icon className="w-4 h-4 text-white" />
@@ -233,67 +197,96 @@ export default function EmployeeReportModal({ employee, onClose }: Props) {
                   <table className="w-full min-w-[500px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100">
-                        {table.getHeaderGroups()[0].headers.map((h) => (
+                        {headers.map((h) => (
                           <th
-                            key={h.id}
-                            onClick={h.column.getToggleSortingHandler()}
+                            key={h.label}
+                            onClick={() => toggleSort(h.key)}
                             className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-700 transition-colors"
                           >
                             <div className="flex items-center gap-1">
-                              {flexRender(h.column.columnDef.header, h.getContext())}
-                              {h.column.getCanSort() && (
-                                <span>
-                                  {h.column.getIsSorted() === "asc" ? (
-                                    <ChevronUp className="w-3 h-3 text-indigo-500" />
-                                  ) : h.column.getIsSorted() === "desc" ? (
-                                    <ChevronDown className="w-3 h-3 text-indigo-500" />
-                                  ) : (
-                                    <ChevronsUpDown className="w-3 h-3 text-slate-300" />
-                                  )}
-                                </span>
-                              )}
+                              {h.label}
+                              <span>
+                                {sortKey === h.key && sortDir === "asc" ? (
+                                  <ChevronUp className="w-3 h-3 text-indigo-500" />
+                                ) : sortKey === h.key && sortDir === "desc" ? (
+                                  <ChevronDown className="w-3 h-3 text-indigo-500" />
+                                ) : (
+                                  <ChevronsUpDown className="w-3 h-3 text-slate-300" />
+                                )}
+                              </span>
                             </div>
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {table.getRowModel().rows.length === 0 ? (
+                      {paged.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="text-center py-10 text-slate-400 text-sm">No records</td>
                         </tr>
                       ) : (
-                        table.getRowModel().rows.map((row, i) => (
-                          <tr
-                            key={row.id}
-                            className={`border-b border-slate-50 hover:bg-indigo-50/40 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}
-                          >
-                            {row.getVisibleCells().map((cell) => (
-                              <td key={cell.id} className="px-4 py-3">
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        paged.map((r, i) => {
+                          const cfg = statusConfig[r.status] ?? statusConfig.Absent;
+                          const h = r.workedHours || 0;
+                          const pct = Math.min(100, (h / 8) * 100);
+                          return (
+                            <tr
+                              key={r.date + "-" + i}
+                              className={`border-b border-slate-50 hover:bg-indigo-50/40 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}
+                            >
+                              <td className="px-4 py-3">
+                                <div>
+                                  <div className="font-semibold text-slate-800 text-sm">{r.date}</div>
+                                  <div className="text-xs text-slate-400">
+                                    {new Date(r.date).toLocaleDateString("en-US", { weekday: "short" })}
+                                  </div>
+                                </div>
                               </td>
-                            ))}
-                          </tr>
-                        ))
+                              <td className="px-4 py-3">
+                                <span className="font-mono text-sm font-semibold text-emerald-600">{r.checkIn || "—"}</span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="font-mono text-sm font-semibold text-rose-500">{r.checkOut || "—"}</span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                                  {r.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-slate-700 w-12">{h.toFixed(1)}h</span>
+                                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden min-w-[40px]">
+                                    <div
+                                      className={`h-full rounded-full ${h >= 8 ? "bg-emerald-500" : h >= 6 ? "bg-amber-400" : "bg-rose-400"}`}
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
                 </div>
                 <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-xs text-slate-500">
-                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                    Page {pageIndex + 1} of {pageCount}
                   </span>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => table.previousPage()}
-                      disabled={!table.getCanPreviousPage()}
+                      onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                      disabled={pageIndex === 0}
                       className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-40 hover:bg-slate-50 transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4 text-slate-600" />
                     </button>
                     <button
-                      onClick={() => table.nextPage()}
-                      disabled={!table.getCanNextPage()}
+                      onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
+                      disabled={pageIndex >= pageCount - 1}
                       className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-40 hover:bg-slate-50 transition-colors"
                     >
                       <ChevronRight className="w-4 h-4 text-slate-600" />
