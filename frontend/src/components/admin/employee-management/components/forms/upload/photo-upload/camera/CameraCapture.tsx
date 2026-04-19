@@ -16,10 +16,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const allCaptured = capturedImages.length === 3;
 
   const capturePhoto = () => {
-    const imageSrc = webcamRef.current?.getScreenshot({
-      width: 1280,
-      height: 720
-    });
+    const imageSrc = webcamRef.current?.getScreenshot();
     
     if (imageSrc && capturedImages.length < 3) {
       const newImages = [...capturedImages, imageSrc];
@@ -60,8 +57,13 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
                 ref={webcamRef}
                 audio={false}
                 screenshotFormat="image/jpeg"
+                screenshotQuality={0.92}
                 mirrored={false}
-                videoConstraints={{ width: 1280, height: 720, facingMode: "user" }}
+                videoConstraints={{
+                  facingMode: "user",
+                  width: { ideal: 1280 },
+                  height: { ideal: 720 }
+                }}
                 className="w-full h-full object-cover"
               />
             </div>

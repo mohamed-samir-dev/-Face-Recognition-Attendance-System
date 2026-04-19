@@ -20,10 +20,21 @@ def get_face_encoding_from_base64(image_data, cache_key=None, encoding_cache=Non
         image = Image.open(io.BytesIO(image_bytes))
         if image.mode != 'RGB':
             image = image.convert('RGB')
+        
+        # Upscale small images (common on mobile) to improve face detection
+        w, h = image.size
+        if w < 640 or h < 480:
+            scale = max(640 / w, 480 / h)
+            image = image.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+        
         image_array = np.array(image)
         
-        # Get face encoding with large model for better accuracy
-        face_encodings = face_recognition.face_encodings(image_array, model='large')
+        # Try with upscaling first (better for mobile photos), fallback to normal
+        face_locations = face_recognition.face_locations(image_array, number_of_times_to_upsample=2, model='hog')
+        face_encodings = face_recognition.face_encodings(image_array, known_face_locations=face_locations, model='large') if face_locations else []
+        
+        if len(face_encodings) == 0:
+            face_encodings = face_recognition.face_encodings(image_array, model='large')
         
         if len(face_encodings) == 0:
             print("Warning: No face detected in image")
