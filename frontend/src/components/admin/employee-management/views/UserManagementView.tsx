@@ -195,7 +195,7 @@ export default function UserManagementView() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 flex items-center gap-2.5">
             <div className={`${color} w-8 h-8 rounded-xl flex items-center justify-center shrink-0`}>
@@ -226,7 +226,8 @@ export default function UserManagementView() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop Table */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full min-w-[900px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
@@ -340,6 +341,88 @@ export default function UserManagementView() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="lg:hidden divide-y divide-slate-100">
+          {paged.length === 0 ? (
+            <div className="text-center py-16 text-slate-400 text-sm">No users found</div>
+          ) : (
+            paged.map((user) => {
+              let src = user.image;
+              try {
+                const p = JSON.parse(user.image);
+                src = p.profileImage || (Array.isArray(p) ? p[0] : user.image);
+              } catch {}
+              const dept = user.department || (user as unknown as Record<string, string>).Department;
+              const role = user.accountType || "Employee";
+              const isSuper = role === "Supervisor" || role === "Manager";
+              const st = user.status || "Active";
+              const stCfg = statusConfig[st] ?? statusConfig.Active;
+              const stLabel = st === "OnLeave" ? "On Leave" : st;
+
+              return (
+                <div key={user.id} className="p-4 space-y-3">
+                  {/* User info row */}
+                  <div className="flex items-center gap-3">
+                    {src ? (
+                      <Image src={src} alt={user.name} width={40} height={40}
+                        className="w-10 h-10 rounded-xl object-cover border border-slate-100 shrink-0" unoptimized />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-800 text-sm truncate">{user.name}</p>
+                      <p className="text-xs text-slate-400 truncate">{user.email || "—"}</p>
+                    </div>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${stCfg.bg} ${stCfg.text}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${stCfg.dot}`} />
+                      {stLabel}
+                    </span>
+                  </div>
+
+                  {/* Badges row */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full">#{user.numericId}</span>
+                    {dept && <span className="text-xs font-medium text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">{dept}</span>}
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${isSuper ? "bg-violet-50 text-violet-700" : "bg-sky-50 text-sky-700"}`}>
+                      {isSuper ? <UserCog className="w-3 h-3" /> : <Users className="w-3 h-3" />}
+                      {role}
+                    </span>
+                    {user.salary && <span className="text-xs font-semibold text-slate-600">${user.salary.toLocaleString()}</span>}
+                  </div>
+
+                  {/* Job title + actions */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">{user.jobTitle || "—"}</span>
+                    <div className="flex items-center gap-1">
+                      <ActionBtn icon={Edit} color="indigo" title="Edit" onClick={() => handleEdit(user.id)} />
+                      <ActionBtn icon={Key} color="emerald" title="Change Password" onClick={() => handleChangePasswordClick(user)} />
+                      <ActionBtn icon={Bell} color="amber" title="Send Alert"
+                        onClick={async () => {
+                          if (!user.numericId) return;
+                          try { await sendMonitoringAlert(user.numericId.toString()); toast.success(`Alert sent to ${user.name}`); }
+                          catch { toast.error("Failed to send alert"); }
+                        }}
+                      />
+                      <ActionBtn icon={Smartphone} color="violet" title="Reset Device"
+                        onClick={async () => {
+                          try { await resetDeviceBinding(user.id); toast.success(`Device reset for ${user.name}`); }
+                          catch { toast.error("Failed to reset device"); }
+                        }}
+                      />
+                      <ActionBtn icon={Trash2} color="rose" title="Delete"
+                        disabled={deleting === user.id}
+                        onClick={() => handleDeleteClick(user)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Pagination */}
