@@ -27,7 +27,7 @@ export async function removeAllowedNetwork(id: string): Promise<void> {
   await deleteDoc(doc(db, "allowedNetworks", id));
 }
 
-export async function validateNetworkAccess(): Promise<{
+export async function validateNetworkAccess(role?: string): Promise<{
   allowed: boolean;
   currentIp: string | null;
 }> {
@@ -35,6 +35,9 @@ export async function validateNetworkAccess(): Promise<{
     // Get current public IP
     const res = await fetch("https://api.ipify.org?format=json");
     const { ip: currentIp } = await res.json();
+
+    // Admins are exempt from IP restriction
+    if (role === "Admin") return { allowed: true, currentIp };
 
     // Get allowed list
     const networks = await getAllowedNetworks();

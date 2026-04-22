@@ -57,15 +57,6 @@ export function useLogin() {
     setLoading(true);
 
     try {
-      // ── Network Access Check ──
-      const networkCheck = await validateNetworkAccess();
-      if (!networkCheck.allowed) {
-        setBlockedIp(networkCheck.currentIp);
-        setNetworkBlocked(true);
-        setLoading(false);
-        return;
-      }
-
       // Try username first
       let q = query(
         collection(db, "users"),
@@ -87,6 +78,16 @@ export function useLogin() {
       if (!snapshot.empty) {
         const userData = snapshot.docs[0].data();
         const userId = snapshot.docs[0].id;
+
+        // ── Network Access Check (admins exempt) ──
+        const networkCheck = await validateNetworkAccess(userData.accountType);
+        if (!networkCheck.allowed) {
+          setBlockedIp(networkCheck.currentIp);
+          setNetworkBlocked(true);
+          await logNetworkDenied({ userId, name: userData.name || "Unknown", ip: networkCheck.currentIp, loginMethod: "password" });
+          setLoading(false);
+          return;
+        }
 
         // ── Single Session Check ──
         const sessionCheck = await checkExistingSession(userId);

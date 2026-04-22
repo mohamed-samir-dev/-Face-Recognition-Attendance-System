@@ -90,16 +90,6 @@ export function useFaceLogin(onCancel: () => void) {
     setError("");
 
     try {
-      // ── Network Access Check ──
-      const networkCheck = await validateNetworkAccess();
-      if (!networkCheck.allowed) {
-        setBlockedIp(networkCheck.currentIp);
-        setNetworkBlocked(true);
-        setStep("failed");
-        stopCamera();
-        return;
-      }
-
       const res = await fetch(`${API_URL}/face-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -129,6 +119,16 @@ export function useFaceLogin(onCancel: () => void) {
         const doc = snapshot.docs[0];
         userId = doc.id;
         fullUserData = { ...data.user, ...doc.data() } as typeof data.user;
+      }
+
+      // ── Network Access Check (admins exempt) ──
+      const networkCheck = await validateNetworkAccess(fullUserData.accountType);
+      if (!networkCheck.allowed) {
+        setBlockedIp(networkCheck.currentIp);
+        setNetworkBlocked(true);
+        setStep("failed");
+        stopCamera();
+        return;
       }
 
       // ── Single Session Check ──
