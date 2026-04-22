@@ -5,10 +5,11 @@ import { useLogin } from "../hooks/useLogin";
 import LoginLayout from "../layouts/LoginLayout";
 import LoginContainer from "./LoginContainer";
 import SessionBlockedModal from "./SessionBlockedModal";
+import NetworkBlockedModal from "./NetworkBlockedModal";
 
 export default function LoginPageContent() {
   const [mounted, setMounted] = useState(false);
-  const { error, loading, faceLoading, showFaceLogin, setShowFaceLogin, sessionBlocked, setSessionBlocked, blockedBy, handleLogin, handleFacialRecognition, handleClearSession } = useLogin();
+  const { error, loading, faceLoading, showFaceLogin, setShowFaceLogin, sessionBlocked, setSessionBlocked, blockedBy, networkBlocked, setNetworkBlocked, blockedIp, handleLogin, handleFacialRecognition, handleClearSession } = useLogin();
 
   useEffect(() => {
     setMounted(true);
@@ -22,6 +23,9 @@ export default function LoginPageContent() {
     <LoginLayout wide={showFaceLogin}>
       {sessionBlocked && (
         <SessionBlockedModal onClose={() => setSessionBlocked(false)} blockedBy={blockedBy} />
+      )}
+      {networkBlocked && (
+        <NetworkBlockedModal onClose={() => setNetworkBlocked(false)} currentIp={blockedIp} />
       )}
       <LoginContainer
         onLogin={handleLogin}

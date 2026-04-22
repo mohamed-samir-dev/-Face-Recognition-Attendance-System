@@ -6,6 +6,7 @@ import UserManagementView from "@/components/admin/employee-management/views/Use
 import SettingsContent from "@/components/admin/settings/views/SettingsView";
 import DepartmentsContent from "@/components/admin/departments/views/content/DepartmentsContent";
 import DeviceManagementView from "@/components/admin/device-management/DeviceManagementView";
+import NetworkManagementView from "@/components/admin/network-management/NetworkManagementView";
 import AccessDeniedLogsView from "@/components/admin/access-denied-logs/AccessDeniedLogsView";
 import MonitoringTab from "../../monitoring/MonitoringTab";
 
@@ -32,6 +33,8 @@ export default function ContentRenderer({ activeTab, searchQuery }: ContentRende
       return <DepartmentsContent />;
     case "DeviceManagement":
       return <DeviceManagementView />;
+    case "NetworkManagement":
+      return <NetworkManagementView />;
     case "AccessDeniedLogs":
       return <AccessDeniedLogsView />;
     case "Settings":

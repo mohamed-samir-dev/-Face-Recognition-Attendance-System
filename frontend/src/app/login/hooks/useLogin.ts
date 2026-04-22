@@ -4,6 +4,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { LoginFormData } from "../types";
 import { updateUserSession, checkExistingSession, logAccessDenied, BlockedByUser } from "@/lib/services/auth/sessionService";
+import { validateNetworkAccess, logNetworkDenied } from "@/lib/services/system/networkService";
 import toast from "react-hot-toast";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -24,6 +25,8 @@ export function useLogin() {
   const [lockoutUntil, setLockoutUntil] = useState(0);
   const [sessionBlocked, setSessionBlocked] = useState(false);
   const [blockedBy, setBlockedBy] = useState<BlockedByUser | null>(null);
+  const [networkBlocked, setNetworkBlocked] = useState(false);
+  const [blockedIp, setBlockedIp] = useState<string | null>(null);
   const router = useRouter();
 
   // Auto-redirect if session exists
@@ -54,6 +57,15 @@ export function useLogin() {
     setLoading(true);
 
     try {
+      // ── Network Access Check ──
+      const networkCheck = await validateNetworkAccess();
+      if (!networkCheck.allowed) {
+        setBlockedIp(networkCheck.currentIp);
+        setNetworkBlocked(true);
+        setLoading(false);
+        return;
+      }
+
       // Try username first
       let q = query(
         collection(db, "users"),
@@ -82,7 +94,6 @@ export function useLogin() {
           setBlockedBy(sessionCheck.blockedBy ?? null);
           setSessionBlocked(true);
           setLoading(false);
-          // ── Log to Firestore ──
           await logAccessDenied({
             attemptedBy: {
               userId,
@@ -150,6 +161,9 @@ export function useLogin() {
     sessionBlocked,
     setSessionBlocked,
     blockedBy,
+    networkBlocked,
+    setNetworkBlocked,
+    blockedIp,
     handleLogin,
     handleFacialRecognition,
     handleClearSession,

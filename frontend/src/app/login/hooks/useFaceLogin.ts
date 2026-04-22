@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { updateUserSession, checkExistingSession, logAccessDenied, BlockedByUser } from "@/lib/services/auth/sessionService";
+import { validateNetworkAccess } from "@/lib/services/system/networkService";
 import { FaceLoginResponse } from "../types";
 
 export type FaceLoginStep = "camera" | "processing" | "success" | "failed";
@@ -29,6 +30,8 @@ export function useFaceLogin(onCancel: () => void) {
   const [recognizedUser, setRecognizedUser] = useState<RecognizedUserData | null>(null);
   const [sessionBlocked, setSessionBlocked] = useState(false);
   const [blockedBy, setBlockedBy] = useState<BlockedByUser | null>(null);
+  const [networkBlocked, setNetworkBlocked] = useState(false);
+  const [blockedIp, setBlockedIp] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const router = useRouter();
@@ -87,6 +90,16 @@ export function useFaceLogin(onCancel: () => void) {
     setError("");
 
     try {
+      // ── Network Access Check ──
+      const networkCheck = await validateNetworkAccess();
+      if (!networkCheck.allowed) {
+        setBlockedIp(networkCheck.currentIp);
+        setNetworkBlocked(true);
+        setStep("failed");
+        stopCamera();
+        return;
+      }
+
       const res = await fetch(`${API_URL}/face-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -193,6 +206,8 @@ export function useFaceLogin(onCancel: () => void) {
     recognizedUser,
     sessionBlocked,
     blockedBy,
+    networkBlocked,
+    blockedIp,
     captureAndLogin,
     cancel,
     maxAttempts: MAX_ATTEMPTS,
