@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Wifi, Plus, Trash2, Globe, Search, Shield, Loader2 } from "lucide-react";
+import { Wifi, Plus, Trash2, Globe, Search, Shield, Loader2, Power } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   AllowedNetwork,
   getAllowedNetworks,
   addAllowedNetwork,
   removeAllowedNetwork,
+  toggleNetworkEnabled,
 } from "@/lib/services/system/networkService";
 
 export default function NetworkManagementView() {
@@ -15,6 +16,7 @@ export default function NetworkManagementView() {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<string | null>(null);
   const [ip, setIp] = useState("");
   const [label, setLabel] = useState("");
   const [search, setSearch] = useState("");
@@ -90,6 +92,22 @@ export default function NetworkManagementView() {
       toast.error("Failed to remove network");
     } finally {
       setRemoving(null);
+    }
+  };
+
+  const handleToggle = async (network: AllowedNetwork) => {
+    setToggling(network.id);
+    try {
+      const newState = !(network.enabled !== false);
+      await toggleNetworkEnabled(network.id, newState);
+      setNetworks((prev) =>
+        prev.map((n) => (n.id === network.id ? { ...n, enabled: newState } : n))
+      );
+      toast.success(`${network.ip} ${newState ? "enabled" : "disabled"}`);
+    } catch {
+      toast.error("Failed to update network status");
+    } finally {
+      setToggling(null);
     }
   };
 
@@ -270,10 +288,18 @@ export default function NetworkManagementView() {
             {filtered.map((network) => (
               <div
                 key={network.id}
-                className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 shadow-sm"
+                className={`bg-white rounded-2xl border p-4 flex items-center gap-3 shadow-sm ${
+                  network.enabled === false
+                    ? "border-gray-200 opacity-60"
+                    : "border-gray-100"
+                }`}
               >
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                  <Wifi className="w-5 h-5 text-indigo-500" />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  network.enabled === false ? "bg-gray-100" : "bg-indigo-50"
+                }`}>
+                  <Wifi className={`w-5 h-5 ${
+                    network.enabled === false ? "text-gray-400" : "text-indigo-500"
+                  }`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 text-sm truncate">
@@ -296,6 +322,27 @@ export default function NetworkManagementView() {
                 {currentIp === network.ip && (
                   <span className="shrink-0 w-2 h-2 rounded-full bg-green-500" title="You are on this network" />
                 )}
+                {network.enabled === false && (
+                  <span className="shrink-0 px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">
+                    Disabled
+                  </span>
+                )}
+                <button
+                  onClick={() => handleToggle(network)}
+                  disabled={toggling === network.id}
+                  className={`shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer border ${
+                    network.enabled !== false
+                      ? "bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-100"
+                      : "bg-green-50 text-green-600 hover:bg-green-100 border-green-100"
+                  }`}
+                >
+                  {toggling === network.id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Power className="w-3.5 h-3.5" />
+                  )}
+                  {network.enabled !== false ? "Disable" : "Enable"}
+                </button>
                 <button
                   onClick={() => handleRemove(network)}
                   disabled={removing === network.id}

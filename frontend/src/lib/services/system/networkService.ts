@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, setDoc, deleteDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, deleteDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
 export interface AllowedNetwork {
@@ -6,6 +6,7 @@ export interface AllowedNetwork {
   ip: string;
   label: string;
   addedAt: string;
+  enabled: boolean;
 }
 
 export async function getAllowedNetworks(): Promise<AllowedNetwork[]> {
@@ -20,11 +21,16 @@ export async function addAllowedNetwork(ip: string, label: string): Promise<void
     ip: ip.trim(),
     label: label.trim(),
     addedAt: new Date().toISOString(),
+    enabled: true,
   });
 }
 
 export async function removeAllowedNetwork(id: string): Promise<void> {
   await deleteDoc(doc(db, "allowedNetworks", id));
+}
+
+export async function toggleNetworkEnabled(id: string, enabled: boolean): Promise<void> {
+  await updateDoc(doc(db, "allowedNetworks", id), { enabled });
 }
 
 export async function validateNetworkAccess(role?: string): Promise<{
@@ -45,7 +51,12 @@ export async function validateNetworkAccess(role?: string): Promise<{
     // If no networks configured, allow all (so system doesn't lock everyone out)
     if (networks.length === 0) return { allowed: true, currentIp };
 
-    const allowed = networks.some((n) => n.ip === currentIp);
+    const enabledNetworks = networks.filter((n) => n.enabled !== false);
+
+    // If no enabled networks, allow all
+    if (enabledNetworks.length === 0) return { allowed: true, currentIp };
+
+    const allowed = enabledNetworks.some((n) => n.ip === currentIp);
     return { allowed, currentIp };
   } catch {
     // If we can't determine IP, allow access to avoid lockout
