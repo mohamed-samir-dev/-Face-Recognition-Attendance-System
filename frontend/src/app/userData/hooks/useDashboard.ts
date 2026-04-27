@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/dashboard/hooks/useAuth";
-import { validateNetworkAccess } from "@/lib/services/system/networkService";
-import toast from "react-hot-toast";
 
 export function useDashboard() {
   const { user, mounted, logout, refreshUserData } = useAuth();
@@ -22,24 +20,8 @@ export function useDashboard() {
     }
   }, [mounted, user, refreshUserData]);
 
-  const [networkBlocked, setNetworkBlocked] = useState(false);
-  const [blockedIp, setBlockedIp] = useState<string | null>(null);
-
-  const checkNetworkAndProceed = async (path: string): Promise<boolean> => {
-    const check = await validateNetworkAccess(user?.accountType);
-    if (!check.allowed) {
-      setBlockedIp(check.currentIp);
-      setNetworkBlocked(true);
-      toast.error("Access denied: You are not on an allowed network.");
-      return false;
-    }
-    return true;
-  };
-
-  const handleTakeAttendance = async () => {
-    if (await checkNetworkAndProceed("/camera?mode=checkin")) {
-      router.push("/camera?mode=checkin");
-    }
+  const handleTakeAttendance = () => {
+    router.push("/camera?mode=checkin");
   };
 
   const handleRequestLeave = () => {
@@ -60,11 +42,7 @@ export function useDashboard() {
 
   const handleCheckOut = async () => {
     if (!user) return;
-
-    if (!(await checkNetworkAndProceed("/camera?mode=checkout"))) {
-      return;
-    }
-
+    
     const { checkCanCheckOut } = await import('@/lib/services/attendance/checkoutService');
     const result = await checkCanCheckOut(user.id);
     
@@ -85,8 +63,5 @@ export function useDashboard() {
     handleSettings,
     handleReports,
     handleDashboard,
-    networkBlocked,
-    setNetworkBlocked,
-    blockedIp,
   };
 }

@@ -4,6 +4,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { LoginFormData } from "../types";
 import { updateUserSession, checkExistingSession, logAccessDenied, BlockedByUser } from "@/lib/services/auth/sessionService";
+import { validateNetworkAccess, logNetworkDenied } from "@/lib/services/system/networkService";
 import toast from "react-hot-toast";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -24,7 +25,8 @@ export function useLogin() {
   const [lockoutUntil, setLockoutUntil] = useState(0);
   const [sessionBlocked, setSessionBlocked] = useState(false);
   const [blockedBy, setBlockedBy] = useState<BlockedByUser | null>(null);
-
+  const [networkBlocked, setNetworkBlocked] = useState(false);
+  const [blockedIp, setBlockedIp] = useState<string | null>(null);
   const router = useRouter();
 
   // Auto-redirect if session exists
@@ -76,6 +78,16 @@ export function useLogin() {
       if (!snapshot.empty) {
         const userData = snapshot.docs[0].data();
         const userId = snapshot.docs[0].id;
+
+        // ── Network Access Check (admins exempt) ──
+        const networkCheck = await validateNetworkAccess(userData.accountType);
+        if (!networkCheck.allowed) {
+          setBlockedIp(networkCheck.currentIp);
+          setNetworkBlocked(true);
+          await logNetworkDenied({ userId, name: userData.name || "Unknown", ip: networkCheck.currentIp, loginMethod: "password" });
+          setLoading(false);
+          return;
+        }
 
         // ── Single Session Check ──
         const sessionCheck = await checkExistingSession(userId);
@@ -150,7 +162,9 @@ export function useLogin() {
     sessionBlocked,
     setSessionBlocked,
     blockedBy,
-
+    networkBlocked,
+    setNetworkBlocked,
+    blockedIp,
     handleLogin,
     handleFacialRecognition,
     handleClearSession,
