@@ -6,7 +6,6 @@ import FaceOvalGuide from "@/app/camera/components/preview/overlays/FaceOvalGuid
 import { useFaceLogin, RecognizedUserData } from "../hooks/useFaceLogin";
 
 import SessionBlockedModal from "../components/SessionBlockedModal";
-import NetworkBlockedModal from "../components/NetworkBlockedModal";
 
 interface FaceLoginCameraProps {
   onCancel: () => void;
@@ -82,7 +81,7 @@ function InfoRow({ icon, label, value, color, bg }: { icon: React.ReactNode; lab
 }
 
 export default function FaceLoginCamera({ onCancel }: FaceLoginCameraProps) {
-  const { step, error, attempts, videoRef, recognizedUser, sessionBlocked, blockedBy, networkBlocked, blockedIp, captureAndLogin, cancel, maxAttempts } =
+  const { step, error, attempts, videoRef, recognizedUser, sessionBlocked, blockedBy, captureAndLogin, cancel, maxAttempts } =
     useFaceLogin(onCancel);
 
   const isProcessing = step === "processing";
@@ -92,7 +91,6 @@ export default function FaceLoginCamera({ onCancel }: FaceLoginCameraProps) {
   return (
     <Card>
       {sessionBlocked && <SessionBlockedModal onClose={cancel} blockedBy={blockedBy} />}
-      {networkBlocked && <NetworkBlockedModal onClose={cancel} currentIp={blockedIp} />}
       <div className="flex flex-col items-center gap-4">
         {/* Header */}
         {!isSuccess && (

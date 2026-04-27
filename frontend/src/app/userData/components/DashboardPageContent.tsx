@@ -24,6 +24,9 @@ export default function DashboardPageContent() {
     handleTakeAttendance,
     handleCheckOut,
     handleRequestLeave,
+    networkBlocked,
+    setNetworkBlocked,
+    blockedIp,
   } = useDashboard();
 
   useRandomMonitoring(user?.numericId?.toString());
@@ -122,6 +125,29 @@ export default function DashboardPageContent() {
               <p className="text-sm sm:text-base text-gray-600 mb-6">{checkOutMessage}</p>
               <button
                 onClick={() => setShowCheckOutWarning(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 sm:py-3 rounded-xl font-medium transition-colors w-full sm:w-auto"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {networkBlocked && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 p-6 sm:p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="bg-orange-100 rounded-full w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4m0 4h.01" />
+                </svg>
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Network Access Denied</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-2">You are not connected to an allowed network.</p>
+              {blockedIp && <p className="text-xs text-gray-400 mb-6">Your IP: {blockedIp}</p>}
+              <button
+                onClick={() => setNetworkBlocked(false)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 sm:py-3 rounded-xl font-medium transition-colors w-full sm:w-auto"
               >
                 Got it

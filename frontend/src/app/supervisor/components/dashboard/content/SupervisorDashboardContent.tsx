@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/dashboard/hooks/useAuth";
+import { validateNetworkAccess } from "@/lib/services/system/networkService";
+import toast from "react-hot-toast";
 import NavigationBlocker from "@/components/NavigationBlocker";
 import DashboardContent from "@/components/dashboard/layout/DashboardContent";
 import SupervisorNavbar from "@/components/supervisor/layout/SupervisorNavbar";
@@ -17,6 +19,8 @@ export default function SupervisorDashboardContent() {
   const [showCheckOutWarning, setShowCheckOutWarning] = useState(false);
   const [checkOutMessage, setCheckOutMessage] = useState("");
   const [showWarning, setShowWarning] = useState(false);
+  const [networkBlocked, setNetworkBlocked] = useState(false);
+  const [blockedIp, setBlockedIp] = useState<string | null>(null);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -44,8 +48,22 @@ export default function SupervisorDashboardContent() {
     }
   };
 
+  const checkNetworkAndProceed = async (): Promise<boolean> => {
+    const check = await validateNetworkAccess(user?.accountType);
+    if (!check.allowed) {
+      setBlockedIp(check.currentIp);
+      setNetworkBlocked(true);
+      toast.error("Access denied: You are not on an allowed network.");
+      return false;
+    }
+    return true;
+  };
+
   const handleCheckOut = async () => {
     const { checkCanCheckOut } = await import('@/lib/services/attendance/checkoutService');
+
+    if (!(await checkNetworkAndProceed())) return;
+
     const result = await checkCanCheckOut(user.id);
     
     if (result.canCheckOut) {
@@ -87,7 +105,11 @@ export default function SupervisorDashboardContent() {
         />
         <DashboardContent
           user={user}
-          onTakeAttendance={() => window.location.href = "/camera?mode=checkin"}
+          onTakeAttendance={async () => {
+            if (await checkNetworkAndProceed()) {
+              window.location.href = "/camera?mode=checkin";
+            }
+          }}
           onCheckOut={handleCheckOut}
           onRequestLeave={() => window.location.href = "/leaveRequest"}
         />
@@ -111,6 +133,29 @@ export default function SupervisorDashboardContent() {
               <p className="text-gray-600 mb-6">{checkOutMessage}</p>
               <button
                 onClick={() => setShowCheckOutWarning(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {networkBlocked && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 max-w-md mx-4">
+            <div className="text-center">
+              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4m0 4h.01" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Network Access Denied</h3>
+              <p className="text-gray-600 mb-2">You are not connected to an allowed network.</p>
+              {blockedIp && <p className="text-xs text-gray-400 mb-6">Your IP: {blockedIp}</p>}
+              <button
+                onClick={() => setNetworkBlocked(false)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
               >
                 Got it
