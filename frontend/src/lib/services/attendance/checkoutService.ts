@@ -45,7 +45,24 @@ export async function recordCheckOut(userId: string): Promise<{
       updatedAt: new Date()
     });
 
-    await updateAttendanceHistory(userId, currentTime, workedHours);
+    await updateAttendanceHistory(userId, currentTime, workedHours, overtimeHours);
+
+    // Save final hours to totalHours & overtime collections
+    const regularHours = checkOutTime.getTime() > workEnd.getTime()
+      ? Math.round(((workEnd.getTime() - checkInTime.getTime()) / (1000 * 60 * 60)) * 100) / 100
+      : workedHours;
+
+    const { saveFinalWorkedHours } = await import('./totalHoursService');
+    await saveFinalWorkedHours(userId, Math.max(0, regularHours));
+
+    if (overtimeHours > 0) {
+      const { saveFinalOvertime } = await import('./overtimeService');
+      const { getDoc: fGet } = await import('firebase/firestore');
+      const userDoc = await fGet(doc(db, 'users', userId));
+      const userName = userDoc.exists() ? userDoc.data().name : 'Unknown';
+      await saveFinalOvertime(userId, userName, overtimeHours);
+    }
+
     await completeTimer(userId);
 
     const { updateUserStatus } = await import('../user/statusService');
@@ -58,7 +75,7 @@ export async function recordCheckOut(userId: string): Promise<{
   }
 }
 
-async function updateAttendanceHistory(userId: string, checkOutTime: string, workedHours: number): Promise<void> {
+async function updateAttendanceHistory(userId: string, checkOutTime: string, workedHours: number, overtimeHours: number): Promise<void> {
   try {
     const today = new Date().toISOString().split('T')[0];
     
@@ -76,6 +93,7 @@ async function updateAttendanceHistory(userId: string, checkOutTime: string, wor
       await updateDoc(doc(db, "attendanceHistory", historyDoc.id), {
         checkOut: checkOutTime,
         workedHours: workedHours,
+        overtimeHours: overtimeHours,
         updatedAt: new Date()
       });
     }

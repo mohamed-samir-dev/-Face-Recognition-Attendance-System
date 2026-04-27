@@ -19,12 +19,14 @@ export const useOvertimeData = (userId?: string) => {
         setTodayOvertime(today);
       } catch (error) {
         console.error('Error loading overtime data:', error);
-        setMonthlyOvertime(0);
-        setTodayOvertime(0);
       }
     };
 
     loadOvertimeData();
+
+    // Refresh every 30 seconds
+    const interval = setInterval(loadOvertimeData, 30000);
+    return () => clearInterval(interval);
   }, [userId]);
 
   return {

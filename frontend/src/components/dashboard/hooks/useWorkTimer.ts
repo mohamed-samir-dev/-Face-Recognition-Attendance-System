@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getTimerData, startWorkTimer, resetTimer, calculateRemainingTime } from '@/lib/services/attendance/timerService';
 import { resetTotalHours } from '@/lib/services/attendance/totalHoursService';
 import { getCompanySettings } from '@/lib/services/system/settingsService';
@@ -11,42 +11,36 @@ export const useWorkTimer = (userId?: string) => {
   const [overtimeHours, setOvertimeHours] = useState<number>(0);
   const [isOvertime, setIsOvertime] = useState(false);
 
-
+  // Load & refresh total hours from totalHours collection
   useEffect(() => {
     if (!userId) return;
 
-    const setupTotalHoursListener = async () => {
-      const { doc, onSnapshot } = await import('firebase/firestore');
-      const { db } = await import('@/lib/firebase/config');
-      const { getMonthlyTotalHours } = await import('@/lib/services/attendance/totalHoursService');
-      
-      // Initial load of monthly total
-      const monthlyTotal = await getMonthlyTotalHours(userId);
-      setBaseTotalHours(monthlyTotal);
-      
-      // Listen for real-time updates every second
-      const unsubscribe = onSnapshot(doc(db, 'totalHours', userId), async () => {
-        const updatedMonthlyTotal = await getMonthlyTotalHours(userId);
-        setBaseTotalHours(updatedMonthlyTotal);
-      });
+    let interval: NodeJS.Timeout;
 
-      return unsubscribe;
+    const loadTotalHours = async () => {
+      const { getMonthlyTotalHours } = await import('@/lib/services/attendance/totalHoursService');
+      const total = await getMonthlyTotalHours(userId);
+      setBaseTotalHours(total);
     };
 
-    const handleTimerCompleted = () => {
+    const handleTimerCompleted = async () => {
       setIsActive(false);
       setTimeRemaining(0);
+      // Small delay to let checkout save to collection first
+      setTimeout(loadTotalHours, 500);
     };
 
     window.addEventListener('timerCompleted', handleTimerCompleted);
+    loadTotalHours();
+    interval = setInterval(loadTotalHours, 30000);
 
-    const unsubscribePromise = setupTotalHoursListener();
     return () => {
       window.removeEventListener('timerCompleted', handleTimerCompleted);
-      unsubscribePromise.then(unsub => unsub());
+      clearInterval(interval);
     };
   }, [userId]);
 
+  // Load timer state on mount
   useEffect(() => {
     if (!userId) return;
 
@@ -56,43 +50,34 @@ export const useWorkTimer = (userId?: string) => {
         const newRemaining = await calculateRemainingTime(timerData);
         setTimeRemaining(newRemaining);
         setIsActive(timerData.active);
-        
-        // Check if currently in overtime
+
         const now = new Date();
         const settings = await getCompanySettings();
         const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
         const currentlyOvertime = now.getTime() > workEnd.getTime();
-        
+
         setIsOvertime(currentlyOvertime);
         if (currentlyOvertime) {
-          const overtimeMs = now.getTime() - workEnd.getTime();
-          setOvertimeHours(overtimeMs / (1000 * 60 * 60));
+          setOvertimeHours((now.getTime() - workEnd.getTime()) / (1000 * 60 * 60));
         } else {
-          // Load today's overtime from separate collection
-          const todayOvertime = await getTodayOvertime(userId);
-          setOvertimeHours(todayOvertime);
+          const todayOt = await getTodayOvertime(userId);
+          setOvertimeHours(todayOt);
         }
       }
     };
 
     loadTimer();
-    
-    // Listen for timer started event to reload data immediately
-    const handleTimerStarted = () => {
-      setTimeout(loadTimer, 100); // Small delay to ensure data is written
-    };
-    
+
+    const handleTimerStarted = () => setTimeout(loadTimer, 100);
     window.addEventListener('timerStarted', handleTimerStarted);
-    
-    return () => {
-      window.removeEventListener('timerStarted', handleTimerStarted);
-    };
+    return () => window.removeEventListener('timerStarted', handleTimerStarted);
   }, [userId]);
 
+  // Countdown / overtime tick every second
   useEffect(() => {
     let interval: NodeJS.Timeout;
     let lastOvertimeSave = 0;
-    
+
     if (userId) {
       interval = setInterval(async () => {
         const timerData = await getTimerData(userId!);
@@ -100,20 +85,19 @@ export const useWorkTimer = (userId?: string) => {
           const now = new Date();
           const settings = await getCompanySettings();
           const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
-          
+
           if (now.getTime() <= workEnd.getTime()) {
             const newRemaining = await calculateRemainingTime(timerData);
             setTimeRemaining(newRemaining);
             setIsOvertime(false);
             setOvertimeHours(0);
           } else {
-            const overtimeMs = now.getTime() - workEnd.getTime();
-            const overtime = overtimeMs / (1000 * 60 * 60);
+            const overtime = (now.getTime() - workEnd.getTime()) / (1000 * 60 * 60);
             setIsOvertime(true);
             setOvertimeHours(overtime);
             setTimeRemaining(0);
-            
-            // Save overtime to Firebase every 60 seconds only
+
+            // Save live overtime snapshot every 60s
             const nowMs = Date.now();
             if (nowMs - lastOvertimeSave >= 60000) {
               lastOvertimeSave = nowMs;
@@ -134,35 +118,8 @@ export const useWorkTimer = (userId?: string) => {
     return () => clearInterval(interval);
   }, [userId]);
 
-  // Update total hours in Firebase every second during regular hours
-  const isOvertimeRef = useRef(isOvertime);
-  useEffect(() => {
-    isOvertimeRef.current = isOvertime;
-  }, [isOvertime]);
-
-  useEffect(() => {
-    let totalHoursInterval: NodeJS.Timeout;
-    
-    if (userId && isActive) {
-      totalHoursInterval = setInterval(async () => {
-        if (isOvertimeRef.current) return;
-        try {
-          const { addWorkedHours } = await import('@/lib/services/attendance/totalHoursService');
-          await addWorkedHours(userId!, 1 / 60); // Update every minute = 1/60 hour
-        } catch (error) {
-          console.error('Error adding worked hours:', error);
-        }
-      }, 60000); // Every 60 seconds instead of every second
-    }
-
-    return () => {
-      if (totalHoursInterval) clearInterval(totalHoursInterval);
-    };
-  }, [userId, isActive]);
-
   const startTimer = async () => {
     if (!userId) return;
-    
     await startWorkTimer(userId);
     const timerData = await getTimerData(userId);
     if (timerData && timerData.remaining > 0) {
@@ -194,14 +151,11 @@ export const useWorkTimer = (userId?: string) => {
     setBaseTotalHours(0);
   };
 
-  // Display monthly total hours from Firebase (updated every minute)
-  const displayTotalHours = baseTotalHours;
-
   return {
     timeRemaining: !isOvertime ? formatTime(timeRemaining) : '0:00:00',
     overtimeTimer: isOvertime ? formatOvertimeHours(overtimeHours) : undefined,
     isActive,
-    totalHours: displayTotalHours,
+    totalHours: baseTotalHours,
     overtimeHours,
     isOvertime,
     startTimer,

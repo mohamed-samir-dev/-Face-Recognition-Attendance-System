@@ -8,6 +8,10 @@ export interface OvertimeRecord {
   lastUpdated: string;
 }
 
+/**
+ * Saves/updates overtime record. Used during live overtime tracking (every 60s).
+ * This overwrites the current live overtime value (not cumulative).
+ */
 export const saveOvertimeRecord = async (
   userId: string,
   userName: string,
@@ -25,22 +29,23 @@ export const saveOvertimeRecord = async (
   await setDoc(doc(db, "overtime", userId), overtimeData, { merge: true });
 };
 
+/**
+ * Gets today's live overtime from active timer.
+ */
 export const getTodayOvertime = async (userId: string): Promise<number> => {
   try {
-    const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
     const { getCompanySettings } = await import('../system/settingsService');
-    
-    const timerDoc = await getDoc(firestoreDoc(db, 'timers', userId));
+
+    const timerDoc = await getDoc(doc(db, 'timers', userId));
     if (timerDoc.exists()) {
       const timerData = timerDoc.data();
       if (timerData.checkInTime && timerData.active) {
         const now = new Date();
         const settings = await getCompanySettings();
         const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
-        
+
         if (now.getTime() > workEnd.getTime()) {
-          const overtimeMs = now.getTime() - workEnd.getTime();
-          return overtimeMs / (1000 * 60 * 60);
+          return (now.getTime() - workEnd.getTime()) / (1000 * 60 * 60);
         }
       }
     }
@@ -51,58 +56,66 @@ export const getTodayOvertime = async (userId: string): Promise<number> => {
   }
 };
 
+/**
+ * Gets monthly overtime directly from overtime collection.
+ * Adds live overtime if timer is currently active and past work end time.
+ */
 export const getMonthlyOvertime = async (userId: string): Promise<number> => {
   try {
-    const { collection, query, where, getDocs, doc: firestoreDoc, getDoc } = await import('firebase/firestore');
-    const { getCompanySettings } = await import('../system/settingsService');
-    const currentDate = new Date();
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const today = currentDate.toISOString().split('T')[0];
-    
-    const attendanceRef = collection(db, 'attendance');
-    const q = query(
-      attendanceRef,
-      where('userId', '==', userId),
-      where('date', '>=', startOfMonth.toISOString().split('T')[0]),
-      where('date', '<=', today)
-    );
-    
-    const snapshot = await getDocs(q);
-    let totalOvertime = 0;
-    let todayRecorded = false;
-    
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.overtimeHours) {
-        totalOvertime += data.overtimeHours;
-        if (data.date === today) {
-          todayRecorded = true;
-        }
-      }
-    });
-    
-    if (!todayRecorded) {
-      const timerDoc = await getDoc(firestoreDoc(db, 'timers', userId));
-      if (timerDoc.exists()) {
-        const timerData = timerDoc.data();
-        if (timerData.checkInTime && timerData.active) {
-          const now = new Date();
-          const settings = await getCompanySettings();
-          const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
-          
-          if (now.getTime() > workEnd.getTime()) {
-            const overtimeMs = now.getTime() - workEnd.getTime();
-            const currentOvertime = overtimeMs / (1000 * 60 * 60);
-            totalOvertime += currentOvertime;
-          }
+    // Read stored total from overtime collection
+    const docRef = doc(db, "overtime", userId);
+    const docSnap = await getDoc(docRef);
+    let totalOvertime = docSnap.exists() ? (docSnap.data().overtimeHours || 0) : 0;
+
+    // Add live overtime if timer is active
+    const timerDoc = await getDoc(doc(db, 'timers', userId));
+    if (timerDoc.exists()) {
+      const timerData = timerDoc.data();
+      if (timerData.checkInTime && timerData.active) {
+        const now = new Date();
+        const { getCompanySettings } = await import('../system/settingsService');
+        const settings = await getCompanySettings();
+        const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
+
+        if (now.getTime() > workEnd.getTime()) {
+          const liveOvertime = (now.getTime() - workEnd.getTime()) / (1000 * 60 * 60);
+          totalOvertime += liveOvertime;
         }
       }
     }
-    
+
     return totalOvertime;
   } catch (error) {
     console.error('Error getting monthly overtime:', error);
     return 0;
+  }
+};
+
+/**
+ * Saves final overtime hours to overtime collection on checkout.
+ * Adds the checkout overtime to the stored total.
+ */
+export const saveFinalOvertime = async (
+  userId: string,
+  userName: string,
+  overtimeHoursToAdd: number
+): Promise<void> => {
+  if (overtimeHoursToAdd <= 0) return;
+
+  try {
+    const docRef = doc(db, "overtime", userId);
+    const docSnap = await getDoc(docRef);
+    const currentTotal = docSnap.exists() ? (docSnap.data().overtimeHours || 0) : 0;
+
+    await setDoc(docRef, {
+      userId,
+      userName,
+      overtimeHours: Math.round((currentTotal + overtimeHoursToAdd) * 100) / 100,
+      lastUpdated: new Date().toISOString(),
+    }, { merge: true });
+  } catch (error) {
+    console.error('Error saving final overtime:', error);
+    throw error;
   }
 };
 
