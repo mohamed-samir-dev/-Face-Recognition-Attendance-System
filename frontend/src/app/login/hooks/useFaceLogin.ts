@@ -123,6 +123,15 @@ export function useFaceLogin(onCancel: () => void) {
         fullUserData = { ...data.user, ...userDoc.data() } as typeof data.user;
       }
 
+      // ── Account Lock Check ──
+      const isLocked = (fullUserData as Record<string, unknown>).isLocked;
+      if (isLocked) {
+        setAttempts((prev) => prev + 1);
+        setError("This account has been disabled. Please contact your administrator.");
+        setStep("camera");
+        return;
+      }
+
       // ── IP Suspension Check ──
       const ipLocked = (fullUserData as Record<string, unknown>).ipLocked;
       const isSuspended = (fullUserData as Record<string, unknown>).status === "Suspended";
