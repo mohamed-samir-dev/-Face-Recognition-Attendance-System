@@ -209,6 +209,7 @@ function FlagCard({ log, formatTime, onUnlock, unlocking }: {
               <span className="text-xs font-semibold text-red-600">Account Suspended</span>
             </div>
           )}
+        </div>
 
         <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
           <Globe className="w-3.5 h-3.5 text-gray-400 shrink-0" />
