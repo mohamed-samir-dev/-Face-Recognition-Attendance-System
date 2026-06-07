@@ -82,7 +82,7 @@ function InfoRow({ icon, label, value, color, bg }: { icon: React.ReactNode; lab
 }
 
 export default function FaceLoginCamera({ onCancel }: FaceLoginCameraProps) {
-  const { step, error, attempts, videoRef, recognizedUser, sessionBlocked, blockedBy, networkBlocked, blockedIp, captureAndLogin, cancel, maxAttempts } =
+  const { step, error, attempts, videoRef, recognizedUser, sessionBlocked, blockedBy, networkBlocked, blockedIp, ipFlagCount, ipAccountLocked, captureAndLogin, cancel, maxAttempts } =
     useFaceLogin(onCancel);
 
   const isProcessing = step === "processing";
@@ -92,7 +92,7 @@ export default function FaceLoginCamera({ onCancel }: FaceLoginCameraProps) {
   return (
     <Card>
       {sessionBlocked && <SessionBlockedModal onClose={cancel} blockedBy={blockedBy} />}
-      {networkBlocked && <NetworkBlockedModal onClose={cancel} currentIp={blockedIp} />}
+      {networkBlocked && <NetworkBlockedModal onClose={cancel} currentIp={blockedIp} flagCount={ipFlagCount} accountLocked={ipAccountLocked} />}
       <div className="flex flex-col items-center gap-4">
         {/* Header */}
         {!isSuccess && (

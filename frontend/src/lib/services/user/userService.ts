@@ -138,6 +138,11 @@ export const getUserByName = async (name: string): Promise<User | null> => {
   return users.find(user => user.name.toLowerCase() === name.toLowerCase()) || null;
 };
 
+export const toggleAccountLock = async (userId: string, lock: boolean): Promise<void> => {
+  const userRef = doc(db, "users", userId);
+  await updateDoc(userRef, { isLocked: lock });
+};
+
 export const deleteUser = async (userId: string): Promise<void> => {
   // Delete the user
   await deleteDoc(doc(db, "users", userId));

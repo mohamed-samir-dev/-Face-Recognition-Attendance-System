@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Calendar, FileText, Settings, Users, Building, Monitor, Smartphone, ShieldAlert, Wifi } from "lucide-react";
+import { BarChart3, Calendar, FileText, Settings, Users, Building, Monitor, Smartphone, ShieldAlert, Wifi, Flag } from "lucide-react";
 import NavigationItem from "./NavigationItem";
 import {AdminNavigationMenuProps}from "../../types"
 
@@ -16,6 +16,7 @@ export default function NavigationMenu({ activeTab, onTabChange, pendingCount }:
     { id: "DeviceManagement", label: "Device Management", icon: Smartphone },
     { id: "NetworkManagement", label: "Network Access", icon: Wifi },
     { id: "AccessDeniedLogs", label: "Access Denied Logs", icon: ShieldAlert },
+    { id: "IpFlags", label: "IP Flags", icon: Flag },
     { id: "Settings", label: "Settings", icon: Settings },
   ];
 

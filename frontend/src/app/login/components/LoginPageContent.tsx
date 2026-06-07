@@ -9,7 +9,7 @@ import NetworkBlockedModal from "./NetworkBlockedModal";
 
 export default function LoginPageContent() {
   const [mounted, setMounted] = useState(false);
-  const { error, loading, faceLoading, showFaceLogin, setShowFaceLogin, sessionBlocked, setSessionBlocked, blockedBy, networkBlocked, setNetworkBlocked, blockedIp, handleLogin, handleFacialRecognition, handleClearSession } = useLogin();
+  const { error, loading, faceLoading, showFaceLogin, setShowFaceLogin, sessionBlocked, setSessionBlocked, blockedBy, networkBlocked, setNetworkBlocked, blockedIp, ipFlagCount, ipAccountLocked, handleLogin, handleFacialRecognition, handleClearSession } = useLogin();
 
   useEffect(() => {
     setMounted(true);
@@ -25,7 +25,7 @@ export default function LoginPageContent() {
         <SessionBlockedModal onClose={() => setSessionBlocked(false)} blockedBy={blockedBy} />
       )}
       {networkBlocked && (
-        <NetworkBlockedModal onClose={() => setNetworkBlocked(false)} currentIp={blockedIp} />
+        <NetworkBlockedModal onClose={() => setNetworkBlocked(false)} currentIp={blockedIp} flagCount={ipFlagCount} accountLocked={ipAccountLocked} />
       )}
       <LoginContainer
         onLogin={handleLogin}

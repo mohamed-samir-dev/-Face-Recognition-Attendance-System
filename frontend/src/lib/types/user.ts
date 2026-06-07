@@ -24,5 +24,9 @@ export interface User {
   systemAnnouncements?: boolean;
   leaveStatusUpdates?: boolean;
   attendanceReminders?: boolean;
-
+  // IP Flag system
+  ipFlagCount?: number;
+  ipLocked?: boolean;
+  // Account lock (admin controlled)
+  isLocked?: boolean;
 }

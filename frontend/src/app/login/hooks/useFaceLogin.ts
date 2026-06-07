@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { updateUserSession, checkExistingSession, logAccessDenied, BlockedByUser } from "@/lib/services/auth/sessionService";
-import { validateNetworkAccess } from "@/lib/services/system/networkService";
+import { validateNetworkAccess, checkAndHandleIpFlag, checkWeeklyFlagReset } from "@/lib/services/system/networkService";
 import { FaceLoginResponse } from "../types";
 
 export type FaceLoginStep = "camera" | "processing" | "success" | "failed";
@@ -32,6 +32,8 @@ export function useFaceLogin(onCancel: () => void) {
   const [blockedBy, setBlockedBy] = useState<BlockedByUser | null>(null);
   const [networkBlocked, setNetworkBlocked] = useState(false);
   const [blockedIp, setBlockedIp] = useState<string | null>(null);
+  const [ipFlagCount, setIpFlagCount] = useState(0);
+  const [ipAccountLocked, setIpAccountLocked] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const router = useRouter();
@@ -116,9 +118,26 @@ export function useFaceLogin(onCancel: () => void) {
       let userId = data.user.id;
 
       if (!snapshot.empty) {
-        const doc = snapshot.docs[0];
-        userId = doc.id;
-        fullUserData = { ...data.user, ...doc.data() } as typeof data.user;
+        const userDoc = snapshot.docs[0];
+        userId = userDoc.id;
+        fullUserData = { ...data.user, ...userDoc.data() } as typeof data.user;
+      }
+
+      // ── IP Suspension Check ──
+      const ipLocked = (fullUserData as Record<string, unknown>).ipLocked;
+      const isSuspended = (fullUserData as Record<string, unknown>).status === "Suspended";
+      if (ipLocked || isSuspended) {
+        const wasReset = await checkWeeklyFlagReset(userId);
+        if (!wasReset) {
+          setIpFlagCount(2);
+          setIpAccountLocked(true);
+          setBlockedIp(null);
+          setNetworkBlocked(true);
+          setStep("failed");
+          stopCamera();
+          return;
+        }
+        // Week passed → flags cleared, fall through to normal login
       }
 
       // ── Network Access Check (admins exempt) ──
@@ -126,6 +145,9 @@ export function useFaceLogin(onCancel: () => void) {
       if (!networkCheck.allowed) {
         setBlockedIp(networkCheck.currentIp);
         setNetworkBlocked(true);
+        const flagResult = await checkAndHandleIpFlag(userId, networkCheck.currentIp, "face");
+        setIpFlagCount(flagResult.flagCount);
+        setIpAccountLocked(flagResult.locked);
         setStep("failed");
         stopCamera();
         return;
@@ -208,6 +230,8 @@ export function useFaceLogin(onCancel: () => void) {
     blockedBy,
     networkBlocked,
     blockedIp,
+    ipFlagCount,
+    ipAccountLocked,
     captureAndLogin,
     cancel,
     maxAttempts: MAX_ATTEMPTS,

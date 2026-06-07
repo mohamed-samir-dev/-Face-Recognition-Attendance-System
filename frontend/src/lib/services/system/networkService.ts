@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, setDoc, deleteDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, deleteDoc, addDoc, updateDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
 export interface AllowedNetwork {
@@ -87,4 +87,122 @@ export async function logNetworkDenied({
   } catch (e) {
     console.error("Failed to log network denied:", e);
   }
+}
+
+/**
+ * Called when a user tries to login from a non-allowed IP.
+ *
+ * Rules:
+ * - Flags reset automatically if the current week (Mon–Sun) is different
+ *   from the week the first flag was recorded (ipFlagWeekStart).
+ * - 1st flag in the week → warning only (ipFlagCount = 1)
+ * - 2nd flag in the week → account suspended (status = "Suspended", ipLocked = true)
+ * - While suspended every login attempt is blocked with a "contact Admin" message.
+ */
+export async function checkAndHandleIpFlag(
+  userId: string,
+  ip: string | null,
+  loginMethod: "password" | "face"
+): Promise<{ flagCount: number; locked: boolean }> {
+  try {
+    const userRef = doc(db, "users", userId);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) return { flagCount: 0, locked: false };
+
+    const data = snap.data();
+
+    // ── Week reset logic ──
+    const getMondayMs = (d: Date) => {
+      const day = d.getDay(); // 0 = Sun
+      const diff = (day === 0 ? -6 : 1 - day);
+      const monday = new Date(d);
+      monday.setHours(0, 0, 0, 0);
+      monday.setDate(d.getDate() + diff);
+      return monday.getTime();
+    };
+
+    const nowMonday = getMondayMs(new Date());
+    const storedWeekStart: number = data.ipFlagWeekStart ?? 0;
+    const isNewWeek = storedWeekStart < nowMonday;
+
+    const currentFlags: number = isNewWeek ? 0 : (data.ipFlagCount ?? 0);
+    const newFlagCount = currentFlags + 1;
+    const willSuspend = newFlagCount >= 2;
+
+    await updateDoc(userRef, {
+      ipFlagCount: newFlagCount,
+      ipFlagWeekStart: isNewWeek ? nowMonday : storedWeekStart,
+      ...(willSuspend ? { ipLocked: true, status: "Suspended" } : {}),
+    });
+
+    await addDoc(collection(db, "ipFlagLogs"), {
+      userId,
+      name: data.name || "Unknown",
+      image: data.image || null,
+      department: data.department || null,
+      ip,
+      loginMethod,
+      flagCount: newFlagCount,
+      locked: willSuspend,
+      timestamp: serverTimestamp(),
+      resolved: false,
+    });
+
+    return { flagCount: newFlagCount, locked: willSuspend };
+  } catch (e) {
+    console.error("checkAndHandleIpFlag error:", e);
+    return { flagCount: 0, locked: false };
+  }
+}
+
+/**
+ * Checks if a suspended user's week has passed and auto-resets their flags.
+ * Returns true if the account was auto-reset (user can now proceed to login).
+ */
+export async function checkWeeklyFlagReset(userId: string): Promise<boolean> {
+  try {
+    const userRef = doc(db, "users", userId);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) return false;
+
+    const data = snap.data();
+    if (!data.ipLocked) return false;
+
+    const getMondayMs = (d: Date) => {
+      const day = d.getDay();
+      const diff = (day === 0 ? -6 : 1 - day);
+      const monday = new Date(d);
+      monday.setHours(0, 0, 0, 0);
+      monday.setDate(d.getDate() + diff);
+      return monday.getTime();
+    };
+
+    const nowMonday = getMondayMs(new Date());
+    const storedWeekStart: number = data.ipFlagWeekStart ?? 0;
+
+    if (storedWeekStart < nowMonday) {
+      await updateDoc(userRef, {
+        ipFlagCount: 0,
+        ipLocked: false,
+        ipFlagWeekStart: nowMonday,
+        status: "Active",
+      });
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/** Admin manually unlocks a user's IP flag suspension */
+export async function unlockIpFlag(userId: string): Promise<void> {
+  const userRef = doc(db, "users", userId);
+  await updateDoc(userRef, { ipFlagCount: 0, ipLocked: false, status: "Active", ipFlagWeekStart: 0 });
+
+  const logsSnap = await getDocs(collection(db, "ipFlagLogs"));
+  const batch: Promise<void>[] = logsSnap.docs
+    .filter((d) => d.data().userId === userId && !d.data().resolved)
+    .map((d) => updateDoc(doc(db, "ipFlagLogs", d.id), { resolved: true }));
+  await Promise.all(batch);
 }

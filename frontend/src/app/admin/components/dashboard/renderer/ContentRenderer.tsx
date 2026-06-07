@@ -8,6 +8,7 @@ import DepartmentsContent from "@/components/admin/departments/views/content/Dep
 import DeviceManagementView from "@/components/admin/device-management/DeviceManagementView";
 import NetworkManagementView from "@/components/admin/network-management/NetworkManagementView";
 import AccessDeniedLogsView from "@/components/admin/access-denied-logs/AccessDeniedLogsView";
+import IpFlagsView from "@/components/admin/ip-flags/IpFlagsView";
 import MonitoringTab from "../../monitoring/MonitoringTab";
 
 interface ContentRendererProps {
@@ -37,6 +38,8 @@ export default function ContentRenderer({ activeTab, searchQuery }: ContentRende
       return <NetworkManagementView />;
     case "AccessDeniedLogs":
       return <AccessDeniedLogsView />;
+    case "IpFlags":
+      return <IpFlagsView />;
     case "Settings":
       return <SettingsContent />;
     default:

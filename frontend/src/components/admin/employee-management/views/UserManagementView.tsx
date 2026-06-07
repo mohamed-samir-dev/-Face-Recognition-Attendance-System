@@ -5,7 +5,7 @@ import {
   Plus, Download, Users, UserCog, UsersRound, Search,
   ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft,
   ChevronRight, Edit, Key, Bell, Smartphone, Trash2,
-  TrendingUp, UserCheck, UserX, Briefcase,
+  TrendingUp, UserCheck, UserX, Briefcase, Lock, LockOpen,
 } from "lucide-react";
 import Image from "next/image";
 import { DeleteModal, ChangePasswordModal } from "../modals";
@@ -13,6 +13,7 @@ import { useUserManagement } from "../hooks";
 import { User } from "@/lib/types";
 import { sendMonitoringAlert } from "@/lib/services/system/monitoringService";
 import { resetDeviceBinding } from "@/lib/services/auth/sessionService";
+import { toggleAccountLock } from "@/lib/services/user/userService";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 
@@ -329,6 +330,17 @@ export default function UserManagementView() {
                               catch { toast.error("Failed to reset device"); }
                             }}
                           />
+                          <ActionBtn
+                            icon={user.isLocked ? LockOpen : Lock}
+                            color={user.isLocked ? "emerald" : "amber"}
+                            title={user.isLocked ? "Unlock Account" : "Lock Account"}
+                            onClick={async () => {
+                              try {
+                                await toggleAccountLock(user.id, !user.isLocked);
+                                toast.success(user.isLocked ? `${user.name}'s account unlocked` : `${user.name}'s account locked`);
+                              } catch { toast.error("Failed to update account lock"); }
+                            }}
+                          />
                           <ActionBtn icon={Trash2} color="rose" title="Delete"
                             disabled={deleting === user.id}
                             onClick={() => handleDeleteClick(user)}
@@ -411,6 +423,17 @@ export default function UserManagementView() {
                         onClick={async () => {
                           try { await resetDeviceBinding(user.id); toast.success(`Device reset for ${user.name}`); }
                           catch { toast.error("Failed to reset device"); }
+                        }}
+                      />
+                      <ActionBtn
+                        icon={user.isLocked ? LockOpen : Lock}
+                        color={user.isLocked ? "emerald" : "amber"}
+                        title={user.isLocked ? "Unlock Account" : "Lock Account"}
+                        onClick={async () => {
+                          try {
+                            await toggleAccountLock(user.id, !user.isLocked);
+                            toast.success(user.isLocked ? `${user.name}'s account unlocked` : `${user.name}'s account locked`);
+                          } catch { toast.error("Failed to update account lock"); }
                         }}
                       />
                       <ActionBtn icon={Trash2} color="rose" title="Delete"

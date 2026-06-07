@@ -4,7 +4,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { LoginFormData } from "../types";
 import { updateUserSession, checkExistingSession, logAccessDenied, BlockedByUser } from "@/lib/services/auth/sessionService";
-import { validateNetworkAccess, logNetworkDenied } from "@/lib/services/system/networkService";
+import { validateNetworkAccess, logNetworkDenied, checkAndHandleIpFlag, checkWeeklyFlagReset } from "@/lib/services/system/networkService";
 import toast from "react-hot-toast";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -27,6 +27,8 @@ export function useLogin() {
   const [blockedBy, setBlockedBy] = useState<BlockedByUser | null>(null);
   const [networkBlocked, setNetworkBlocked] = useState(false);
   const [blockedIp, setBlockedIp] = useState<string | null>(null);
+  const [ipFlagCount, setIpFlagCount] = useState(0);
+  const [ipAccountLocked, setIpAccountLocked] = useState(false);
   const router = useRouter();
 
   // Auto-redirect if session exists
@@ -79,12 +81,37 @@ export function useLogin() {
         const userData = snapshot.docs[0].data();
         const userId = snapshot.docs[0].id;
 
+        // ── Account Lock Check ──
+        if (userData.isLocked) {
+          setError("Your account has been suspended. Please contact the administrator.");
+          setLoading(false);
+          return;
+        }
+
+        // ── IP Suspension Check ──
+        if (userData.ipLocked || userData.status === "Suspended") {
+          // Check if the week has passed → auto-reset
+          const wasReset = await checkWeeklyFlagReset(userId);
+          if (!wasReset) {
+            setIpFlagCount(2);
+            setIpAccountLocked(true);
+            setBlockedIp(null);
+            setNetworkBlocked(true);
+            setLoading(false);
+            return;
+          }
+          // Week passed → flags cleared, fall through to normal login
+        }
+
         // ── Network Access Check (admins exempt) ──
         const networkCheck = await validateNetworkAccess(userData.accountType);
         if (!networkCheck.allowed) {
           setBlockedIp(networkCheck.currentIp);
           setNetworkBlocked(true);
           await logNetworkDenied({ userId, name: userData.name || "Unknown", ip: networkCheck.currentIp, loginMethod: "password" });
+          const flagResult = await checkAndHandleIpFlag(userId, networkCheck.currentIp, "password");
+          setIpFlagCount(flagResult.flagCount);
+          setIpAccountLocked(flagResult.locked);
           setLoading(false);
           return;
         }
@@ -165,6 +192,8 @@ export function useLogin() {
     networkBlocked,
     setNetworkBlocked,
     blockedIp,
+    ipFlagCount,
+    ipAccountLocked,
     handleLogin,
     handleFacialRecognition,
     handleClearSession,
