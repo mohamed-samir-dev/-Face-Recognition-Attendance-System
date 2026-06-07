@@ -130,15 +130,22 @@ export default function FaceDetectionOverlay({ videoRef, isActive, onFaceCountCh
         className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
       />
       
-      <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 backdrop-blur-md rounded-lg px-4 py-2 border shadow-lg z-20 ${
-        faceCount === 0 ? 'bg-yellow-500/20 border-yellow-500/50' :
-        faceCount === 1 ? 'bg-green-500/20 border-green-500/50' :
-        'bg-red-500/20 border-red-500/50'
+      <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border shadow-xl transition-all duration-300 ${
+        faceCount === 0
+          ? 'bg-amber-500/20 border-amber-400/40 shadow-amber-500/20'
+          : faceCount === 1
+          ? 'bg-emerald-500/20 border-emerald-400/40 shadow-emerald-500/20'
+          : 'bg-red-500/20 border-red-400/40 shadow-red-500/20'
       }`}>
-        <p className="text-white text-sm font-bold flex items-center gap-2">
-          {faceCount === 0 && '⚠️ No face detected'}
-          {faceCount === 1 && '✓ Face detected - Ready'}
-          {faceCount > 1 && `❌ ${faceCount} faces detected`}
+        <span className={`w-2 h-2 rounded-full animate-pulse ${
+          faceCount === 0 ? 'bg-amber-400' : faceCount === 1 ? 'bg-emerald-400' : 'bg-red-400'
+        }`} />
+        <p className={`text-xs font-semibold tracking-wide uppercase ${
+          faceCount === 0 ? 'text-amber-300' : faceCount === 1 ? 'text-emerald-300' : 'text-red-300'
+        }`}>
+          {faceCount === 0 && 'Position your face'}
+          {faceCount === 1 && 'Face detected — Ready'}
+          {faceCount > 1 && `${faceCount} faces — One person only`}
         </p>
       </div>
     </>
