@@ -9,10 +9,7 @@ import { FormFieldsProps } from '../../../../types';
 export default function FormFields({
   formData,
   setFormData,
-  imageOption,
-  setImageOption,
   photoError,
-  handleFileUpload,
   generatedUsername,
   onNameChange
 }: FormFieldsProps) {
@@ -28,10 +25,7 @@ export default function FormFields({
       <PhotoUploadSection
         formData={formData}
         setFormData={setFormData}
-        imageOption={imageOption}
-        setImageOption={setImageOption}
         photoError={photoError}
-        onFileUpload={handleFileUpload}
       />
     </>
   );

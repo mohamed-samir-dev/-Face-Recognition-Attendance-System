@@ -132,10 +132,7 @@ export interface URLInputProps {
 export interface PhotoUploadSectionProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  imageOption: 'upload' | 'camera' | 'url';
-  setImageOption: React.Dispatch<React.SetStateAction<'upload' | 'camera' | 'url'>>;
   photoError: string;
-  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 export interface StatusBadgeProps {
   status?: string;
@@ -233,11 +230,8 @@ export interface TableRowProps {
 }export interface FormContainerProps {
   formData: FormData & { emailError?: string };
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  imageOption: 'upload' | 'camera' | 'url';
-  setImageOption: React.Dispatch<React.SetStateAction<'upload' | 'camera' | 'url'>>;
   photoError: string;
   loading: boolean;
-  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
   generatedUsername?: string;
   onNameChange?: (name: string) => void;
@@ -247,10 +241,7 @@ export
 interface FormFieldsProps {
   formData: FormData & { emailError?: string };
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  imageOption: 'upload' | 'camera' | 'url';
-  setImageOption: React.Dispatch<React.SetStateAction<'upload' | 'camera' | 'url'>>;
   photoError: string;
-  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   generatedUsername?: string;
   onNameChange?: (name: string) => void;
 }

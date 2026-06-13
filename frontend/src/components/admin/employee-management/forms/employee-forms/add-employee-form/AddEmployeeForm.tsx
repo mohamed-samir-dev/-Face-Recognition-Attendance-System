@@ -30,11 +30,8 @@ export default function AddEmployeeForm() {
         <FormContainer
           formData={formData}
           setFormData={setFormData}
-          imageOption={imageOption}
-          setImageOption={setImageOption}
           photoError={photoError}
           loading={loading}
-          handleFileUpload={handleFileUpload}
           handleSubmit={handleSubmit}
           generatedUsername={generatedUsername}
           onNameChange={previewUsername}

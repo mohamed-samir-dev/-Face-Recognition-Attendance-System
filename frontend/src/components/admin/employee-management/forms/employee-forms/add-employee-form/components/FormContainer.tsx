@@ -7,11 +7,8 @@ import {FormContainerProps}from "../../../../types"
 export default function FormContainer({
   formData,
   setFormData,
-  imageOption,
-  setImageOption,
   photoError,
   loading,
-  handleFileUpload,
   handleSubmit,
   generatedUsername,
   onNameChange
@@ -24,10 +21,7 @@ export default function FormContainer({
       <FormFields
         formData={formData}
         setFormData={setFormData}
-        imageOption={imageOption}
-        setImageOption={setImageOption}
         photoError={photoError}
-        handleFileUpload={handleFileUpload}
         generatedUsername={generatedUsername}
         onNameChange={onNameChange}
       />
