@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getUsers, updateUserDepartment } from "@/lib/services/user/userService";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import { updateUserDepartment } from "@/lib/services/user/userService";
 import { useLeaveDays } from "../hooks/useLeaveDays";
 import { ProfileSectionProps } from "../types";
 import { ProfileImage, ProfileInfo, ProfileActions } from "./components";
@@ -18,9 +20,9 @@ export default function ProfileSection({
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const users = await getUsers();
-        const updatedUser = users.find((u) => u.id === user.id);
-        if (updatedUser) {
+        const userDoc = await getDoc(doc(db, "users", user.id));
+        if (userDoc.exists()) {
+          const updatedUser = { id: userDoc.id, ...userDoc.data() } as typeof user;
           if (!updatedUser.department && !updatedUser.Department) {
             await updateUserDepartment(updatedUser.id, "General");
             updatedUser.department = "General";

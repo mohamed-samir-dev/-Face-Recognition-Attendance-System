@@ -82,6 +82,7 @@ export const useWorkTimer = (userId?: string) => {
       interval = setInterval(async () => {
         const timerData = await getTimerData(userId!);
         if (timerData && timerData.checkInTime && timerData.active) {
+          setIsActive(true);
           const now = new Date();
           const settings = await getCompanySettings();
           const workEnd = new Date(`${now.toDateString()} ${settings.workingHours.endTime}:00`);
