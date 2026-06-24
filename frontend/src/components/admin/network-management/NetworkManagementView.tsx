@@ -221,7 +221,7 @@ export default function NetworkManagementView() {
               placeholder="e.g. 203.0.113.50"
               value={ip}
               onChange={(e) => setIp(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
             />
           </div>
           <div className="flex-1">
@@ -233,7 +233,7 @@ export default function NetworkManagementView() {
               placeholder="e.g. Main Office WiFi"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
             />
           </div>
           <div className="flex items-end">
@@ -272,7 +272,7 @@ export default function NetworkManagementView() {
             placeholder="Search by IP or label..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
           />
         </div>
       )}
