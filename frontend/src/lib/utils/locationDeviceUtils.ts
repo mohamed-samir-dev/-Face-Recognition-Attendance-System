@@ -36,48 +36,45 @@ export async function getLocationData(): Promise<LocationData | null> {
       return;
     }
 
+    const processPosition = async (position: GeolocationPosition) => {
+      const { latitude, longitude, accuracy } = position.coords;
+
+      const locations = [
+        { ...COMPANY_LOCATIONS.mainOffice, lat: COMPANY_LOCATIONS.mainOffice.coordinates.lat, lng: COMPANY_LOCATIONS.mainOffice.coordinates.lng },
+        ...COMPANY_LOCATIONS.branches.map(b => ({ ...b, lat: b.coordinates.lat, lng: b.coordinates.lng }))
+      ];
+
+      const allDistances = locations.map(loc => {
+        const distance = calculateDistance(latitude, longitude, loc.lat, loc.lng);
+        return { name: loc.name, distance, isWithin: distance <= loc.radius };
+      });
+
+      const isWithinGeofence = allDistances.some(d => d.isWithin);
+
+      let address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+          { signal: AbortSignal.timeout(5000) }
+        );
+        const data = await response.json();
+        address = data.display_name || address;
+      } catch { /* keep coordinate fallback */ }
+
+      resolve({ address, latitude, longitude, accuracy, isWithinGeofence, allDistances });
+    };
+
+    // Try high accuracy first, fall back to low accuracy on mobile if it fails/times out
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        
-        const locations = [
-          { ...COMPANY_LOCATIONS.mainOffice, lat: COMPANY_LOCATIONS.mainOffice.coordinates.lat, lng: COMPANY_LOCATIONS.mainOffice.coordinates.lng },
-          ...COMPANY_LOCATIONS.branches.map(b => ({ ...b, lat: b.coordinates.lat, lng: b.coordinates.lng }))
-        ];
-        
-        const allDistances = locations.map(loc => {
-          const distance = calculateDistance(latitude, longitude, loc.lat, loc.lng);
-          return {
-            name: loc.name,
-            distance,
-            isWithin: distance <= loc.radius
-          };
-        });
-
-        const isWithinGeofence = allDistances.some(d => d.isWithin);
-
-        let address = '';
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const data = await response.json();
-          address = data.display_name || '';
-        } catch {
-          address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-        }
-
-        resolve({
-          address,
-          latitude,
-          longitude,
-          accuracy,
-          isWithinGeofence,
-          allDistances
-        });
+      processPosition,
+      () => {
+        navigator.geolocation.getCurrentPosition(
+          processPosition,
+          () => resolve(null),
+          { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+        );
       },
-      () => resolve(null),
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   });
 }
